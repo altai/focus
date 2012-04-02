@@ -1,0 +1,6 @@
+syntax: glob
+
+*.pyc
+local_settings.py
+pip-log.txt
+Ignored

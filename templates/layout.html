@@ -1,0 +1,76 @@
+{% macro render_form_errors(field) -%}
+    {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+{%- endmacro %}
+
+{% macro render_field(field) -%}
+    <div class="control-group {% if field.errors %}error{% endif %}">
+        <div class="controls">
+            {{ field(placeholder=field.label.text, **kwargs)|safe }}
+            {% if field.errors %}
+                {% for error in field.errors %}
+                    <div class="help-inline">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Toolza</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link href="{{ url_for('static', filename='bootstrap-2.0.2/css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='bootstrap-2.0.2/css/bootstrap-responsive.css') }}" rel="stylesheet">
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class="navbar">
+    <div class="navbar-inner">
+    <div class="container">
+        <ul class="nav">
+    <li class="active">
+    <a href="#">Home</a>
+    </li>
+    <li><a href="#">Link</a></li>
+    <li><a href="#">Link</a></li>
+    </ul>
+    {% if authenticated %}
+        <ul class="nav pull-right">
+    <li><a>{{ username }}</a></li>
+    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    </ul>
+    {% endif %}
+    </div>
+    </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div class="row">{% block content %}{% endblock %}</div>
+    </div>
+    <script src="{{ url_for('static', filename='bootstrap-2.0.2/js/bootstrap.js') }}"></script>
+  </body>
+</html>
+
+
+
