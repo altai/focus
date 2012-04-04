@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+Tenants:
+<ul>
+  {% for user_role in user_roles %}
+  <li>{{ user_role.tenant.name }} [{{ user_role.role.name }}]</li>
+  {% endfor %}
+</ul>
+{% endblock %}

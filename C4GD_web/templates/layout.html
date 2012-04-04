@@ -23,7 +23,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Toolza</title>
+    <title>C4GD-web</title>
     <meta name="description" content="">
     <meta name="author" content="">
 
@@ -40,16 +40,16 @@
     <div class="navbar">
     <div class="navbar-inner">
     <div class="container">
+    {% if g.user %}
         <ul class="nav">
     <li class="active">
-    <a href="#">Home</a>
+    <a href="{{ url_for('index') }}">Tenants list</a>
     </li>
-    <li><a href="#">Link</a></li>
-    <li><a href="#">Link</a></li>
     </ul>
-    {% if authenticated %}
+	{% endif %}
+    {% if g.user %}
         <ul class="nav pull-right">
-    <li><a>{{ username }}</a></li>
+    <li><a>{{ g.user.name }}</a></li>
     <li><a href="{{ url_for('logout') }}">Logout</a></li>
     </ul>
     {% endif %}

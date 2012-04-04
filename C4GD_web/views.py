@@ -2,10 +2,16 @@ import functools
 import ldap
 import MySQLdb
 import urllib
-from flask import (
-    Flask, flash, render_template, request, redirect, url_for, session
-)
+
+from datetime import datetime
+
+from flask import g, flash, render_template, request, redirect, url_for, session
 from flaskext.wtf import Form, HiddenField, TextField, PasswordField, Required
+
+from storm.exceptions import NotOneError
+
+from C4GD_web import app
+from models import *
 
 def get_next_url():
     """
@@ -55,23 +61,8 @@ def obtain_token(username):
     
     Context: view
     """
-    connection = MySQLdb.connect(
-        **mapped_dict(app.config, {
-            'host': 'DB_HOST',
-            'user': 'DB_USER',
-            'passwd': 'DB_PASS',
-            'db': 'DB_NAME',
-            'port': 'DB_PORT'
-        })
-    )
-    with connection as cursor:
-        cursor.execute('''
-            select token.id 
-            from users left join token on user_id 
-            where users.name = %s and token.expires > now() 
-            order by token.expires limit 1;''', (username,))
-        if cursor.rowcount:
-            return cursor.fetchone()[0]
+
+    import pdb; pdb.set_trace()
 
 # ldap validator
 def are_ldap_authenticated(username, password):
@@ -92,32 +83,17 @@ def are_ldap_authenticated(username, password):
         return True
     finally:
         connection.unbind()
-             
-# config
-SECRET_KEY = 'g.U(\x8cQ\xbc\xdb\\\xc3\x9a\xb2\xb6,\xec\xad(\xf8"2*\xef\x0bd'
-NEXT_TO_LOGIN_ARG = 'next' # GET/POST field name to store next after login URL
-DEFAULT_NEXT_TO_LOGIN_VIEW = 'index' # no next? redirect to this view
-DEFAULT_NEXT_TO_LOGOUT_VIEW = 'index'
-LDAP_URI = 'ldap://ns/' 
-LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
-DB_HOST = ''
-DB_PORT = 3306 # must be integer
-DB_USER = ''
-DB_PASS = ''
-DB_NAME = ''
 
-#app initialization
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.config.from_envvar('TOOLZA_CONFIG', silent=True)
-
-def is_authenticated():
-    return 'token' in session and 'username' in session
+@app.before_request
+def load_authenticated_user():
+    if 'user_id' in session:
+        g.user = g.store.find(
+            User, id=session['user_id'], enabled=True).one()
 
 def login_required(view):
     @functools.wraps(view)
     def wrapped(*args, **kwargs):
-        if is_authenticated():
+        if hasattr(g, 'user'):
             return view(*args, **kwargs)
         else:
             return redirect(
@@ -129,24 +105,24 @@ def login_required(view):
 
 @app.context_processor
 def auth_processor():
-    d = {'authenticated': is_authenticated()}
-    if is_authenticated():
-        d['username'] = session['username']
-    return d
+    return {'user': getattr(g, 'user', None)}
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     form = get_login_form()()
     if form.validate_on_submit():
         if are_ldap_authenticated(form.username.data, form.password.data):
-            token = obtain_token(form.username.data)
-            if token is not None:
-                session['username'] = form.username.data
-                session['token'] = token
+            try:
+                g.user = g.store.find(
+                    User,
+                    name=form.username.data, enabled=True).one()
+            except NotOneError:
+                flash('No enabled user `%s` in Keystone database' % \
+                          form.username.data, 'error')
+            else:
+                session['user_id'] = g.user.id
                 flash('You were logged in', 'success')
                 return redirect(form.next.data)
-            else:
-                flash('Can not obtain an API token', 'error') 
         else:
             flash('Wrong username/password', 'error')
     return render_template('login.html', form=form)
@@ -154,14 +130,12 @@ def login():
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html', token=session['token'])
+    return render_template(
+        'index.html',
+        user_roles=g.store.find(UserRole, user_id=g.user.id))
 
 @app.route('/logout/')
 def logout():
-    session.pop('token', None)
+    session.pop('user_id', None)
     flash('You were logged out', 'success')
     return redirect(url_for(app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))
-
-
-if __name__ == '__main__':
-    app.run()   
