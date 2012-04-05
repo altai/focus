@@ -75,7 +75,17 @@ def get_user_token_id_endpoint(user, tenant):
     """
     token_rs = Token.valid().find(user_id=user.id, tenant_id=tenant.id)
     if token_rs.count():
-        return token_rs.values('id').next()[0]
+        enabled_endpoint_templates_id = 1 # booeh. expand on this.
+        endpoint = g.store.find(
+            Endpoint,
+            endpoint_template_id=enabled_endpoint_templates_id,
+            tenant_id=tenant.id
+            ).one()
+        endpoint_template = g.store.find(EndpointTemplate, id=endpoint.endpoint_template_id, enabled=True).one()
+        public_url = endpoint_template.public_url
+        if '%tenant_id%' in public_url:
+            public_url = public_url.replace('%tenant_id%', str(tenant.id))
+        return token_rs.values(Token.id).next(), public_url
     else:
         key = g.user.credentials.find(tenant_id=tenant.id).values(Credential.key).next()
         # keys can have  tenant name appended (concatenated with ':')
