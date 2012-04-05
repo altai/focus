@@ -75,7 +75,7 @@ def get_user_token_id_endpoint(user, tenant):
     """
     token_rs = Token.valid().find(user_id=user.id, tenant_id=tenant.id)
     if token_rs.count():
-        return token_rs.values('id')[0][0]
+        return token_rs.values('id').next()[0]
     else:
         key = g.user.credentials.find(tenant_id=tenant.id).values(Credential.key).next()
         # keys can have  tenant name appended (concatenated with ':')
