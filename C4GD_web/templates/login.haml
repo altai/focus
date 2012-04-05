@@ -1,0 +1,18 @@
+-extends "base.haml"
+-block content
+  %form method="POST" action="." class="well offset4 span4 form-vertical"
+    %legend
+      Cloud Web GUI
+    {{ render_form_errors(form.csrf_token) }}
+    {{ form.hidden_tag() }}
+    {{ render_field(form.username) }}
+    {{ render_field(form.password) }}
+    %button type="submit" class="btn btn-primary"
+      Sign in
+
+-block bottom_js
+  %script type="text/javascript"
+    |$(document).ready(function(){
+    |  $('#username').focus();
+    |});
+

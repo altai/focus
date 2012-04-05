@@ -5,8 +5,12 @@ try:
 except ImportError:
     pass
 
+def remove_pyc():
+    local('find . -name \*.pyc -delete')    
+
 def test():
-    local('python tests.py')
+    remove_pyc()
+    local('python C4GD_web/tests.py')
 
 def dev_get_db():
     local('mysqldump -u web_ro -pweb_ro -h 172.30.0.1 --add-drop-table --skip-lock-tables keystone > Ignored/keystone.dump.sql')
@@ -14,7 +18,8 @@ def dev_get_db():
 
 
 def dev():
-    local('export TOOLZA_CONFIG=local_settings.py && export PYTHONPATH=`pwd`:$PYTHONPATH && python C4GD_web/runserver.py')
+    remove_pyc()
+    local('export C4GD_WEB_CONFIG=local_settings.py &&  python C4GD_web/runserver.py')
 
 def generate_dev_settings():
     local('''echo "DEBUG = True

@@ -1,0 +1,11 @@
+-extends "layout.haml"
+-block content
+  %header.subhead.jumbotron
+    %h2
+      Dashboard
+  %section
+    Tenants:
+    %ul
+      -for tenant, roles in tenants_with_roles
+        %li
+          {{ tenant.name }} [{% for role in roles %}{{ role.name }}{% endfor %}]

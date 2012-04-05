@@ -1,0 +1,28 @@
+-extends "base.haml"
+-block navbar
+  %div.navbar.navbar-fixed-top
+    %div.navbar-inner
+      %div.container
+        -if tenants_with_roles
+          %ul.nav
+            %li.dropdown
+              %a href="{{ url_for('index') }}"
+                Dashboard
+            %li.dropdown
+              %a.dropdown-toggle href="#" data-toggle="dropdown"
+                Select tenant
+                %b.caret
+              %ul.dropdown-menu
+                -for tenant, roles in  tenants_with_roles
+                  %li
+                    %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
+                      {{ tenant.name }} [{% for role in roles %}{{ role.name }}{% endfor %}]
+          %ul class="nav pull-right"
+            %li
+              %a
+                {{ g.user.name }}
+            %li
+              %a href="{{ url_for('logout') }}"
+                Logout
+
+

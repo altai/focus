@@ -2,8 +2,12 @@ syntax: glob
 
 *.pyc
 local_settings.py
+test_settings.py
 pip-log.txt
 Ignored
 build
 *~
 local_fab_settings.py
+\#*.*#
+\.#*.*
+

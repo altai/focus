@@ -7,3 +7,5 @@ Werkzeug
 #python-ldap -- installed via YUM
 wsgiref
 #fabric -- installed via YUM	
+Hamlish-Jinja
+requests
