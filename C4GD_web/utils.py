@@ -1,15 +1,15 @@
 import json # will fail in <2.6
-import ldap
+
 import requests
 import urlparse
-from C4GD_web import app
+
 from flask import request, url_for, g
 from flaskext.wtf import Form, HiddenField, TextField, PasswordField, Required
 from models import *
 
 
 __all__ = ['get_next_url', 'get_login_form',# 'mapped_dict', 
-           'are_ldap_authenticated', 'get_vms_list_for_tenant']
+           'get_vms_list_for_tenant']
 
 def urljoin(base, *args):
     """
@@ -46,25 +46,7 @@ def get_login_form():
         password = PasswordField('Password', [Required()])
     return LoginForm
 
-# ldap validator
-def are_ldap_authenticated(username, password):
-    """
-    Validates username and password with LDAP.
-    
-    Context: view
-    """
-    connection = ldap.initialize(app.config['LDAP_URI'])
-    dn = 'uid=%s,%s' % (
-        ldap.dn.escape_dn_chars(username),
-        app.config['LDAP_BASEDN'])
-    try:
-        connection.simple_bind_s(dn, password)
-    except ldap.INVALID_CREDENTIALS:
-        return False
-    else:
-        return True
-    finally:
-        connection.unbind()
+        
 
 def get_user_token_id_endpoint(user, tenant):
     """
@@ -73,9 +55,9 @@ def get_user_token_id_endpoint(user, tenant):
     If non-expired  toekn exists uses it.
     Otherwise requests new token from Keystone REST API.
     """
-    token_rs = Token.valid().find(user_id=user.id, tenant_id=tenant.id)
+    token_rs = Token.find_valid().find(user_id=user.id, tenant_id=tenant.id)
     if token_rs.count():
-        enabled_endpoint_templates_id = 1 # booeh. expand on this.
+        enabled_endpoint_templates_id = g.store
         endpoint = g.store.find(
             Endpoint,
             endpoint_template_id=enabled_endpoint_templates_id,
