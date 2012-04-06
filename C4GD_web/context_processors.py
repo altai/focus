@@ -2,6 +2,9 @@ from C4GD_web import app
 from flask import g
 from models import *
 
+@app.context_processor
+def debug_processor():
+    return {'DEBUG': app.config['DEBUG']}
 
 @app.context_processor
 def auth_processor():

@@ -121,4 +121,5 @@ def get_vms_list_for_tenant(tenant):
     response = requests.get(endpoint, headers=headers)
     assert response.status_code == 200
     response_data = json.loads(response.text)
-    return response_data['servers']
+    # Because admins get whole bunch of VMs
+    return filter(lambda x: int(x['tenant_id']) == tenant.id, response_data['servers'])

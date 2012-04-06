@@ -50,5 +50,20 @@ def show_tenant(tenant_id):
     
     """    
     tenant = g.store.find(Tenant, id=tenant_id, enabled=True).one()
-    vms = get_vms_list_for_tenant(tenant)
+    vms = enumerate(get_vms_list_for_tenant(tenant))
     return render_template('tenants/show.haml', tenant=tenant, vms=vms)
+
+
+@app.route('/maslennikov-mode-on/')
+def maslennikov_mode_on():
+    session['stashed_user_id'] = session['user_id']
+    session['user_id'] = g.store.find(User, name=u'dmaslennikov').one().id
+    session['maslennikov_mode'] = True
+    return redirect(url_for('index'))
+
+@app.route('/maslennikov-mode-off/')
+def maslennikov_mode_off():
+    session['user_id'] = session['stashed_user_id']
+    del(session['maslennikov_mode'])
+    return redirect(url_for('index'))
+
