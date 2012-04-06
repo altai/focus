@@ -19,7 +19,9 @@
                 -for tenant, roles in  tenants_with_roles
                   %li
                     %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
-                      {{ tenant.name }} [{% for role in roles %}{{ role.name }}{% endfor %}]
+                      =tenant.name
+
+ 
           %ul class="nav pull-right"
             -if DEBUG
               %li
