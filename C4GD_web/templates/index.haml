@@ -1,12 +1,17 @@
 -extends "layout.haml"
 -block content
-  %header.subhead.jumbotron
-    %h2
-      Dashboard
   %section
-    Tenants:
-    %ul
-      -for tenant, roles in tenants_with_roles
-        %li
-          {{ tenant.name }} [{% for role in roles %}{{ role.name }}{% endfor %}]
-    
+    %div.page-header
+      %h2
+        Your tenants
+    %div.row
+      %dl.well.span4.dl-horizontal
+        -for tenant, roles in tenants_with_roles
+          %dt
+            %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
+              =tenant.name
+          %dd
+            -for role in roles
+              =role.name
+              -if not loop.last
+                ,

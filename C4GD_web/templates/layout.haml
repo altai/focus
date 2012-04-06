@@ -5,19 +5,32 @@
       %div.container
         -if tenants_with_roles
           %ul.nav
-            %li.dropdown
+            %li{% if request.path == url_for('index') %} class="active"{% endif %}
               %a href="{{ url_for('index') }}"
                 Dashboard
-            %li.dropdown
-              %a.dropdown-toggle href="#" data-toggle="dropdown"
-                Select tenant
+            %li class="dropdown{% if tenant %} active{% endif %}"
+              %a.dropdown-toggle  href="#" data-toggle="dropdown"
+                -if tenant
+                  =tenant.name
+                -else
+                  Select tenant
                 %b.caret
               %ul.dropdown-menu
                 -for tenant, roles in  tenants_with_roles
                   %li
                     %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
-                      {{ tenant.name }} [{% for role in roles %}{{ role.name }}{% endfor %}]
+                      =tenant.name
+
+ 
           %ul class="nav pull-right"
+            -if DEBUG
+              %li
+                -if 'maslennikov_mode' in session
+                  %a href="{{ url_for('maslennikov_mode_off') }}"
+                    Maslennikov mode ON
+                -else
+                  %a href="{{ url_for('maslennikov_mode_on') }}"
+                    Maslennikov mode OFF
             %li
               %a
                 {{ g.user.name }}

@@ -1,30 +1,34 @@
 -extends "layout.haml"
 -block content
-  %div.page-header
-    %h1
-      Tenant "{{ tenant.name }}"
-      -if tenant.name != tenant.desc
-        %small
-          {{ tenant.desc }}
-
+  %div
     %table.table.table-striped.table-bordered.table-condensed
       %caption
-        Virtual machines
+        %h2
+          %small
+            Virtual machines
       %thead
         %tr
+          %th
+            #
           %th
             Name
           %th
             Status
           %th
             User
+          %th
+            Tenant ID
       %tbody
-        -for vm in vms
+        -for n, vm in vms
           %tr
+            %td
+              =n
             %td
               =vm['name']
             %td
               =vm['status']
             %td
               =vm['user_id']
+            %td
+              =vm['tenant_id']
           
