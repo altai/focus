@@ -165,7 +165,12 @@ class VirtualMachine(RESTModelBase):
                 }
              }, response_handler
 
+    @classmethod
+    @delete('/{0}', silent=True)
+    def remove(cls, data, *a, **kw):
+        return {'action': ''}, lambda *args, **kwargs: None
 
+    
 class Image(RESTModelBase):
     path = '/images'
     
@@ -176,11 +181,6 @@ class Image(RESTModelBase):
             x['id'] = int(x['id'])
             return x
         return map(cls, filter(int_id, data['images']))
-
-    @classmethod
-    @post('/{0}/action', two_phase=True)
-    def pause(cls, data, *a, **kw):
-        return {'action': 'pause'}, lambda *args, **kwargs: None
 
 class Flavor(RESTModelBase):
     path = '/flavors'

@@ -9,7 +9,7 @@ from decorators import login_required
 from forms import get_login_form, get_spawn_form
 from models import *
 from rest_pool import get_pool
-from utils import get_object_or_404
+from utils import get_object_or_404, get_next_url
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -99,13 +99,16 @@ def spawn_vm(tenant_id):
     return response
 
 
-@app.route('/tenants/<int:tenant_id>/vms/<int:vm_id>/')
-def vm_details(vm_id):
+@app.route('/<int:tenant_id>/<int:vm_id>/<action>/', methods=['POST'])
+def vm(tenant_id, vm_id, action):
     """
     TODO: control who can watch this
     """
     tenant = g.store.get(Tenant, tenant_id)
+    g.pool = get_pool(g.user, tenant)
+    if action == 'remove':
+        g.pool(VirtualMachine.remove, vm_id)
+        flash('Virtual machine removed successfully.', 'success')
+        return redirect(get_next_url())
     # get vm from the tenant URL
     return render_template('vm_details.html')
-        
-        

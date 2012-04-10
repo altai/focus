@@ -92,15 +92,19 @@ class RestfulPool(object):
         klass = method.im_self
         verbose_name = '%s' % klass.__name__ + '.' + method.__name__
 
+        response_handler = None
+        kw = {}
         if method.two_phase:
             d, response_handler = method(*args, **kwargs)
             kw = {
                 'params' if method.http_method == 'get' else 'data': \
                     json.dumps(d)}
+        elif method.silent:
+            pass
         else:
             response_handler = method
-            kw = {}
         app.logger.debug(kw)
+
         with benchmark('Total %s' % verbose_name):
             with benchmark('HTTP only %s' % verbose_name):
                 request_url = self.public_url + klass.path + method.path.format(*args, **kwargs)
@@ -115,13 +119,15 @@ class RestfulPool(object):
                     **kw)
             assert 200 <= response.status_code < 300
             app.logger.debug(response.text)
-            response_data = json.loads(response.text)
-            objects = self.attach(
-                klass, response_handler(response_data, *args, **kwargs) or [])
-            if not method.is_plural:
-                if len(objects) == 1:
-                    return objects[0]
-            return objects
+            if response_handler is not None:
+                response_data = json.loads(response.text)
+                objects = self.attach(
+                    klass,
+                    response_handler(response_data, *args, **kwargs) or [])
+                if not method.is_plural:
+                    if len(objects) == 1:
+                        return objects[0]
+                return objects
             
     def attach(self, klass, objects):
         if klass not in self.collections:

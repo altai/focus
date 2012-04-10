@@ -26,6 +26,8 @@
             User
           %th
             Tenant ID
+          %th
+            Actions
       %tbody
         -for n, vm in vms
           %tr
@@ -39,4 +41,10 @@
               =vm.user_id
             %td
               =vm.tenant_id
-          
+            %td
+              %form method="post" action="{{ url_for('vm', tenant_id=vm.tenant_id, vm_id=vm.id, action="remove") }}"
+                %input type="hidden" name="next" value="{{ request.path }}"
+                %button.btn data-toggle="modal" data-target="#vm-test-remove-modal"
+                  Remove
+            
+              
