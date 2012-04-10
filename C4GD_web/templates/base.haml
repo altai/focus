@@ -1,18 +1,3 @@
--macro render_form_errors(field)
-  -if field.errors
-    -for error in field.errors
-      %div.alert.alert-error
-        =error
-
--macro render_field(field)
-  %div class="control-group {% if field.errors %}error{% endif %}"
-    %div.controls
-      =field(placeholder=field.label.text, **kwargs)|safe
-        -if field.errors
-         -for error in field.errors
-           %div.help-inline
-             =error
-
 <!DOCTYPE html>
 %html lang="en"
   %head

@@ -1,19 +1,23 @@
--extends "base.haml"
+-extends "layout.haml"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_field
   %form method="POST" action="." class="well offset4 span4 form-vertical"
     %legend
-      Cloud Web GUI
+      Spawn VM in tenant {{ tenant.name }}
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
-    {{ render_field(form.username) }}
+    {{ render_field(form.image) }}
+    {{ render_field(form.flavor) }}
+    {{ render_field(form.name) }}
     {{ render_field(form.password) }}
+    {{ render_field(form.confirm_password) }}
+    {{ render_field(form.keypair) }}
+    {{ render_field(form.security_groups) }}
     %button type="submit" class="btn btn-primary"
-      Sign in
+      Spawn it
 
 -block bottom_js
   %script type="text/javascript"
     |$(document).ready(function(){
     |  $('#username').focus();
     |});
-

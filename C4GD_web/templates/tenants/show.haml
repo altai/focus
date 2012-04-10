@@ -1,5 +1,13 @@
 -extends "layout.haml"
 -block content
+  %div.subnav
+    %ul.nav.nav-pills
+      %li.active
+        %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
+          List existing
+      %li
+        %a href="{{ url_for('spawn_vm', tenant_id=tenant.id) }}"
+          Spawn new
   %div
     %table.table.table-striped.table-bordered.table-condensed
       %caption
@@ -24,11 +32,11 @@
             %td
               =n
             %td
-              =vm['name']
+              =vm.name
             %td
-              =vm['status']
+              =vm.status
             %td
-              =vm['user_id']
+              =vm.user_id
             %td
-              =vm['tenant_id']
+              =vm.tenant_id
           

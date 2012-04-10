@@ -3,7 +3,7 @@ import json # will fail in <2.6
 from storm.locals import *
 from flask import g
 from C4GD_web import app
-
+from utils import select_keys
 
 
 class User(Storm):
@@ -22,7 +22,7 @@ class User(Storm):
         import ldap
         connection = ldap.initialize(app.config['LDAP_URI'])
         dn = 'uid=%s,%s' % (
-            ldap.dn.escape_dn_chars(username),
+            ldap.dn.escape_dn_chars(self.name),
             app.config['LDAP_BASEDN'])
         try:
             connection.simple_bind_s(dn, password)
@@ -96,7 +96,7 @@ class Endpoint(Storm):
     id = Int(primary=True)
     tenant_id = Int()
     endpoint_template_id = Int()
-    endpoint_template = Reference(EndpointTemplate, 'endpoint_template_id')
+    endpoint_template = Reference(endpoint_template_id, "EndpointTemplate.id")
 
 class Token(Storm):
     __storm_table__ = 'token'
@@ -105,76 +105,101 @@ class Token(Storm):
     tenant_id = Int()
     expires = DateTime()
 
-    __public_url = ''
-
-    @property
-    def public_url(self):
-        return self.__public_url
-
-    @public_url.setter
-    def public_url(self, url):
-        self.__public_url = url
-
     @classmethod
     def find_valid(cls):
         from datetime import datetime
         return g.store.find(cls, cls.expires > datetime.now())
     
-    @classmethod
-    def get_by_user_and_tenant(cls, user, tenant):
-        '''
-        Find tone in DB or obtains it from Nova REST API
-        In the latter case as a side effect sets __public_url.
-        '''
-        rs = Token.find_valid().find(user_id=user.id, tenant_id=tenant.id)
-        if rs.count():
-            tenant_id_template_in_use = g.store.find(
-                EndpointTemplate,
-                EndpointTemplate.public_url.like('%tenant_id%')).count() > 0
-            if tenant_id_template_in_use:
-                subselect = Select(
-                    EndpointTemplate.id,
-                    EndpointTemplate.public_url.like('%tenant_id%'),
-                    enabled=True)
-                endpoint = g.store.find(
-                    Endpoint,
-                    Endpoint.endpoint_template_id.is_in(subselect),
-                    tenant_id=tenant.id).one()
-            else:
-                endpoint = g.store.find(Endpoint, tenant_id=tenant.id).one() 
-            token = rs.one()
-            token.public_url = endpoint.endpoint_template.public_url.replace(
-                '%tenant_id%', 
-                str(tenant.id))
-            return token
-        else:
-            key = user.credentials.find(tenant_id=tenant.id)\
-                .values(Credential.key).next()
-            # keys can have  tenant name appended (concatenated with ':')
-            if ':' in key:
-                key = key.split(':')[0]
-            request_data = json.dumps({
-                'auth': {
-                    'passwordCredentials': {
-                        'username': g.user.name,
-                        'password': key},
-                    'tenantId': tenant.id}})
-            response = requests.post(
-                'http://172.18.41.1:5000/v2.0/tokens',
-                data=request_data,
-                headers = {'content-type': 'application/json'})
-            assert response.status_code == 200
-            response_data = json.loads(response.text)
-            # probably should appear in keystone but we have it on hands now
-            # we got a barrel of useful info here
-            return response_data['access']['token']['id'], response_data['access']['serviceCatalog'][0]['endpoints'][0]['publicURL']
-        
-# class VirtualMachine(object):
-#     __endpoint_part__ = 'servers'
-#     def __init__(self, **kwargs):
-#         for k, v in kwargs.items(): setattr(self, k, v)
 
-#     @classmethod
-#     def list(user, token):
-#         endpoint_part = 'detail'        
+# TODO: create base class for RESTful objects
+# TODO: create a client Tenant to work with RESTful API
+# TODO: make client reconnecting and regenerating tokens when required
+# HINT: tenant client can work in a way similar to STORM Store
+# HINT: objects returned by the client must work smoothly with models
+
+from rest_decorators import *
+
+
+class RESTModelBase(object):
+    _key_name = 'id'
+    
+    def __init__(self, d):
+        for k, v in d.items():
+            setattr(self, k, v)
+
+    def get_key(self):
+        return getattr(self, self._key_name)
+
+
+class VirtualMachine(RESTModelBase):
+    path = '/servers'
+
+    @classmethod 
+    @get('/detail', is_plural=True)
+    def list(cls, data, bypass=None, *a, **kw):
+        assert bypass is not None
+        return [cls(x) for x in data['servers'] if bypass(x['tenant_id'])]
+
+    @classmethod
+    @post('', two_phase=True)
+    def spawn(cls, *args, **kwargs):
+        d = args[0]
+        image = g.pool.collections[Image][int(d['image'])]
+        security_groups = select_keys(
+            g.pool.collections[SecurityGroup],
+            map(int, d.getlist('security_groups')))
+        def response_handler(data, *a, **kw):
+            #assert bypass is not None
+            #return [cls(x) for x in data['server'] if bypass(x['tenant_id'])]
+            pass
+        return {
+            'server': {
+                'name': d['name'],
+                'imageRef': image.links[0]['href'],
+                'flavorRef': int(d['flavor']),
+                'adminPass': d['password'],
+                #'key_name': d['keypair'],
+                #'security_groups': [{'name': x.name} for x in security_groups]
+                }
+             }, response_handler
+
+
+class Image(RESTModelBase):
+    path = '/images'
+    
+    @classmethod
+    @get('', is_plural=True)
+    def list(cls, data, *a, **kw):
+        def int_id(x):
+            x['id'] = int(x['id'])
+            return x
+        return map(cls, filter(int_id, data['images']))
+
+
+class Flavor(RESTModelBase):
+    path = '/flavors'
+    
+    @classmethod
+    @get('/detail', is_plural=True)
+    def list(cls, data, *a, **kw):
+        return map(cls, data['flavors'])
+
+
+class KeyPair(RESTModelBase):
+    path = '/os-keypairs'
+    _key_name = 'name'
+
+    @classmethod
+    @get('', is_plural=True)
+    def list(cls, data, *a, **kw):
+        return [cls(x['keypair']) for x in data['keypairs']]
+
+
+class SecurityGroup(RESTModelBase):
+    path = '/os-security-groups'
+    
+    @classmethod
+    @get('', is_plural=True)
+    def list(cls, data, *a, **kw):
+        return map(cls, data['security_groups'])
         

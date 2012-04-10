@@ -9,3 +9,4 @@ wsgiref
 #fabric -- installed via YUM	
 Hamlish-Jinja
 requests
+#greenlet -- installed via YUM
