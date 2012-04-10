@@ -107,8 +107,10 @@ class Token(Storm):
 
     @classmethod
     def find_valid(cls):
-        from datetime import datetime
-        return g.store.find(cls, cls.expires > datetime.now())
+        from datetime import datetime, timedelta
+        valid_until = datetime.now() + timedelta(
+            hours=app.config['RELATIVE_TO_API_HOURS_SHIFT'])
+        return g.store.find(cls, cls.expires > valid_until)
     
 
 # TODO: create base class for RESTful objects
@@ -175,6 +177,10 @@ class Image(RESTModelBase):
             return x
         return map(cls, filter(int_id, data['images']))
 
+    @classmethod
+    @post('/{0}/action', two_phase=True)
+    def pause(cls, data, *a, **kw):
+        return {'action': 'pause'}, lambda *args, **kwargs: None
 
 class Flavor(RESTModelBase):
     path = '/flavors'

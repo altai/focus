@@ -50,11 +50,6 @@ class RestfulPool(object):
                         u'%tenant_id%', 
                         unicode(tenant.id))
                     return public_url
-
-                # token_gr = gevent.spawn(get_token) 
-                # public_url_gr = gevent.spawn(get_public_url)
-                # gevent.joinall([token_gr, public_url_gr])
-                # return token_gr.value, public_url_gr.value 
                 return get_token(), get_public_url()
         else:
             app.logger.info('Obtaining token')
