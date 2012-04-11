@@ -1,20 +1,22 @@
 -extends "layout.haml"
 -block content
-  -from "_formhelpers.haml" import render_form_errors, render_field
-  %form method="POST" action="." class="well offset4 span4 form-vertical"
-    %legend
-      Spawn VM in tenant {{ tenant.name }}
+  -from "_formhelpers.haml" import render_form_errors, render_field, render_h_field
+  %form method="POST" action="." class="form-horizontal" autocomplete="off"
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
-    {{ render_field(form.image) }}
-    {{ render_field(form.flavor) }}
-    {{ render_field(form.name) }}
-    {{ render_field(form.password) }}
-    {{ render_field(form.confirm_password) }}
-    {{ render_field(form.keypair) }}
-    {{ render_field(form.security_groups) }}
-    %button type="submit" class="btn btn-primary"
-      Spawn it
+    %fieldset
+      %legend
+        Spawn VM in tenant {{ tenant.name }}    
+      {{ render_h_field(form.image, True) }}
+      {{ render_h_field(form.flavor, True) }}
+      {{ render_h_field(form.name, True) }}
+      {{ render_h_field(form.password) }}
+      {{ render_h_field(form.confirm_password) }}
+      {{ render_h_field(form.keypair) }}
+      {{ render_h_field(form.security_groups) }}
+      %div.form-actions
+        %button type="submit" class="btn btn-primary"
+          Spawn it
 
 -block bottom_js
   %script type="text/javascript"

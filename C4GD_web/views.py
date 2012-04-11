@@ -84,6 +84,8 @@ def spawn_vm(tenant_id):
     """
     TODO: contorl user has this tenant
     """
+    from rest_pool import RestfulException
+
     with benchmark('Getting tenant'):
         tenant = get_object_or_404(Tenant, tenant_id)
     with benchmark('Getting pool'):
@@ -91,9 +93,13 @@ def spawn_vm(tenant_id):
     with benchmark('Getting form'):
         form = get_spawn_form()()
     if form.validate_on_submit():
-        vm = g.pool(VirtualMachine.spawn, request.form)
-        flash('Virtual machine spawned.', 'success')
-        return redirect(url_for('show_tenant', tenant_id=tenant.id))
+        try:
+            vm = g.pool(VirtualMachine.spawn, request.form)
+        except RestfulException, e:
+            flash(e.message, 'error')
+        else:
+            flash('Virtual machine spawned.', 'success')
+            return redirect(url_for('show_tenant', tenant_id=tenant.id))
     with benchmark('Rendering page'):
         response = render_template('spawn_vm.haml', form=form, tenant=tenant)
     return response

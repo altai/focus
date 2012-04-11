@@ -1,5 +1,3 @@
-import requests
-import json # will fail in <2.6
 from storm.locals import *
 from flask import g
 from C4GD_web import app
@@ -108,8 +106,10 @@ class Token(Storm):
     @classmethod
     def find_valid(cls):
         from datetime import datetime, timedelta
-        valid_until = datetime.now() + timedelta(
-            hours=app.config['RELATIVE_TO_API_HOURS_SHIFT'])
+        # respect timezones and have small handicap
+        valid_until = datetime.now() + \
+            timedelta(hours=app.config['RELATIVE_TO_API_HOURS_SHIFT']) + \
+            timedelta(minutes=1)
         return g.store.find(cls, cls.expires > valid_until)
     
 
@@ -136,46 +136,55 @@ class RESTModelBase(object):
 class VirtualMachine(RESTModelBase):
     path = '/servers'
 
-    @classmethod 
-    @get('/detail', is_plural=True)
+    @classmethod
+    @back
+    @plural
+    @get('/detail')
     def list(cls, data, bypass=None, *a, **kw):
         assert bypass is not None
         return [cls(x) for x in data['servers'] if bypass(x['tenant_id'])]
 
     @classmethod
-    @post('', two_phase=True)
+    @forth
+    @post('')
     def spawn(cls, *args, **kwargs):
         d = args[0]
         image = g.pool.collections[Image][int(d['image'])]
-        security_groups = select_keys(
-            g.pool.collections[SecurityGroup],
-            map(int, d.getlist('security_groups')))
-        def response_handler(data, *a, **kw):
-            #assert bypass is not None
-            #return [cls(x) for x in data['server'] if bypass(x['tenant_id'])]
-            pass
-        return {
+        result = {
             'server': {
                 'name': d['name'],
                 'imageRef': image.links[0]['href'],
-                'flavorRef': int(d['flavor']),
-                'adminPass': d['password'],
-                #'key_name': d['keypair'],
-                #'security_groups': [{'name': x.name} for x in security_groups]
+                'flavorRef': int(d['flavor'])
                 }
-             }, response_handler
+             }
+        if 'password' in d and d['password']:
+            result['server']['adminPass'] = d['password']
+        if 'keypair' in d:
+            result['server']['key_name'] = d['keypair']
+        if 'security_groups':
+            security_group_keys = d.getlist('security_groups')
+            if len(security_group_keys):
+                security_groups = select_keys(
+                    g.pool.collections[SecurityGroup],
+                    map(int, security_group_keys))            
+                result['server']['security_groups'] = [
+                    {'name': x.name} for x in security_groups]
+        return result
 
     @classmethod
-    @delete('/{0}', silent=True)
-    def remove(cls, data, *a, **kw):
-        return {'action': ''}, lambda *args, **kwargs: None
+    @blind
+    @delete('/{0}')
+    def remove(cls): pass
+
 
     
 class Image(RESTModelBase):
     path = '/images'
     
     @classmethod
-    @get('', is_plural=True)
+    @back
+    @plural
+    @get('')
     def list(cls, data, *a, **kw):
         def int_id(x):
             x['id'] = int(x['id'])
@@ -186,7 +195,9 @@ class Flavor(RESTModelBase):
     path = '/flavors'
     
     @classmethod
-    @get('/detail', is_plural=True)
+    @back
+    @plural
+    @get('/detail')
     def list(cls, data, *a, **kw):
         return map(cls, data['flavors'])
 
@@ -196,7 +207,9 @@ class KeyPair(RESTModelBase):
     _key_name = 'name'
 
     @classmethod
-    @get('', is_plural=True)
+    @back
+    @plural
+    @get('')
     def list(cls, data, *a, **kw):
         return [cls(x['keypair']) for x in data['keypairs']]
 
@@ -205,6 +218,8 @@ class SecurityGroup(RESTModelBase):
     path = '/os-security-groups'
     
     @classmethod
+    @back
+    @plural
     @get('', is_plural=True)
     def list(cls, data, *a, **kw):
         return map(cls, data['security_groups'])
