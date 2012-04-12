@@ -3,6 +3,7 @@ from storm.locals import Store, create_database
 from C4GD_web import app
 from models import User
 
+
 @app.before_request
 def create_storm_store():
     database = create_database(

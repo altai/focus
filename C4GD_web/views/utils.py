@@ -1,5 +1,6 @@
-from C4GD_web import app
 from flask import abort, g, request, url_for
+
+from C4GD_web import app
 
 
 def get_next_url():

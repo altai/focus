@@ -1,11 +1,13 @@
 import gevent
+import json # will fail in <2.6, use Flask's?
 import requests
-import json # will fail in <2.6
-from C4GD_web import app
-from orm import *
-from utils import select_keys
-from C4GD_web.benchmark import benchmark
 
+from C4GD_web import app
+from C4GD_web.benchmark import benchmark
+from storm.locals import *
+from orm import *
+from flask import g
+from utils import select_keys
 
 # TODO: 
 # - rename collctions to cache

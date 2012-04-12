@@ -3,11 +3,15 @@
 # TODO: make client reconnecting and regenerating tokens when required
 # HINT: tenant client can work in a way similar to STORM Store
 # HINT: objects returned by the client must work smoothly with models
+from flask import g
+
+from C4GD_web import app
 
 from decorators import *
-from C4GD_web import app
-from flask import g
 from utils import select_keys
+
+
+__all__ = ['VirtualMachine', 'Image', 'Flavor', 'KeyPair', 'SecurityGroup']
 
 
 class RESTModelBase(object):

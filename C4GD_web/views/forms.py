@@ -1,9 +1,11 @@
 from flask import g
 from flaskext.wtf import Form, HiddenField, TextField, PasswordField, Required,\
     SelectField, EqualTo, SelectMultipleField
+
 from C4GD_web import app
-from utils import get_next_url
 from C4GD_web.models import Image, Flavor, KeyPair, SecurityGroup
+
+from utils import get_next_url
 
 
 def get_login_form():

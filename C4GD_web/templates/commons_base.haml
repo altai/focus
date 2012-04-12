@@ -11,10 +11,10 @@
           -if not loop.last -> ,          
     %div.subnav
       %ul.nav.nav-pills
-        %li.active
+        %li class="{% if request.path == url_for('show_tenant', tenant_id=g.tenant.id) %}active{% endif %}"
           %a href="{{ url_for('show_tenant', tenant_id=g.tenant.id) }}"
             List existing
-        %li
+        %li class="{% if request.path == url_for('spawn_vm', tenant_id=g.tenant.id) %}active{% endif %}"
           %a href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}"
             Spawn new
 

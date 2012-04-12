@@ -6,23 +6,35 @@
         %h2
           Global Administration
           %small
-            {{ total_users }} users in {{ total_projects }} projects
-      %div.row
-        pass
-        
+            {{ total_users }} users in {{ total_projects }} projects use {{ total_vms }} VMs
+      %div.subnav
+        %ul.nav.nav-pills
+          %li
+            %a href="{{ url_for('global_list_vms') }}" -> List virtual machines      
+      
   %section
     %div.page-header
       %h2
-        Your tenants
-    %div.row
-      %dl.well.span4.dl-horizontal
+        Projects related to you
+        ;-if tenants_with_roles|length > 1
+        ;  %small
+        ;    Total {{ tenants_with_roles|length }}
+          
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr
+          %th -> Project name
+          %th -> Your role
+      %tbody
         -for tenant, roles in tenants_with_roles
-          %dt
-            %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
-              =tenant.name
-          %dd
-            -for role in roles
-              =role.name
-              -if not loop.last
-                ,
+          %tr
+            %td
+              %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
+                =tenant.name
+            %td
+              -for role in roles
+                =role.name
+                  -if not loop.last -> ,
+
+        
       

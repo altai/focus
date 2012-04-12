@@ -3,14 +3,15 @@ from flask import g, flash, request, redirect, url_for, \
 from storm.exceptions import NotOneError
 
 from C4GD_web import app
-
 from C4GD_web.benchmark import benchmark
-
-from forms import get_login_form, get_spawn_form
 from C4GD_web.models import *
-from utils import get_object_or_404, get_next_url
 
 from base import BaseView
+from forms import get_login_form, get_spawn_form
+from utils import get_object_or_404, get_next_url
+
+
+
 class CommonsView(BaseView):
     def dispatch_request(self, tenant_id, action='list', vm_id=0):
         if action not in dir(self):
