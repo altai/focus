@@ -6,9 +6,11 @@
       C4GD-web
     %meta name="description" content=""
     %meta name="author" content=""
+    %link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}"
     %link href="{{ url_for('static', filename='bootstrap-2.0.2/css/bootstrap.css') }}" rel="stylesheet"
     %link href="{{ url_for('static', filename='bootstrap-2.0.2/css/bootstrap-responsive.css') }}" rel="stylesheet"
     %link href="{{ url_for('static', filename='css/docs.css') }}" rel="stylesheet"
+    %link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet"
     
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!-- [if lt IE 9]
@@ -17,6 +19,7 @@
 
   %body data-spy="scroll" data-target=".subnav" data-offset="50"
     -block navbar
+    -block subnav
     %div.container
       -with messages = get_flashed_messages(with_categories=true)
         -if messages

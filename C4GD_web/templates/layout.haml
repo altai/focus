@@ -3,27 +3,39 @@
   %div.navbar.navbar-fixed-top
     %div.navbar-inner
       %div.container
-        -if tenants_with_roles
+        %a.btn.btn-navbar data-target=".nav-collapse" data-toggle="collapse"
+          %span.icon-bar
+          %span.icon-bar
+          %span.icon-bar
+        %a.brand href="{{ url_for('dashboard') }}"
+          %img src="{{ url_for('static', filename='img/GridDynamics-brandmark-24x24px.png') }}"  
+          C4GD-web
+        %div.nav-collapse.collapse style="height: 0px;"
           %ul.nav
-            %li{% if request.path == url_for('index') %} class="active"{% endif %}
-              %a href="{{ url_for('index') }}"
+            %li{% if request.path == url_for('dashboard') %} class="active"{% endif %}
+              %a href="{{ url_for('dashboard') }}"
                 Dashboard
-            %li class="dropdown{% if tenant %} active{% endif %}"
-              %a.dropdown-toggle  href="#" data-toggle="dropdown"
-                -if tenant
-                  =tenant.name
-                -else
-                  Select tenant
-                %b.caret
-              %ul.dropdown-menu
-                -for tenant, roles in  tenants_with_roles
-                  %li
-                    %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
-                      =tenant.name
+            -if g.user.is_global_admin():
+              %li
+                %a href="{{ url_for('global_list_vms')}}"
+                  Global administration
+            -if tenants_with_roles:
+              %li class="dropdown{% if tenant %} active{% endif %}"
+                %a.dropdown-toggle  href="#" data-toggle="dropdown"
+                  -if tenant
+                    =tenant.name
+                  -else
+                    Select tenant
+                ;%b.caret
+                %ul.dropdown-menu
+                  -for tenant, roles in  tenants_with_roles
+                    %li
+                      %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
+                        =tenant.name
 
  
           %ul class="nav pull-right"
-            -if DEBUG
+            -if DEV
               %li
                 -if 'maslennikov_mode' in session
                   %a href="{{ url_for('maslennikov_mode_off') }}"

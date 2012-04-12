@@ -2,10 +2,16 @@ import gevent
 import requests
 import json # will fail in <2.6
 from C4GD_web import app
-from models import *
+from orm import *
 from utils import select_keys
-from benchmark import benchmark
+from C4GD_web.benchmark import benchmark
 
+
+# TODO: 
+# - rename collctions to cache
+# - add find() and get() methods to pool to mimic Storm
+# - make find() and get() look in cache first, then use list() and get() models
+# - traverse data of new objects and convert all atttributes with names ending with "_id" to int() if possible
 
 
 def classmethod_verbose_name(method):
@@ -216,13 +222,13 @@ class RestfulPool(object):
 
             
     def attach(self, klass, objects):
-        if klass not in self.collections:
-            self.collections[klass] = {}
+        if klass.__name__ not in self.collections:
+            self.collections[klass.__name__] = {}
         ids = []
         for obj in objects:
-            self.collections[klass][obj.get_key()] = obj
+            self.collections[klass.__name__][obj.get_key()] = obj
             ids.append(obj.get_key())
-        return list(select_keys(self.collections[klass], ids))
+        return list(select_keys(self.collections[klass.__name__], ids))
 
 
 def get_pool(user, tenant):

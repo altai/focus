@@ -1,14 +1,5 @@
-
--extends "layout.haml"
+-extends "commons_base.haml"
 -block content
-  %div.subnav
-    %ul.nav.nav-pills
-      %li.active
-        %a href="{{ url_for('show_tenant', tenant_id=tenant.id) }}"
-          List existing
-      %li
-        %a href="{{ url_for('spawn_vm', tenant_id=tenant.id) }}"
-          Spawn new
   %div
     %table.table.table-striped.table-bordered.table-condensed
       %caption
@@ -26,8 +17,6 @@
           %th
             User
           %th
-            Tenant ID
-          %th
             Actions
       %tbody
         -for n, vm in vms
@@ -41,11 +30,25 @@
             %td
               =vm.user_id
             %td
-              =vm.tenant_id
-            %td
-              %form method="post" action="{{ url_for('vm', tenant_id=vm.tenant_id, vm_id=vm.id, action="remove") }}"
-                %input type="hidden" name="next" value="{{ request.path }}"
-                %button.btn
-                  Remove
+              %div.modal.hide id="remove_vm-{{ vm.id }}"
+                %div.modal-header
+                  %a.close data-dismiss="modal"
+                    ×
+                  %h3
+                    Comfirmation request
+                %div.modal-body
+                  %p
+                    Sure to remove VM "{{ vm.name }}" spawned by {{ vm.user_id }}?
+                %div.modal-footer
+                  %form method="post" action="{{ url_for('remove_vm', tenant_id=vm.tenant_id, vm_id=vm.id) }}"
+                    %input type="hidden" name="next" value="{{ request.path }}"
+                    %button.btn
+                      Yes, remove it
+                    %a.btn.btn-primary href="#" data-dismiss="modal"
+                      No                  
+              %a data-toggle="modal" href="#remove_vm-{{ vm.id }}" 
+                %i.icon-remove
+                remove
+
             
               

@@ -1,5 +1,15 @@
 -extends "layout.haml"
 -block content
+  -if g.user.is_global_admin():
+    %section
+      %div.page-header
+        %h2
+          Global Administration
+          %small
+            {{ total_users }} users in {{ total_projects }} projects
+      %div.row
+        pass
+        
   %section
     %div.page-header
       %h2
@@ -15,3 +25,4 @@
               =role.name
               -if not loop.last
                 ,
+      

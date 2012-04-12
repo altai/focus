@@ -1,0 +1,21 @@
+-extends "layout.haml"
+-block subnav
+  %div.container
+    %header.jumbotron.subhead#overview
+      %h1
+        {{ g.tenant.name }}
+      %p.lead
+        Project management:
+        -for user in g.tenant.get_project_manager_list()
+          =user.name
+          -if not loop.last -> ,          
+    %div.subnav
+      %ul.nav.nav-pills
+        %li.active
+          %a href="{{ url_for('show_tenant', tenant_id=g.tenant.id) }}"
+            List existing
+        %li
+          %a href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}"
+            Spawn new
+
+  

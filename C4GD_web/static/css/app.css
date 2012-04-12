@@ -1,1 +1,8 @@
-ul.errors li
+.navbar-fixed-top .brand {
+    line-height: 24px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    
+    float: left;
+    color: #FFFFFF;
+}

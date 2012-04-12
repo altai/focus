@@ -23,9 +23,3 @@ def get_object_or_404(klass, object_id):
         abort(404)
     else:
         return obj
-
-
-def select_keys(d, keys):
-    for k, v in d.items():
-        if k in keys:
-            yield v

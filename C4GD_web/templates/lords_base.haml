@@ -1,0 +1,14 @@
+-extends "layout.haml"
+-block subnav
+  %div.container
+    %header.jumbotron.subhead#overview
+      %h1
+        Global administration
+      %p.lead
+        Cloud-wide information and actions
+    %div.subnav
+      %ul.nav.nav-pills
+        %li.active
+          %a href="{{ url_for('global_list_vms') }}"
+            List virtual machines
+
