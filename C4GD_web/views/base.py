@@ -1,6 +1,6 @@
 from flask import render_template
 from flask.views import View
-from decorators import login_required
+from C4GD_web.decorators import login_required
 
 
 class BaseView(View):
