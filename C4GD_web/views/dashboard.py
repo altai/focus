@@ -1,7 +1,7 @@
 from flask import g, render_template
 from C4GD_web import app
 from C4GD_web.models import *
-from decorators import login_required
+from C4GD_web.decorators import login_required
 
 
 @app.route('/')
