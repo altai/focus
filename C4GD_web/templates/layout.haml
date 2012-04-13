@@ -25,8 +25,8 @@
                   -if tenant
                     =tenant.name
                   -else
-                    Select tenant
-                ;%b.caret
+                    Select project
+                  %b.caret
                 %ul.dropdown-menu
                   -for tenant, roles in  tenants_with_roles
                     %li
