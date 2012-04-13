@@ -46,9 +46,10 @@ project_wrapper = ProjectWrapper()
 global_wrapper = GlobalAdminWrapper()
 
 
-@project_wrapper()
+
 @app.route('/<int:tenant_id>/')
-def show_tenant(*a):
+@project_wrapper()
+def show_tenant(tenant_id):
     """
     List VMs for the project
     """
@@ -60,9 +61,10 @@ def show_tenant(*a):
         key=lambda x: x.name), 1)
     return dict(tenant=g.tenant, vms=vms)
 
-@project_wrapper
-@app.route('/<int:tenant_id>/spawn_vm/')
-def spawn_vm(*a):
+
+@app.route('/<int:tenant_id>/spawn_vm/', methods=['GET', 'POST'])
+@project_wrapper()
+def spawn_vm(tenant_id):
     with benchmark('Getting form'):
         form = get_spawn_form()()
     if form.validate_on_submit():
@@ -75,9 +77,10 @@ def spawn_vm(*a):
             return redirect(url_for('show_tenant', tenant_id=g.tenant.id))
     return dict(form=form, tenant=g.tenant)
 
-@project_wrapper
-@app.route('/<int:tenant_id>/<int:vm_id>/remove_vm/')
-def remove_vm():
+
+@app.route('/<int:tenant_id>/<int:vm_id>/remove_vm/', methods=['POST'])
+@project_wrapper()
+def remove_vm(tenant_id, vm_id):
     if request.method == 'POST':
         try:
             g.pool(VirtualMachine.remove, g.vm.id)

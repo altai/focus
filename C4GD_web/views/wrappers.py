@@ -62,9 +62,9 @@ class GlobalAdminWrapper(BaseWrapper):
 
 class ProjectWrapper(BaseWrapper):
     def before(self, *args, **kwargs):
-        g.tenant = g.store.find(Tenant, id=tenant_id, enabled=True).one()
+        g.tenant = g.store.find(Tenant, id=kwargs['tenant_id'], enabled=True).one()
         if not g.tenant:
-            app.logger.debug('Not found tenant %s' % tenant_id)
+            app.logger.debug('Not found tenant %s' % kwargs['tenant_id'])
             abort(404)
         g.pool = get_pool(g.user, g.tenant)
         vm_id = kwargs.get('vm_id', None)
