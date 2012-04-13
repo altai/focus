@@ -3,6 +3,10 @@ from flask import g
 from C4GD_web import app
 
 
+__all__ = ['User', 'Tenant', 'Credential', 'UserRole', 'Role', 'Service', 
+           'EndpointTemplate', 'Endpoint', 'Token']
+
+
 class User(Storm):
     __storm_table__ = 'users'
     id = Int(primary=True)

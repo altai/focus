@@ -24,7 +24,7 @@
     %div.container
       -with messages = get_flashed_messages(with_categories=true)
         -if messages
-          %div.row
+          %div
             -for category, message in messages
               %div class="alert alert-{{ category }}"
                 =message

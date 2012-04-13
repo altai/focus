@@ -1,6 +1,8 @@
-from C4GD_web import app
 from flask import g
+from storm.locals import *
+from C4GD_web import app
 from models import *
+
 
 @app.context_processor
 def debug_processor():

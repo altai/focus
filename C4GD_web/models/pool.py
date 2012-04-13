@@ -1,10 +1,16 @@
 import gevent
+import json # will fail in <2.6, use Flask's?
 import requests
-import json # will fail in <2.6
+
+from flask import g
+
+from storm.locals import *
+
 from C4GD_web import app
-from orm import *
-from C4GD_web.utils import select_keys
 from C4GD_web.benchmark import benchmark
+from C4GD_web.utils import select_keys
+
+from orm import *
 
 
 # TODO: 
