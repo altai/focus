@@ -1,0 +1,12 @@
+-macro render_pagination(pagination)
+  %div.pagination
+  -for page in pagination.iter_pages()
+    -if page
+      -if page != pagination.page
+        %a href="{{ url_for_other_page(page) }}" -> =page
+      -else
+        %strong -> =page
+    -else
+      %span.ellipsis -> …
+  -if pagination.has_next
+    %a href="{{ url_for_other_page(pagination.page + 1)}}" -> Next &raquo;

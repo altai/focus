@@ -1,0 +1,65 @@
+-extends "GlobalAdmin/base.haml"
+-block content
+  %section
+    %div.btn-toolbar
+      %div.btn-group
+        %button.btn
+          %b.icon-edit
+          Columns
+        %button.btn.dropdown-toggle data-toggle="dropdown" href="#"    
+          %span.caret
+        %ul.dropdown-menu
+          -for c in columns:
+            %li
+              %a
+                %b.icon-ok
+                =c.verbose_name
+          %li.divider
+          -for c in spare_columns:
+            %li
+              %a -> =c.verbose_name
+      %div.btn-group
+        %button.btn
+          %b.icon-download-alt
+          JSON
+        %button.btn.dropdown-toggle data-toggle="dropdown" href="#"
+          %span.caret
+        %ul.dropdown-menu
+          %li
+            %a
+              %b.icon-ok
+              JSON
+          %li
+            %a
+              CSV
+          %li
+            %a
+              XML
+    %table.table.table-striped.table-bordered.table-condensed
+      %thead
+        %tr
+          -for column in columns:
+            %th
+              =column.verbose_name
+              %b.icon-random
+              %b.icon-chevron-up
+              %b.icon-chevron-down
+      %tbody
+        -for row in data:
+          %tr
+            -for cell in row:
+              %td -> =cell
+  
+    %div.pagination
+      %ul
+        -if pagination.has_prev
+          %li
+            %a href="{{ url_for_other_page(pagination.page - 1) }}" -> Prev
+        -for page in pagination.iter_pages()
+          %li class="{% if page == pagination.page %}active{% endif %}"
+            %a href="{{ url_for_other_page(page) }}" -> {{ page }}
+        -if pagination.has_next
+          %li
+            %a href="{{ url_for_other_page(pagination.page + 1) }}" -> Next
+
+          

@@ -6,8 +6,12 @@ except ImportError:
     pass
 
 def remove_pyc():
-    local('find . -name \*.pyc -delete')    
+    local('find . -name \*~ -delete')
 
+def remove_pyc():
+    local('find . -name \*.pyc -delete')    
+    
+    
 def test():
     remove_pyc()
     local('python C4GD_web/tests.py')

@@ -3,7 +3,7 @@ import requests
 import json # will fail in <2.6
 from C4GD_web import app
 from orm import *
-from utils import select_keys
+from C4GD_web.utils import select_keys
 from C4GD_web.benchmark import benchmark
 
 

@@ -7,7 +7,7 @@
 from decorators import *
 from C4GD_web import app
 from flask import g
-from utils import select_keys
+from C4GD_web.utils import select_keys
 
 
 class RESTModelBase(object):
