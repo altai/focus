@@ -11,14 +11,17 @@ def login():
         user = g.store.find(User, name=form.username.data).one()
         if user is None:
             flash('User `%s` is not registered.' % form.username.data, 'error')
-        if not user.enabled:
-            flash('User `%s` is not enabled.' % user.name, 'error')
-        if not user.is_ldap_authenticated(form.password.data):
-            flash('Wrong username/password.', 'error')
-        g.user = user
-        session['user_id'] = g.user.id
-        flash('You were logged in successfully.', 'success')
-        return redirect(form.next.data)
+        else:
+            if not user.enabled:
+                flash('User `%s` is not enabled.' % user.name, 'error')
+            else:
+                if not user.is_ldap_authenticated(form.password.data):
+                    flash('Wrong username/password.', 'error')
+                else:
+                    g.user = user
+                    session['user_id'] = g.user.id
+                    flash('You were logged in successfully.', 'success')
+                    return redirect(form.next.data)
     return render_template('login.haml', form=form)
 
 @app.route('/logout/')
