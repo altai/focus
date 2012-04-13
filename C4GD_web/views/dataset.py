@@ -17,12 +17,16 @@ class StrColumn(Column):
 
 
 class ColumnKeeper(object):
-    def __init__(self, mapping, names=[]):
+    is_changed = False
+    def __init__(self, mapping, default_names=[]):
         self.mapping = mapping
-        self.adjust(names)
+        self.default_names = default_names
+        self.adjust(default_names)
 
     def adjust(self, names):
         from C4GD_web.utils import select_keys
         self.selected = list(select_keys(self.mapping, names, True))
         self.spare = list(select_keys(
                 self.mapping, set(self.mapping) - set(names)))
+        if names != self.default_names:
+            self.is_changed = True

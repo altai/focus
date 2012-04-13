@@ -1,0 +1,15 @@
+require.config({
+  paths: {
+    jQuery: 'libs/jquery/jquery'
+  }
+});
+
+require([
+  'jQuery',
+  'order!libs/jquery/jquery-1.7.2.min'
+  , 'order!libs/bootstrap/bootstrap.min'
+], function($){
+  $(document).ready(function(){
+    $('input#username').focus();
+  });
+});

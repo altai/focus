@@ -1,6 +1,7 @@
 import authentication
 
-from flask import g, render_template
+from flask import g, render_template, make_response, jsonify
+
 from C4GD_web import app
 from C4GD_web.models import *
 from C4GD_web.decorators import login_required
@@ -25,8 +26,10 @@ from flask import g, flash, render_template, request, redirect, url_for, \
 
 from pagination import Pagination
 from dataset import IntColumn, StrColumn, ColumnKeeper
-
-
+from csv_staff import UnicodeWriter
+from cStringIO import StringIO
+from contextlib import closing
+import xml.etree.cElementTree as ET
 
 
 @app.route('/')
@@ -91,16 +94,64 @@ def remove_vm():
 @global_wrapper()
 def global_list_vms(page):
     PER_PAGE = 10
+    default_columns = ['id', 'name']
     columns = ColumnKeeper({
         'id': IntColumn('id', 'ID'),
         'name': StrColumn('name', 'Name'),
         'user_id': StrColumn('user_id', 'User')
-        }, ['id', 'name'])
+        }, default_columns)
     if 'columns' in request.args:
         columns.adjust(request.args.getlist('columns'))
     vms = g.pool(VirtualMachine.list)
     table_data = [[x(obj) for x in columns.selected] for obj in vms]
-    p = Pagination(page, PER_PAGE, len(table_data))
-    visible_data_base = (page - 1) * PER_PAGE
-    visible_data = table_data[visible_data_base:visible_data_base + PER_PAGE]
-    return dict(pagination=p, columns=columns.selected, data=visible_data, spare_columns=columns.spare)
+    if 'export' in request.args:
+        if request.args['export'] == 'json':
+            result = jsonify(
+                {
+                    'header': [(x.attr_name, x.verbose_name) for x in columns.selected],
+                    'body': table_data
+                })
+            result.headers['Content-Disposition'] = 'attachment; filename=vms.json'
+            result.headers['Content-Type'] = 'application/json'
+        elif request.args['export'] == 'csv':
+            with closing(StringIO()) as f:
+                writer = UnicodeWriter(f)
+                writer.writerow(["%s|%s" % (x.attr_name, x.verbose_name) for x in columns.selected])
+                writer.writerows([[str(j) for j in i] for i in table_data])
+                result = make_response(f.getvalue())
+            result.headers['Content-Disposition'] = 'attachment; filename=vms.csv'
+            result.headers['Content-Type'] = 'text/csv'
+        elif request.args['export'] == 'xml':
+            r = ET.Element('results')
+            header = ET.SubElement(r, 'head')
+            for x in columns.selected:
+                ET.SubElement(header, 'name', {'attr_name': x.attr_name, 'verbose_name': x.verbose_name})
+            body = ET.SubElement(r, 'body')
+            for data in table_data:
+                row = ET.SubElement(body, 'row')
+                for i, x in enumerate(data):
+                    ET.SubElement(
+                        row,
+                        columns.selected[i].attr_name,
+                        {
+                            'value': repr(x),
+                            'type': type(x).__name__
+                            #'picled': 
+                            })
+            with closing(StringIO()) as f:
+                ET.ElementTree(r).write(f)
+                result = make_response(f.getvalue())
+            result.headers['Content-Disposition'] = 'attachment; filename=vms.xml'
+            result.headers['Content-Type'] = 'text/xml'
+        else:
+            abort(404)
+    else:
+        p = Pagination(page, PER_PAGE, len(table_data))
+        visible_data_base = (page - 1) * PER_PAGE
+        visible_data = table_data[
+            visible_data_base:visible_data_base + PER_PAGE]
+        result = dict(
+            pagination=p,
+            columns=columns,
+            data=visible_data)
+    return result
