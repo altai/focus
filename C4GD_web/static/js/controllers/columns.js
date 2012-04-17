@@ -9,6 +9,9 @@ define(['jQuery', 'Backbone', 'URI'], function($, Backbone, URI){
       },
       'click li.spare-column > a': function(e){
         this.redirect(this.add(e.currentTarget.attributes[0].nodeValue));
+      },
+      'click button.restore-columns': function(){
+        this.redirect(this.uri.removeSearch('columns'));
       }
     },
 

@@ -6,7 +6,7 @@
 -block content
   %section
     %div.btn-toolbar
-      %div.btn-group
+      %div.btn-group#columns-controller
         %button class="btn {% if columns.is_changed %}restore-columns{% endif %}"
           %b.icon-edit
           -if columns.is_changed
@@ -15,7 +15,7 @@
             Columns
         %button.btn.dropdown-toggle data-toggle="dropdown" href="#"    
           %span.caret
-        %ul.dropdown-menu.columns-selection#columns-controller
+        %ul.dropdown-menu.columns-selection
           -for c in columns.selected:
             %li.selected-column
               %a rel="{{ c.attr_name }}"
@@ -25,7 +25,7 @@
           -for c in columns.spare:
             %li.spare-column
               %a rel="{{ c.attr_name }}" -> =c.verbose_name
-      %div.btn-group
+      %div.btn-group#dump-controller
         %button.btn.export-json
           %b.icon-download-alt
           JSON
