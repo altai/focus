@@ -42,14 +42,39 @@
       %thead
         %tr
           -for column in columns.selected:
-            %th
-              =column.verbose_name
-              -if column.sorted == 'asc'
-                %b.icon-chevron-up
-              -elif column.sorted == 'desc'
-                %b.icon-chevron-down
-              -else
-                %b.icon-random
+            %th id="sorting-controller-{{ column.attr_name }}" class="sorting-contoller{% if column.sorted == 'asc' %} asc{% elif column.sorted == 'desc'%} desc{% endif %}"
+              %div.btn-group
+                =column.verbose_name
+                -if column.sorted == 'asc'
+                  %b.icon-chevron-up
+                -elif column.sorted == 'desc'
+                  %b.icon-chevron-down
+                -else
+                  %b.icon-random
+                %a.dropdown-toggle data-toggle="dropdown" href="#"
+                  %span.caret
+                %ul.dropdown-menu
+                  -if column.sorted == 'asc'
+                    %li
+                      %a.desc
+                        %b.icon-chevron-down
+                    %li
+                      %a                          
+                        %b.icon-random                  
+                  -elif column.sorted == 'desc'
+                    %li
+                      %a.asc
+                        %b.icon-chevron-up
+                    %li
+                      %a                          
+                        %b.icon-random                  
+                  -else
+                    %li
+                      %a.asc
+                        %b.icon-chevron-up
+                    %li
+                      %a.desc                      
+                        %b.icon-chevron-down        
       %tbody
         -for row in data:
           %tr

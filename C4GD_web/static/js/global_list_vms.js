@@ -7,6 +7,7 @@ require.config({
     , Underscore: 'libs/underscore/underscore'
     , ColumnsController: 'controllers/columns'
     , DumpController: 'controllers/dump'
+    , SortingController: 'controllers/sorting'
   }
 });
 
