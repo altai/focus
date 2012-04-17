@@ -2,42 +2,22 @@ require.config({
   paths: {
     jQuery: 'libs/jquery/jquery'
     , URI: 'libs/URI/URI'
+    , Backbone: 'libs/backbone/backbone'
+    , Underscore: 'libs/underscore/underscore'
+    , ColumnsController: 'controllers/columns'
+    , DumpController: 'controllers/dump'
   }
 });
 
 require([
-  'jQuery'
-  , 'URI'
+  'apps/global_list_vms'
+
   , 'order!libs/jquery/jquery-1.7.2.min'
   , 'order!libs/bootstrap/bootstrap.min'
-], function($, URI){
-  $(document).ready(function(){
-    var uri = URI(window.location.toString());
-    $('.columns-selection  > li.selected-column > a').click(function(){
-      if (!uri.search().hasOwnProperty('columns')){
-        uri.addSearch({ columns: default_columns })// global var from page
-      }
-      uri.removeSearch('columns', $(this).attr("rel"));
-      window.location.assign(uri.toString());
-    });
-    $('.columns-selection  > li.spare-column > a').click(function(){
-      if (!uri.search().hasOwnProperty('columns')){
-        uri.addSearch({ columns: default_columns })// global var from page
-      }
-      uri.addSearch('columns', $(this).attr("rel"));
-      window.location.assign(uri.toString());
-    });
-    $('button.restore-columns').click(function(){
-      window.location.assign(uri.removeSearch('columns'));
-    });
-    $('.export-json').click(function(){
-      window.location.assign(uri.addSearch('export', 'json'));
-    })
-    $('.export-csv').click(function(){
-      window.location.assign(uri.addSearch('export', 'csv'));
-    })
-    $('.export-xml').click(function(){
-      window.location.assign(uri.addSearch('export', 'xml'));
-    })
-  });
+  , 'order!libs/underscore/underscore-min'
+  , 'order!libs/json2/json2-min'
+  , 'order!libs/backbone/backbone-min'
+
+], function(App){
+  App.initialize();
 });

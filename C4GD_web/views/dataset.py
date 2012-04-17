@@ -18,6 +18,12 @@ class StrColumn(Column):
 
 class ColumnKeeper(object):
     is_changed = False
+    mapping = {}
+    default_names = []
+    selected = []
+    spare = []
+    ordering = []
+
     def __init__(self, mapping, default_names=[]):
         self.mapping = mapping
         self.default_names = default_names
@@ -30,3 +36,24 @@ class ColumnKeeper(object):
                 self.mapping, set(self.mapping) - set(names)))
         if names != self.default_names:
             self.is_changed = True
+
+    def order(self, asc=[], desc=[]):
+        self.ordering = []
+        for name in self.mapping:
+            if name in asc:
+                self.ordering.append((name, 'asc'))
+            if name in desc:
+                self.ordering.append((name, 'desc'))
+
+
+class DataSet(object):
+    data = []
+    columns = None
+
+    def __init__(self, objects, columns):
+        self.columns = columns
+        self.data = [[x(obj) for x in self.columns.selected] for obj in objects]
+        for attr_name, direction in self.columns.ordering:
+            self.data = sorted(
+                data, key=lambda d: d[attr_name], reverse=direction == 'desc')
+        

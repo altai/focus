@@ -15,7 +15,7 @@
             Columns
         %button.btn.dropdown-toggle data-toggle="dropdown" href="#"    
           %span.caret
-        %ul.dropdown-menu.columns-selection
+        %ul.dropdown-menu.columns-selection#columns-controller
           -for c in columns.selected:
             %li.selected-column
               %a rel="{{ c.attr_name }}"
@@ -44,9 +44,12 @@
           -for column in columns.selected:
             %th
               =column.verbose_name
-              ;%b.icon-random
-              ;%b.icon-chevron-up
-              ;%b.icon-chevron-down
+              -if column.sorted == 'asc'
+                %b.icon-chevron-up
+              -elif column.sorted == 'desc'
+                %b.icon-chevron-down
+              -else
+                %b.icon-random
       %tbody
         -for row in data:
           %tr

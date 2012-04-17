@@ -1,6 +1,6 @@
 import functools
 import os.path
-
+from decorators import login_required
 from C4GD_web import app
 from C4GD_web.models import *
 from flask import render_template, abort, g
@@ -22,6 +22,7 @@ class BaseWrapper(object):
         TODO: make it work as @wrapper instead of @wrapper()
         """
         def _decorator(func):
+            @login_required
             @functools.wraps(func)
             def _wrapped(*args, **kwargs):
                 self.before(*args, **kwargs)
