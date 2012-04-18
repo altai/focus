@@ -89,11 +89,11 @@ def remove_vm(tenant_id, vm_id):
     return {vm: g.vm}# use partial to show the same message as in modal
 
 
-@app.route('/g/', defaults=dict(page=1))
-@app.route('/g/<int:page>/')
+@app.route('/g/')
 @global_wrapper()
-def global_list_vms(page):
+def global_list_vms():
     PER_PAGE = 10
+    page = int(request.args.get('page', 1))
     default_columns = ['id', 'name']
     #creating and adjusting columns vector, columns ordering
     columns = ColumnKeeper({

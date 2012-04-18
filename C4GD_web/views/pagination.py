@@ -1,3 +1,4 @@
+import urllib, urlparse
 from math import ceil
 from flask import request, url_for
 from C4GD_web import app
@@ -36,10 +37,8 @@ class Pagination(object):
                 last = num
 
 def url_for_other_page(page):
-    args = request.view_args.copy()
+    args = request.args.copy()
     args['page'] = page
-    result = url_for(request.endpoint, **args)
-    if request.environ['QUERY_STRING']:
-        result = '%s?%s' % (result, request.environ['QUERY_STRING'])
+    result = '%s?%s' % (request.path, urllib.urlencode(args))
     return result
 app.jinja_env.globals['url_for_other_page'] = url_for_other_page
