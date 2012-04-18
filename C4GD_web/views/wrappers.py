@@ -1,6 +1,6 @@
 import functools
 import os.path
-from decorators import login_required
+from C4GD_web.decorators import login_required
 from C4GD_web import app
 from C4GD_web.models import *
 from flask import render_template, abort, g

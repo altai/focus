@@ -25,7 +25,6 @@ from flask import g, flash, render_template, request, redirect, url_for, \
 
 from pagination import Pagination
 from dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
-from decorators import login_required
 from exporter import Exporter
 
 
