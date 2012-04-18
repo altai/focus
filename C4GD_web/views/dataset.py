@@ -1,4 +1,5 @@
 class Column(object):
+    sorted = None
     def __init__(self, attr_name, verbose_name=None):
         self.attr_name = attr_name
         self.verbose_name = verbose_name or attr_name
@@ -23,7 +24,7 @@ class ColumnKeeper(object):
     selected = []
     spare = []
     ordering = []
-
+    current_names = []
     def __init__(self, mapping, default_names=[]):
         self.mapping = mapping
         self.default_names = default_names
@@ -36,15 +37,23 @@ class ColumnKeeper(object):
                 self.mapping, set(self.mapping) - set(names)))
         if names != self.default_names:
             self.is_changed = True
+        self.current_names = names
 
     def order(self, asc=[], desc=[]):
         self.ordering = []
-        for name in self.mapping:
+        for name in self.current_names:
             if name in asc:
                 self.ordering.append((name, 'asc'))
+                self.selected[self.index(name)].sorted = 'asc'
             if name in desc:
                 self.ordering.append((name, 'desc'))
+                self.selected[self.index(name)].sorted = 'desc'
+                
+    def index(self, attr_name):
+        return self.current_names.index(attr_name)
 
+
+    
 
 class DataSet(object):
     data = []
@@ -53,7 +62,18 @@ class DataSet(object):
     def __init__(self, objects, columns):
         self.columns = columns
         self.data = [[x(obj) for x in self.columns.selected] for obj in objects]
-        for attr_name, direction in self.columns.ordering:
-            self.data = sorted(
-                data, key=lambda d: d[attr_name], reverse=direction == 'desc')
-        
+        if self.columns.ordering:
+            ordering = dict(self.columns.ordering)
+            def _cmp(x, y):
+                for attr_name in self.columns.current_names:
+                    if attr_name in ordering:
+                        xs = lambda i: i[self.columns.index(attr_name)]
+                        if ordering[attr_name] == 'asc':
+                            r = cmp(xs(x), xs(y))
+                        else:
+                            r = cmp(xs(y), xs(x))
+                        if r:
+                            return r
+                return 0
+            self.data = sorted(self.data, cmp=_cmp)
+

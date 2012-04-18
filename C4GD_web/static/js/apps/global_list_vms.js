@@ -11,7 +11,6 @@ define([
       new DumpController({el: $('#dump-controller')});
       $('th.sorting-contoller').each(function(num, val){
         new SortingController({el: val});
-        console.log(val);
       });
     });
   }};

@@ -1,21 +1,25 @@
-define(['Backbone'], function(Backbone){
+define(['jQuery', 'Underscore', 'Backbone', 'URI'], function($, _, Backbone, URI){
   return Backbone.View.extend({
     events: {
       'click ul > li > a': function(e){
-        console.log(el)
+        this.redirect(this.add_order($(e.currentTarget)));
       }
     },
 
-    is_asc: function(){
-      return this.$el.hasClass('asc');
+    add_order: function(a){      
+      var attr = this.$el.attr('data-attr-name');
+      var uri = URI(window.location.toString())
+        .removeSearch("asc", attr)
+        .removeSearch("desc", attr);
+      var direction = a.attr('data-direction');
+      if (direction !== undefined){
+        uri = uri.addSearch(direction, attr);
+      }
+      return uri;
     },
 
-    is_desc: function(){
-      return this.$el.hasClass('desc');
-    },
-
-    is_none: function(){
-      return !(this.is_asc() || this.is_desc());
+    redirect: function(uri){
+      window.location.assign(uri.toString());
     }
 
   });

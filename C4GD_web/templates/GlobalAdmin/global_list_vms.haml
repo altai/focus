@@ -42,38 +42,38 @@
       %thead
         %tr
           -for column in columns.selected:
-            %th id="sorting-controller-{{ column.attr_name }}" class="sorting-contoller{% if column.sorted == 'asc' %} asc{% elif column.sorted == 'desc'%} desc{% endif %}"
+            %th id="sorting-controller-{{ column.attr_name }}" class="sorting-contoller{% if column.sorted == 'asc' %} asc{% elif column.sorted == 'desc'%} desc{% endif %}" data-attr-name="{{ column.attr_name }}"
               %div.btn-group
                 =column.verbose_name
-                -if column.sorted == 'asc'
+                -if column.sorted == 'desc'
                   %b.icon-chevron-up
-                -elif column.sorted == 'desc'
+                -elif column.sorted == 'asc'
                   %b.icon-chevron-down
                 -else
                   %b.icon-random
                 %a.dropdown-toggle data-toggle="dropdown" href="#"
                   %span.caret
                 %ul.dropdown-menu
-                  -if column.sorted == 'asc'
+                  -if column.sorted == 'desc'
                     %li
-                      %a.desc
+                      %a data-direction="asc"
                         %b.icon-chevron-down
                     %li
-                      %a                          
+                      %a
                         %b.icon-random                  
-                  -elif column.sorted == 'desc'
+                  -elif column.sorted == 'asc'
                     %li
-                      %a.asc
+                      %a data-direction="desc"
                         %b.icon-chevron-up
                     %li
-                      %a                          
+                      %a      
                         %b.icon-random                  
                   -else
                     %li
-                      %a.asc
+                      %a data-direction="desc"
                         %b.icon-chevron-up
                     %li
-                      %a.desc                      
+                      %a data-direction="asc"        
                         %b.icon-chevron-down        
       %tbody
         -for row in data:

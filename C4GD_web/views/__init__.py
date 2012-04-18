@@ -108,7 +108,7 @@ def global_list_vms(page):
     
     vms = g.pool(VirtualMachine.list)
     dataset = DataSet(vms, columns)
-    
+    #import pdb; pdb.set_trace() #
     if 'export' in request.args:
         try:
             export = Exporter(
