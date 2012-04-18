@@ -25,7 +25,7 @@ define(['Underscore', 'URI'], function (_, URI){
       return join();
     }
     this.remove = function(v){
-      columns = _.reject(columns, function(x){x == v});
+      columns = _.reject(columns, function(x){return x == v});
       return join();
     }
   }
