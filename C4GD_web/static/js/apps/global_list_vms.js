@@ -3,8 +3,9 @@ define([
   'Underscore',
   'ColumnsController',
   'DumpController',
-  'SortingController'
-], function($, _, ColumnsController, DumpController, SortingController){
+  'SortingController',
+  'DraggingColumnsController'
+], function($, _, ColumnsController, DumpController, SortingController, DraggingColumnsController){
   return {initialize: function(){
     $(document).ready(function(){
       new ColumnsController({el: $('#columns-controller')});
@@ -12,6 +13,7 @@ define([
       $('th.sorting-contoller').each(function(num, val){
         new SortingController({el: val});
       });
+      new DraggingColumnsController({el: $('.dragging-controller')});
     });
   }};
 });

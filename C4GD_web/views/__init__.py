@@ -102,7 +102,7 @@ def global_list_vms(page):
         'user_id': StrColumn('user_id', 'User')
         }, default_columns)
     if 'columns' in request.args:
-        columns.adjust(request.args.getlist('columns'))
+        columns.adjust(request.args['columns'].split(','))
     if 'asc' in request.args or 'desc' in request.args:
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     

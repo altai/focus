@@ -1,5 +1,5 @@
 /* default_columns is global variable from the page */
-define(['jQuery', 'Backbone', 'URI'], function($, Backbone, URI){
+define(['jQuery', 'Backbone', 'URI', 'Columns'], function($, Backbone, URI, Columns){
   return Backbone.View.extend({
     uri: URI(window.location.toString()),
 
@@ -15,20 +15,14 @@ define(['jQuery', 'Backbone', 'URI'], function($, Backbone, URI){
       }
     },
 
-    normalize: function(){
-      if (!this.uri.search().hasOwnProperty('columns')){
-        return this.uri.addSearch({ columns: default_columns })
-      } else {
-        return this.uri;
-      }
-    },
-
     add: function(value){
-      return this.normalize().addSearch('columns', value);
+      var columns = new Columns();
+      return columns.add(value);
     },
 
     remove: function(value){
-      return this.normalize().removeSearch('columns', value);
+      var columns = new Columns();
+      return columns.remove(value);
     },
 
     redirect: function(uri){
