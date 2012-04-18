@@ -1,7 +1,7 @@
 -extends "base.haml"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_field
-  %form method="POST" action="." class="well offset4 span4 form-vertical"
+  %form method="POST" action="." class="well offset4 span4 form-vertical login"
     %legend
       Cloud Web GUI
     {{ render_form_errors(form.csrf_token) }}
