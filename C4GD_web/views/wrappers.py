@@ -61,6 +61,9 @@ class GlobalAdminWrapper(BaseWrapper):
         g.pool = get_pool(g.user, t)
 
 
+DashboardWrapper = GlobalAdminWrapper
+    
+
 class ProjectWrapper(BaseWrapper):
     def before(self, *args, **kwargs):
         g.tenant = g.store.find(Tenant, id=kwargs['tenant_id'], enabled=True).one()

@@ -5,7 +5,7 @@ from flask import g, render_template
 from C4GD_web import app
 from C4GD_web.models import *
 
-from wrappers import ProjectWrapper, GlobalAdminWrapper
+from wrappers import ProjectWrapper, GlobalAdminWrapper, DashboardWrapper
 
 from flask import g, flash, request, redirect, url_for, \
     session, abort
@@ -29,19 +29,21 @@ from decorators import login_required
 from exporter import Exporter
 
 
+project_wrapper = ProjectWrapper()
+global_wrapper = GlobalAdminWrapper()
+dashboard_wrapper = DashboardWrapper()
+
 @app.route('/')
-@login_required
+@dashboard_wrapper()
 def dashboard():
     total_users = g.store.find(User).count()
     total_projects = g.store.execute('select count(distinct(tenant_id)) from user_roles').get_one()[0]
+    total_vms = len(g.pool(VirtualMachine.list))
     return render_template(
         'dashboard.haml',
-        total_users=total_users, total_projects=total_projects)
-
-
-project_wrapper = ProjectWrapper()
-global_wrapper = GlobalAdminWrapper()
-
+        total_users=total_users,
+        total_projects=total_projects,
+        total_vms=total_vms)
 
 
 @app.route('/<int:tenant_id>/')
