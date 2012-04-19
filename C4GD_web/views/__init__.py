@@ -93,6 +93,11 @@ def remove_vm(tenant_id, vm_id):
 @app.route('/g/')
 @global_wrapper()
 def global_list_vms():
+    class ProjectNameColumn(StrColumn):
+        def __call__(self, x):
+            tenant_id = int(x.tenant_id)
+            tenant = g.store.get(Tenant, tenant_id)
+            return tenant.name
     PER_PAGE = 10
     page = int(request.args.get('page', 1))
     default_columns = ['id', 'name']
@@ -100,7 +105,10 @@ def global_list_vms():
     columns = ColumnKeeper({
         'id': IntColumn('id', 'ID'),
         'name': StrColumn('name', 'Name'),
-        'user_id': StrColumn('user_id', 'User')
+        'user_id': StrColumn('user_id', 'User'),
+        'tenant_id': IntColumn('tenant_id', 'Project ID'),
+        'project_name': ProjectNameColumn('project_name', 'Project Name')
+        
         }, default_columns)
     if 'columns' in request.args:
         columns.adjust(request.args['columns'].split(','))
