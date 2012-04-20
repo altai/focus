@@ -1,11 +1,12 @@
 define([
-  'jQuery',
-  'Underscore',
-  'ColumnsController',
-  'DumpController',
-  'SortingController',
-  'DraggingColumnsController'
-], function($, _, ColumnsController, DumpController, SortingController, DraggingColumnsController){
+  'jQuery'
+  , 'Underscore'
+  , 'ColumnsController'
+  , 'DumpController'
+  , 'SortingController'
+  , 'DraggingColumnsController'
+  , 'GrouppingController'
+], function($, _, ColumnsController, DumpController, SortingController, DraggingColumnsController, GrouppingController){
   return {initialize: function(){
     $(document).ready(function(){
       new ColumnsController({el: $('#columns-controller')});
@@ -14,6 +15,9 @@ define([
         new SortingController({el: val});
       });
       new DraggingColumnsController({el: $('.dragging-controller')});
+      $('.groupping-controller').each(function(){
+        new GrouppingController({el: $(this)});
+      });
     });
   }};
 });

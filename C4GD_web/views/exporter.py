@@ -18,7 +18,6 @@ class BaseExporter(object):
         self.basename = basename
 
     def wrap(self, content):
-        #import pdb; pdb.set_trace()
         r = make_response(content)
         r.headers['Content-Disposition'] = 'attachment; filename=%s.%s' % (
             self.basename, self.extension)

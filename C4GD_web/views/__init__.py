@@ -114,10 +114,10 @@ def global_list_vms():
         columns.adjust(request.args['columns'].split(','))
     if 'asc' in request.args or 'desc' in request.args:
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
-    
+    if 'groupby' in request.args:
+        columns.adjust_groupby(request.args['groupby'])
     vms = g.pool(VirtualMachine.list)
     dataset = DataSet(vms, columns)
-    #import pdb; pdb.set_trace() #
     if 'export' in request.args:
         try:
             export = Exporter(
@@ -133,8 +133,10 @@ def global_list_vms():
         visible_data_base = (page - 1) * PER_PAGE
         visible_data = dataset.data[
             visible_data_base:visible_data_base + PER_PAGE]
+        distinct_projects_names = sorted(dataset.get_distinct_values("project_name"))
         response = dict(
             pagination=p,
             columns=columns,
-            data=visible_data)
+            data=visible_data,
+            distinct_projects_names=distinct_projects_names)
     return response

@@ -36,9 +36,17 @@ class Pagination(object):
                 yield num
                 last = num
 
+
+from werkzeug.datastructures import iter_multi_items
+
+
 def url_for_other_page(page):
     args = request.args.copy()
     args['page'] = page
-    result = '%s?%s' % (request.path, urllib.urlencode(args))
+    result = '%s?%s' % (
+        request.path,
+        urllib.urlencode(
+            tuple(args.iterlists()), 
+            doseq=1))
     return result
 app.jinja_env.globals['url_for_other_page'] = url_for_other_page

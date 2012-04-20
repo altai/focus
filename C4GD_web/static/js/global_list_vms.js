@@ -11,6 +11,7 @@ require.config({
     , DraggingColumnsController: 'controllers/dragging_columns'
     , jQueryUI: 'libs/jquery-ui/jquery-ui.js'
     , Columns: 'controllers/columns_util'
+    , GrouppingController: 'controllers/groupping'
   }
 });
 
