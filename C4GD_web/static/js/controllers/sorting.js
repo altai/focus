@@ -19,7 +19,7 @@ define(['jQuery', 'Underscore', 'Backbone', 'URI'], function($, _, Backbone, URI
     },
 
     redirect: function(uri){
-      window.location.assign(uri.toString());
+      window.location.assign(uri.removeSearch('page').toString());
     }
 
   });

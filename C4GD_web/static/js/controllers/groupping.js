@@ -5,7 +5,7 @@ define(['Backbone', 'URI', 'jQuery'], function(Backbone, URI, $){
         var $a = $(event.target);
         var groupping_value = $a.data('groupping-value');
         var uri = URI(window.location.toString())
-          .removeSearch('groupby')
+          .removeSearch('groupby').removeSearch('page');
         if (groupping_value !== ""){
           uri = uri.addSearch('groupby', groupping_value);
         }
