@@ -100,7 +100,7 @@ def global_list_vms():
             return tenant.name
     PER_PAGE = 10
     page = int(request.args.get('page', 1))
-    default_columns = ['id', 'name']
+    default_columns = ['id', 'name', 'project_name', 'tenant_id']
     #creating and adjusting columns vector, columns ordering
     columns = ColumnKeeper({
         'id': IntColumn('id', 'ID'),
@@ -133,10 +133,11 @@ def global_list_vms():
         visible_data_base = (page - 1) * PER_PAGE
         visible_data = dataset.data[
             visible_data_base:visible_data_base + PER_PAGE]
-        distinct_projects_names = sorted(dataset.get_distinct_values("project_name"))
         response = dict(
             pagination=p,
             columns=columns,
-            data=visible_data,
-            distinct_projects_names=distinct_projects_names)
+            data=visible_data)
+        if 'project_name' in columns.current_names:
+            response['distinct_projects_names'] = sorted(
+                dataset.get_distinct_values("project_name"))
     return response

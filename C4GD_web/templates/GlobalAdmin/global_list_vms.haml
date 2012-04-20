@@ -40,10 +40,7 @@
           %li
             %a.export-xml
               XML
-      %div.btn-group
-        ;%button.btn.add-group
-        ;  Group by
-        ;  %b.icon-plus-sign
+      -if columns.current_names.__contains__('project_name'):
         %div.btn-group.groupping-controller
           %a.btn data-groupping-value="project_name|"
             Group by Project Name
@@ -67,10 +64,7 @@
                   -if columns.groupby|length > 0 and columns.groupby[1]|length and columns.groupby[1] == project_name:
                     %b.icon-ok
                   =project_name
-          ;%button.btn style="border-radius: 0 15px 15px 0;"
-          ;  %b.icon-minus-sign
-        
-        
+
     %table.table.table-striped.table-bordered.table-condensed
       %thead
         %tr.dragging-controller
