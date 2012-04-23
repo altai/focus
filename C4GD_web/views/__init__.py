@@ -19,7 +19,6 @@ from forms import get_login_form, get_spawn_form
 from C4GD_web.models import *
 from utils import get_object_or_404, get_next_url
 from C4GD_web import app
-from C4GD_web.models import get_pool, Tenant, UserRole, VirtualMachine
 from flask import g, flash, render_template, request, redirect, url_for, \
     session
 
@@ -182,7 +181,6 @@ def new_user_to_project(tenant_id):
     URGENT: control access
     """
     from forms import NewUserToProjectForm
-    from models import get_store
     form = NewUserToProjectForm(g.user)
     if form.validate_on_submit():
         user = g.store.get(User, form.user.data)
