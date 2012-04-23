@@ -28,6 +28,10 @@ from dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
 from exporter import Exporter
 
 
+def per_page():
+    return 10
+
+
 project_wrapper = ProjectWrapper()
 global_wrapper = GlobalAdminWrapper()
 dashboard_wrapper = DashboardWrapper()
@@ -129,9 +133,9 @@ def global_list_vms():
         response = export()
     else:
         p = Pagination(page, per_page(), len(dataset.data))
-        visible_data_base = (page - 1) * PER_PAGE
+        visible_data_base = (page - 1) * per_page()
         visible_data = dataset.data[
-            visible_data_base:visible_data_base + PER_PAGE]
+            visible_data_base:visible_data_base + per_page()]
         response = dict(
             pagination=p,
             columns=columns,
@@ -141,8 +145,6 @@ def global_list_vms():
                 dataset.get_distinct_values("project_name"))
     return response
 
-def per_page():
-    return 10
 
 @app.route('/<int:tenant_id>/users/')
 @project_wrapper()
