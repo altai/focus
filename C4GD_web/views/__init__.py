@@ -152,7 +152,6 @@ def list_users(tenant_id):
     List users.
     TODO: pluggable view
     """
-    from models import User
     users = g.tenant.users.find().order_by(User.name).config(distinct=True)
     page = int(request.args.get('page', 1))
     pagination = Pagination(page, per_page(), users.count())
@@ -201,7 +200,6 @@ def new_user_to_project(tenant_id):
 @app.route('/<int:tenant_id>/users/remove/<int:user_id>/', methods=['POST'])
 @project_wrapper()
 def remove_user_from_project(tenant_id, user_id):
-    from models import get_store
     writable_store = get_store('RW')
     rs = writable_store.find(
         UserRole, tenant_id=tenant_id, user_id=user_id)
