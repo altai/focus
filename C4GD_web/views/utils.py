@@ -18,8 +18,13 @@ def get_next_url():
     return d.get('next', url_for(app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
 
 
-def get_object_or_404(klass, object_id):
-    obj = g.store.get(klass, object_id)
+def get_object_or_404(klass, object_id, store=None):
+    if type(klass).__name__ == 'PropertyPublisherMeta':# model
+        if store is None:
+            store = g.store
+        obj = store.get(klass, object_id)
+    else:# reference set
+        obj = klass.find(id=object_id).config(distinct=True).one()
     if obj is None:
         abort(404)
     else:

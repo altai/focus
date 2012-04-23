@@ -13,9 +13,9 @@
       %ul.nav.nav-pills
         %li class="{% if request.path == url_for('show_tenant', tenant_id=g.tenant.id) %}active{% endif %}"
           %a href="{{ url_for('show_tenant', tenant_id=g.tenant.id) }}"
-            List existing
-        %li class="{% if request.path == url_for('spawn_vm', tenant_id=g.tenant.id) %}active{% endif %}"
-          %a href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}"
-            Spawn new
-
+            Virtual Machines
+        %li class="{% if request.path == url_for('list_users', tenant_id=g.tenant.id) %}active{% endif %}"
+          %a href="{{ url_for('list_users', tenant_id=g.tenant.id) }}"
+            Users
+        
   

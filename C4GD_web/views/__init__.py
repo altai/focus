@@ -98,7 +98,6 @@ def global_list_vms():
             tenant_id = int(x.tenant_id)
             tenant = g.store.get(Tenant, tenant_id)
             return tenant.name
-    PER_PAGE = 10
     page = int(request.args.get('page', 1))
     default_columns = ['id', 'name', 'project_name', 'tenant_id']
     #creating and adjusting columns vector, columns ordering
@@ -129,7 +128,7 @@ def global_list_vms():
             return redirect(request.path + '?' + '&'.join((['%s=%s' % (k, v) for k, v in iter_multi_items(d)])))
         response = export()
     else:
-        p = Pagination(page, PER_PAGE, len(dataset.data))
+        p = Pagination(page, per_page(), len(dataset.data))
         visible_data_base = (page - 1) * PER_PAGE
         visible_data = dataset.data[
             visible_data_base:visible_data_base + PER_PAGE]
@@ -141,3 +140,157 @@ def global_list_vms():
             response['distinct_projects_names'] = sorted(
                 dataset.get_distinct_values("project_name"))
     return response
+
+def per_page():
+    return 10
+
+@app.route('/<int:tenant_id>/users/')
+@project_wrapper()
+def list_users(tenant_id):
+    """
+    List users.
+    TODO: pluggable view
+    """
+    from models import User
+    users = g.tenant.users.find().order_by(User.name).config(distinct=True)
+    page = int(request.args.get('page', 1))
+    pagination = Pagination(page, per_page(), users.count())
+    objects = users.config
+    return {
+        'pagination': pagination,
+        'objects': users.config(offset=(page-1) * per_page(), limit=per_page())
+        }
+
+@app.route('/<int:tenant_id>/users/<int:user_id>/')
+@project_wrapper()
+def show_user_in_project(tenant_id, user_id):
+    """
+    Show edit form and statistics for for the user.
+    TODO: pluggable view
+    """
+    user = get_object_or_404(g.tenant.users, user_id)
+    return {
+        'object': user
+        }
+
+@app.route('/<int:tenant_id>/users/new/', methods=['GET', 'POST'])
+@project_wrapper()
+def new_user_to_project(tenant_id):
+    """
+    URGENT: control access
+    """
+    from forms import NewUserToProjectForm
+    from models import get_store
+    form = NewUserToProjectForm(g.user)
+    if form.validate_on_submit():
+        user = g.store.get(User, form.user.data)
+        roles = g.store.find(Role, Role.id.is_in(form.roles.data))
+        writable_store = get_store('RW')
+        for role in roles:
+            user_role = UserRole()
+            user_role.user_id = user.id
+            user_role.role_id = role.id
+            user_role.tenant_id = g.tenant.id
+            writable_store.add(user_role)
+        writable_store.commit()
+        flash('User added successfully', 'success')
+        return redirect(url_for('list_users', tenant_id=tenant_id))
+    return {'form': form}
+
+
+@app.route('/<int:tenant_id>/users/remove/<int:user_id>/', methods=['POST'])
+@project_wrapper()
+def remove_user_from_project(tenant_id, user_id):
+    from models import get_store
+    writable_store = get_store('RW')
+    rs = writable_store.find(
+        UserRole, tenant_id=tenant_id, user_id=user_id)
+    for user_role in rs:
+        writable_store.remove(user_role)
+    writable_store.commit() 
+    flash('User removed successfully', 'success')
+    return redirect(url_for('list_users', tenant_id=tenant_id))
+    
+
+# class ControllerMetaclass(type):
+#     """
+#     Instantiates controllers on controller class definition.
+#     Wraps, decorates, registers in routing public methods of new instance.
+#     """
+#     def __init__(cls, name, bases, dct):
+#         """
+#         Instantiate controller.
+#         Register actions.
+#         """
+
+#         # have class created
+#         super(ControllerMetaclass, cls).__init__(name, bases, dct)
+#         # create an instance
+#         instance = cls()
+#         # register routing
+#         for action_name in dir(instance):
+#             if not action_name.startswith('_'):  # public
+#                 action = getattr(instance, action)
+#                 if callable(action): # method
+#                     t = (name, action_name) # TODO: slugify
+#                     app.add_url_rule(
+#                         '/%s/%s/' % t,
+#                         '%s.%s' % t,
+#                         action)
+#                     if instance.default_action == action:
+#                         app.add_url_rule(
+#                             '/%s/' % cls,
+#                             '%s.%s' % t,
+#                             action)
+#                     if instance.root_controller:
+#                         app.add_url_rule(
+#                             '/',
+#                             '%s.%s' % t,
+#                             action)
+                        
+
+#     def __call__(cls, *args, **kwargs):
+#         """
+#         Keep instance.
+#         """
+#         if cls._instance is None:
+#             cls._instance = super(ControllerMetaclass, cls).__call__(*args, **kwargs)
+#         return cls._instance
+
+# class AbstractController(object):
+#     '''
+#     index
+#     list
+#     show
+#     new
+#     create
+#     edit
+#     update
+#     destroy
+#     '''
+#     class Meta:
+#         default_action = 'list'
+#         args = []
+#         before = []
+#         after = []
+
+#     def _work_setup(self, *args):
+#         pass
+
+#     def _dispatch_decorator(self, instance_method):
+#         def _wrapped(self, *args, **kwargs):
+#             # setup controller
+#             controller_args = args[:len(self.controller_args)]
+#             self._work_setup(*controller_args)
+#             # perform tasks for before
+#             instance_args = args[len(self.controller_args):]
+#             result = instance_method(instance_args)
+#             #after
+                    
+# class MyController(AbstractController):
+    
+#     def list(self):
+#         self.foo = 1
+
+#     def new(self):
+#         return 'test'

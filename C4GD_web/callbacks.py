@@ -1,19 +1,11 @@
 from flask import g, session
-from storm.locals import Store, create_database
 from C4GD_web import app
-from models import User
+from models import User, get_store
 
 
 @app.before_request
-def create_storm_store():
-    database = create_database(
-        'mysql://%s:%s@%s:%s/%s' % (
-            app.config['DB_USER'],
-            app.config['DB_PASS'],
-            app.config['DB_HOST'],
-            app.config['DB_PORT'],
-            app.config['DB_NAME']))
-    g.store = Store(database) 
+def create_storm_readonly_store():
+    g.store = get_store('RO')
 
 @app.after_request
 def commit_storm_store(response):

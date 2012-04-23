@@ -5,9 +5,15 @@ DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard' # no next? redirect to this view
 DEFAULT_NEXT_TO_LOGOUT_VIEW = 'dashboard'
 LDAP_URI = 'ldap://ns/' 
 LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
-DB_HOST = ''
-DB_PORT = 3306 # must be integer
-DB_USER = ''
-DB_PASS = ''
-DB_NAME = ''
+RO_DB_HOST = ''
+RO_DB_PORT = 3306 # must be integer
+RO_DB_USER = ''
+RO_DB_PASS = ''
+RO_DB_NAME = ''
+RW_DB_HOST = ''
+RW_DB_PORT = 3306 # must be integer
+RW_DB_USER = ''
+RW_DB_PASS = ''
+RW_DB_NAME = ''
+
 DEV = False

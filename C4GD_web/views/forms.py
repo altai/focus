@@ -40,4 +40,20 @@ def get_spawn_form():
         security_groups = SelectMultipleField('Security Groups', choices=SECURITY_GROUP, coerce=int)
 
     return SpawnForm
-    
+
+
+class NewUserToProjectForm(Form):
+    def __init__(self, user):
+        from models.orm import User, Role
+        from storm.locals import Not
+        users = g.store.find(User, Not(User.id.is_in(g.tenant.users.find().config(distinct=True).values(User.id)))).\
+            config(distinct=True).order_by('name')
+        user_choices = [(x.id, x.name) for x in users]
+        self.user.kwargs['choices'] = user_choices
+        roles = g.store.find(Role).order_by('name')
+        roles_choices = [(x.id, x.name) for x in roles]
+        self.roles.kwargs['choices'] = roles_choices
+        super(NewUserToProjectForm, self).__init__()
+    user = SelectField('User', [Required()], coerce=int)
+    roles = SelectMultipleField('Roles', [Required()], coerce=int)
+        
