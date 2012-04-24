@@ -1,6 +1,7 @@
 import authentication
 
-from flask import g, render_template
+from functools import wraps
+from flask import g, render_template, make_response
 
 from C4GD_web import app
 from C4GD_web.models import *
@@ -35,6 +36,18 @@ def per_page():
 project_wrapper = ProjectWrapper()
 global_wrapper = GlobalAdminWrapper()
 dashboard_wrapper = DashboardWrapper()
+
+
+def pm_only(view):
+    @wraps(view)
+    def decorated(*args, **kwargs):
+        if g.user.is_project_manager(g.tenant):
+            return view(*args, **kwargs)
+        else:
+            flash('The operation is not available to you.', 'error')
+            return make_response(render_template('blank.haml'), 403)
+    return decorated
+
 
 @app.route('/')
 @dashboard_wrapper()
@@ -163,20 +176,23 @@ def list_users(tenant_id):
         'objects': users.config(offset=(page-1) * per_page(), limit=per_page())
         }
 
-@app.route('/<int:tenant_id>/users/<int:user_id>/')
-@project_wrapper()
-def show_user_in_project(tenant_id, user_id):
-    """
-    Show edit form and statistics for for the user.
-    TODO: pluggable view
-    """
-    user = get_object_or_404(g.tenant.users, user_id)
-    return {
-        'object': user
-        }
+# @app.route('/<int:tenant_id>/users/<int:user_id>/')
+# @project_wrapper()
+# def show_user_in_project(tenant_id, user_id):
+#     """
+#     Show edit form and statistics for for the user.
+#     TODO: pluggable view
+#     """
+#     user = get_object_or_404(g.tenant.users, user_id)
+#     return {
+#         'object': user
+#         }
+
+
 
 @app.route('/<int:tenant_id>/users/new/', methods=['GET', 'POST'])
 @project_wrapper()
+@pm_only
 def new_user_to_project(tenant_id):
     """
     URGENT: control access
@@ -199,9 +215,9 @@ def new_user_to_project(tenant_id):
         return redirect(url_for('list_users', tenant_id=tenant_id))
     return {'form': form}
 
-
 @app.route('/<int:tenant_id>/users/remove/<int:user_id>/', methods=['POST'])
 @project_wrapper()
+@pm_only
 def remove_user_from_project(tenant_id, user_id):
     from models import get_store
     writable_store = get_store('RW')

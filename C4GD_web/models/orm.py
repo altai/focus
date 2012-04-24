@@ -57,6 +57,9 @@ class User(Storm):
 
     tenants = ReferenceSet('User.id', 'UserTenant.user_id', 'UserTenant.tenant_id', 'Tenant.id')
 
+    def is_project_manager(self, tenant):
+        return self.user_roles.find(UserRole.role_id.is_in([1, 4]), tenant=tenant).count() > 0
+
 
 class Tenant(Storm):
     __storm_table__ = 'tenants'
@@ -92,8 +95,6 @@ class UserRole(Storm):
     role = Reference(role_id, 'Role.id')
     tenant = Reference(tenant_id, 'Tenant.id')
 
-
-    
 
 class Role(Storm):
     __storm_table__ = 'roles'

@@ -1,10 +1,10 @@
 -extends "Project/base.haml"
 -block content
   %section style="margin-top: 15px"
-    %a.btn.btn-primary href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}" style="margin-bottom: 5px;"
+    %a.btn.btn-primary href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}"
       %b.icon-add
       Spawn new
-    %table.table.table-striped.table-bordered.table-condensed
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
       %thead
         %tr
           %th

@@ -1,9 +1,10 @@
 -extends "Project/base.haml"
 -block content
-  %a.btn.btn-primary href="{{ url_for("new_user_to_project", tenant_id=g.tenant.id) }}"  style="margin: 15px 0 5px 0"
-    %b.icon-add
-    Add user
-  %table.table.table-striped.table-bordered.table-condensed
+  -if g.user.is_project_manager(g.tenant)
+    %a.btn.btn-primary href="{{ url_for("new_user_to_project", tenant_id=g.tenant.id) }}" style="margin-top: 15px"
+      %b.icon-add
+      Add user
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr
         %th
@@ -12,8 +13,9 @@
           Email
         %th
           Roles
-        %th
-          Actions
+        -if g.user.is_project_manager(g.tenant)
+          %th
+            Actions
       -for user in objects
         %tr
           %td
@@ -24,21 +26,21 @@
           %td
             -for role in user.roles_in_tenant(g.tenant):
               {{ role.name }}{% if not loop.last %},{% endif %}    
-          %td
-            %div.modal.hide id="remove-{{ user.id }}"
-              %div.modal-header
-                %a.close data-dismiss="modal"
-                  ×
-                %h3
-                  Confirmation request
-              %div.modal-body
-                %p
-                  Sure to remove user {{ user.name }} from the project "{{ g.tenant.name }}"?
-              %div.modal-footer
-                %form method="post" action="{{ url_for('remove_user_from_project', tenant_id=g.tenant.id, user_id=user.id) }}"
-                  %input type="hidden" name="next" value="{{ request.path }}"
-                  %button.btn -> Yes, remove the user
-                  %a.btn.btn-primary href="#" data-dismiss="modal" -> No
-            %a data-toggle="modal" href="#remove-{{ user.id }}" 
-              %i.icon-remove
-              remove
+          -if g.user.is_project_manager(g.tenant)
+            %td
+              %div.modal.hide id="remove-{{ user.id }}"
+                %div.modal-header
+                  %a.close data-dismiss="modal" -> ×
+                  %h3
+                    Confirmation request
+                %div.modal-body
+                  %p
+                    Sure to remove user {{ user.name }} from the project "{{ g.tenant.name }}"?
+                %div.modal-footer
+                  %form method="post" action="{{ url_for('remove_user_from_project', tenant_id=g.tenant.id, user_id=user.id) }}"
+                    %input type="hidden" name="next" value="{{ request.path }}"
+                    %button.btn -> Yes, remove the user
+                    %a.btn.btn-primary href="#" data-dismiss="modal" -> No
+              %a data-toggle="modal" href="#remove-{{ user.id }}" 
+                %i.icon-remove
+                remove
