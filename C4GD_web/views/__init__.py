@@ -1,5 +1,8 @@
+# encoding: utf-8
 import authentication
 
+
+from datetime import datetime
 from functools import wraps
 from flask import g, render_template, make_response
 
@@ -226,6 +229,36 @@ def remove_user_from_project(tenant_id, user_id):
     return redirect(url_for('list_users', tenant_id=tenant_id))
     
 
+@app.route('/<int:tenant_id>/billing/')
+@project_wrapper()
+def project_billing(tenant_id):
+    from datetime import date, timedelta
+    from calendar import weekday
+
+    billing_pool = get_pool(
+        g.user, g.tenant, public_url=app.config['BILLING_URL'])
+    today = date.today()
+
+    today_period_start = (today - timedelta(days=1)).isoformat()
+    this_week_period_start = (today - timedelta(days=weekday(today.year, today.month, today.day) + 1)).isoformat()
+    this_month_period_start = date(today.year, today.month, 1).isoformat()
+    period_start = request.args.get('period_start', today_period_start)
+    period_end = request.args.get('period_end', today.isoformat())
+    
+    with benchmark('Overall AccountBill'):
+        bill = billing_pool(
+            AccountBill.show,
+            account_id=g.tenant.id,
+            period_end=period_end,
+            period_start=period_start)
+    return dict(
+        bill=bill,
+        period_start=period_start,
+        period_end=period_end,
+        today_period_start= today_period_start,
+        this_week_period_start=this_week_period_start,
+        this_month_period_start=this_month_period_start)
+
 # class ControllerMetaclass(type):
 #     """
 #     Instantiates controllers on controller class definition.
@@ -308,3 +341,4 @@ def remove_user_from_project(tenant_id, user_id):
 
 #     def new(self):
 #         return 'test'
+

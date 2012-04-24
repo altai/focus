@@ -9,17 +9,18 @@ from C4GD_web import app
 from C4GD_web.utils import select_keys
 
 from decorators import *
+from C4GD_web.benchmark import benchmark
 
-
-__all__ = ['VirtualMachine', 'Image', 'Flavor', 'KeyPair', 'SecurityGroup']
+__all__ = ['VirtualMachine', 'Image', 'Flavor', 'KeyPair', 'SecurityGroup', 'AccountBill']
 
 
 class RESTModelBase(object):
     _key_name = 'id'
     
     def __init__(self, d):
-        for k, v in d.items():
-            setattr(self, k, v)
+        with benchmark('initing restful model'):
+            for k, v in d.items():
+                setattr(self, k, v)
 
     def get_key(self):
         return getattr(self, self._key_name)
@@ -116,10 +117,27 @@ class KeyPair(RESTModelBase):
 
 class SecurityGroup(RESTModelBase):
     path = '/os-security-groups'
-    
+
     @classmethod
     @back
     @plural
     @get('', is_plural=True)
     def list(cls, data, *a, **kw):
         return map(cls, data['security_groups'])
+
+
+class AccountBill(RESTModelBase):
+    path = '/bill'
+
+    _key_name = 'name'
+
+    @classmethod
+    @both    
+    @get('')
+    def show(cls, account_id, period_end, period_start):
+        def handler(*a, **kw):
+            """
+            No filtering required, API returns account for give id
+            """
+            return [cls(a[0]['bill'][0])]
+        return {'account': account_id, 'period_start': period_start, 'period_end': period_end}, handler

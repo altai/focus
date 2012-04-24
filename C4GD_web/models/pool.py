@@ -31,12 +31,13 @@ class RestfulPool(object):
     public_url = ""
     token = None
 
-    def __init__(self, user, tenant):
+    def __init__(self, user, tenant, public_url=None):
         # get token, user-tenant are already checked for existence
         # and authorisation at this point
         self.user = user
         self.tenant = tenant
-        self.token, self.public_url = self.authenticate(self.user, self.tenant)
+        self.token, nova_public_url = self.authenticate(self.user, self.tenant)
+        self.public_url = public_url if public_url else nova_public_url
 
     def authenticate(self, user, tenant):
         app.logger.info('Started pool authentication')
@@ -93,10 +94,10 @@ class RestfulPool(object):
                             'password': key},
                         'tenantId': tenant.id}})
                 response = requests.post(
-                    'http://172.18.41.1:5000/v2.0/tokens', # TODO: to config
+                    '%s/tokens' % app.config['KEYSTONE_URL'],
                     data=request_data,
                     headers = {'content-type': 'application/json'})
-            assert 200 <= response.status_code < 300
+            assert 200 <= response.status_code < 300            
             response_data = json.loads(response.text)
             token_id, public_url = response_data['access']['token']['id'],\
                 response_data['access']['serviceCatalog'][0]['endpoints'][0]\
@@ -146,14 +147,18 @@ class RestfulPool(object):
         Accept response text and response handler.
         Return list of RESTful model objects.
         """
-        response_data = json.loads(response_text)
-        objects = self.attach(
-            klass,
-            response_handler(response_data, *args, **kwargs) or [])
-        if not is_plural:
-            if len(objects) == 1:
-                return objects[0]
-        return objects
+        with benchmark('Overall hand_call()'):
+            with benchmark('JSON loaded in'):
+                response_data = json.loads(response_text)
+            with benchmark('Objects attached in'):
+                objects = self.attach(
+                    klass,
+                    response_handler(response_data, *args, **kwargs) or [])
+            with benchmark('result built in'):
+                if not is_plural:
+                    if len(objects) == 1:
+                        return objects[0]
+                return objects
     
     def get_errors(self, response):
         if not(200 <= response.status_code < 300):
@@ -166,8 +171,9 @@ class RestfulPool(object):
 
     def call_one(self, method, *args, **kwargs):
         result = None
-        http_method, request_url, kw, response_handler, is_plural, klass = \
-            self.prepare_call(method, *args, **kwargs)
+        with benchmark('preparing took'):
+            http_method, request_url, kw, response_handler, is_plural, klass = \
+                self.prepare_call(method, *args, **kwargs)
         benchmark_name = 'HTTP for %s' % \
             classmethod_verbose_name(method)
         app.logger.debug('%s %s %s %s %s', classmethod_verbose_name(method), http_method, request_url, self.headers(), kw)
@@ -181,8 +187,13 @@ class RestfulPool(object):
         if errors:
             raise RestfulException(errors)
         if response_handler:
-            result = self.handle_call(
-                response.text, response_handler, is_plural, klass, *args, **kwargs)
+            with benchmark('handling took'):
+                with benchmark('response text in'):
+                    text = response.text
+                with benchmark('call itself'):
+                    result = self.handle_call(
+                        text, response_handler, is_plural,
+                        klass, *args, **kwargs)
         return result
 
     def headers(self):
@@ -219,23 +230,26 @@ class RestfulPool(object):
                 flat_errors_list = reduce(lambda acc, n: acc + n, errors, [])
                 raise RestfulException(flat_errors_list)
             # TODO: handle only handlable
-            return [
-                self.handle_call(r.text, *a) for r, a in zip(
-                    responses, map(lambda x: (x[3], x[4], x[5]), prepared))
-                ]
+            with benchmark('handling'):
+                return [
+                    self.handle_call(r.text, *a) for r, a in zip(
+                        responses, map(lambda x: (x[3], x[4], x[5]), prepared))
+                    ]
         else:
-            return self.call_one(method_or_data, *args, **kwargs)
+            with benchmark('calling one'):
+                return self.call_one(method_or_data, *args, **kwargs)
 
             
     def attach(self, klass, objects):
-        if klass.__name__ not in self.collections:
-            self.collections[klass.__name__] = {}
-        ids = []
-        for obj in objects:
-            self.collections[klass.__name__][obj.get_key()] = obj
-            ids.append(obj.get_key())
-        return list(select_keys(self.collections[klass.__name__], ids))
+        with benchmark('attaching'):
+            if klass.__name__ not in self.collections:
+                self.collections[klass.__name__] = {}
+            ids = []
+            for obj in objects:
+                self.collections[klass.__name__][obj.get_key()] = obj
+                ids.append(obj.get_key())
+            return list(select_keys(self.collections[klass.__name__], ids))
 
 
-def get_pool(user, tenant):
-    return RestfulPool(user, tenant)
+def get_pool(user, tenant, public_url=None):
+    return RestfulPool(user, tenant, public_url)

@@ -17,5 +17,8 @@
         %li class="{% if request.path == url_for('list_users', tenant_id=g.tenant.id) %}active{% endif %}"
           %a href="{{ url_for('list_users', tenant_id=g.tenant.id) }}"
             Users
+        %li class="{% if request.path == url_for('project_billing', tenant_id=g.tenant.id) %}active{% endif %}"
+          %a href="{{ url_for('project_billing', tenant_id=g.tenant.id) }}"
+            Billing
         
   
