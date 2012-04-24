@@ -44,7 +44,7 @@ def get_spawn_form():
 
 class NewUserToProjectForm(Form):
     def __init__(self, user):
-        from models.orm import User, Role
+        from C4GD_web.models.orm import User, Role
         from storm.locals import Not
         users = g.store.find(User, Not(User.id.is_in(g.tenant.users.find().config(distinct=True).values(User.id)))).\
             config(distinct=True).order_by('name')

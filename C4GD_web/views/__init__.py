@@ -20,7 +20,6 @@ from forms import get_login_form, get_spawn_form
 from C4GD_web.models import *
 from utils import get_object_or_404, get_next_url
 from C4GD_web import app
-from C4GD_web.models import get_pool, Tenant, UserRole, VirtualMachine
 from flask import g, flash, render_template, request, redirect, url_for, \
     session
 
@@ -166,7 +165,6 @@ def list_users(tenant_id):
     List users.
     TODO: pluggable view
     """
-    from models import User
     users = g.tenant.users.find().order_by(User.name).config(distinct=True)
     page = int(request.args.get('page', 1))
     pagination = Pagination(page, per_page(), users.count())
@@ -198,7 +196,6 @@ def new_user_to_project(tenant_id):
     URGENT: control access
     """
     from forms import NewUserToProjectForm
-    from models import get_store
     form = NewUserToProjectForm(g.user)
     if form.validate_on_submit():
         user = g.store.get(User, form.user.data)
@@ -219,7 +216,6 @@ def new_user_to_project(tenant_id):
 @project_wrapper()
 @pm_only
 def remove_user_from_project(tenant_id, user_id):
-    from models import get_store
     writable_store = get_store('RW')
     rs = writable_store.find(
         UserRole, tenant_id=tenant_id, user_id=user_id)
