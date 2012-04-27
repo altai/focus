@@ -1,0 +1,1 @@
+define(['jquery', 'm/bootstrap/transition', '/static/vendors/twitter-bootstrap-aaabe2a/js/bootstrap-button.js'], function($){});

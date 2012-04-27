@@ -2,9 +2,9 @@
 -block requirejs
   %script
     |var default_columns = {{ columns.default_names.__repr__()|safe }};
-  %script data-main="{{ url_for('static', filename='js/global_list_vms.js') }}" src="{{ url_for('static', filename='js/require.js') }}" 
--block customcss
-  %link href="{{ url_for('static', filename='ui-lightness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
+  %script data-main="{{ url_for('static', filename='amd/main_global_list_vms.js') }}" src="{{ url_for('static', filename='amd/require.js') }}" 
+-block styles
+  %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
   %section
     %div.btn-toolbar
@@ -120,8 +120,11 @@
         %li
           %a href="{{ url_for_other_page(pagination.page - 1) }}" -> Prev
       -for page in pagination.iter_pages()
-        %li class="{% if page == pagination.page %}active{% endif %}"
-          %a href="{{ url_for_other_page(page) }}" -> {{ page }}
+        -if page
+          %li class="{% if page == pagination.page %}active{% endif %}"
+            %a href="{{ url_for_other_page(page) }}" -> {{ page }}
+        -else
+          %li.ellipsis -> …  
       -if pagination.has_next
         %li
           %a href="{{ url_for_other_page(pagination.page + 1) }}" -> Next

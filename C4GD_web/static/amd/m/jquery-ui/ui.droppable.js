@@ -1,0 +1,1 @@
+define(['order!m/jquery-ui/ui.draggable', 'order!/static/vendors/jquery-ui-1.8.19.custom/development-bundle/ui/minified/jquery.ui.droppable.min.js']);

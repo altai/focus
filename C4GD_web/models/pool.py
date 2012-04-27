@@ -1,3 +1,4 @@
+import sys
 import gevent
 import json # will fail in <2.6, use Flask's?
 import requests
@@ -137,7 +138,7 @@ class RestfulPool(object):
         elif method.phase == 4:
             # no request data or response handling required
             pass
-        if kw_arg_name in kw:
+        if kw_arg_name in kw and method.http_method in ('post', 'put'):
             kw[kw_arg_name] = json.dumps(kw[kw_arg_name])
         return method.http_method, request_url, kw, response_handler, \
             getattr(method, 'is_plural', False), klass
@@ -182,6 +183,7 @@ class RestfulPool(object):
                 http_method,
                 request_url,
                 headers=self.headers(),
+                config={'verbose': sys.stderr},
                 **kw)
         errors = self.get_errors(response)
         if errors:

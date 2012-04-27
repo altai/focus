@@ -33,8 +33,8 @@ class Pagination(object):
                num > self.pages - right_edge:
                 if last + 1 != num:
                     yield None
-                yield num
-                last = num
+            yield num
+            last = num
 
 
 from werkzeug.datastructures import iter_multi_items

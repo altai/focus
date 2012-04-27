@@ -134,10 +134,16 @@ class AccountBill(RESTModelBase):
     @classmethod
     @both    
     @get('')
-    def show(cls, account_id, period_end, period_start):
+    def show(cls, account_id, period_end=None, period_start=None, time_period=None):
         def handler(*a, **kw):
             """
             No filtering required, API returns account for give id
             """
             return [cls(a[0]['bill'][0])]
-        return {'account': account_id, 'period_start': period_start, 'period_end': period_end}, handler
+        params = {'account': account_id}
+        if time_period:
+            params['time_period'] = time_period
+        elif period_start and period_end:
+            params['period_start'] = period_start
+            params['period_end'] = period_end
+        return params, handler

@@ -10,3 +10,6 @@ wsgiref
 Hamlish-Jinja
 requests
 #greenlet -- installed via YUM
+supervisor
+celery
+flask-celery

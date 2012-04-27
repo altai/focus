@@ -1,0 +1,1 @@
+define(['order!jquery', 'order!/static/vendors/jquery-ui-1.8.19.custom/development-bundle/ui/minified/jquery.ui.core.min.js'], function($){});
