@@ -1,6 +1,7 @@
 from tasks import account_bill_show
 from flask import g
 from C4GD_web import app
+from datetime import date
 
 
 class Dataset(object):
@@ -13,12 +14,12 @@ class Dataset(object):
         if no result call for AccountBill.show, put results in db and return results
         if result exist use results from db
         '''
-        if delayed:
-            account_bill_show(params.account_id, g.user.id, g.tenant.id, app.config['BILLING_URL'], period_start=params.period_start, period_end=params.period_end, time_period=params.time_period)
-        else:
-            # what db?
-            self.data = []
-        pass
+        self.data = account_bill_show(
+                params.account_id, g.user.id, g.tenant.id,
+                app.config['BILLING_URL'],
+                period_start=params.period_start,
+                period_end=params.period_end,
+                time_period=params.time_period)
 
 
 class Params(object):

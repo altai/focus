@@ -27,20 +27,19 @@ define(['backbone', 'jqueryui/datepicker'], function(Backbone){
         validateField($start);
         validateField($end);
         if (!sin){
-          console.log($start.val() > $end.val());
           if ($start.val() > $end.val()){
             oy($end, 'The end happens earlier than the start');
           }
         }
-        
+
         if (!sin){
           /* actually change dates */
-          console.log('cheers');
           var path = $start.val() + '/' + $end.val();
-          console.log(path)
-          this.options.router.navigate(path, {trigger: true}); 
+          this.options.router.navigate(path, {trigger: true});
+          $("#choose_period").modal("hide");
+          //return false to stop further processing of the event
+          return false;
         }
-        
       }
       , 'focus input.datepicker': function(event){
         $(event.target).tooltip('hide');

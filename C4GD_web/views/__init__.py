@@ -238,12 +238,12 @@ def project_billing(tenant_id):
     """
     from project_billing_dataset import Dataset, Params
     if request.is_xhr:
-        p = Params(g.tenant.id, request.form)
+        p = Params(g.tenant.id, request.args)
         d = Dataset(p)
         return jsonify({
-                'caption': 'Billing for project %s' % g.tenant.name,
-                'data': d.data
-                })
+            'caption': 'Billing for project %s' % g.tenant.name,
+            'data': d.data
+        })
     else:
         Dataset(Params(g.tenant.id), delayed=True)
         return {}

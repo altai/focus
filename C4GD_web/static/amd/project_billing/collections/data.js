@@ -8,8 +8,9 @@ define(['backbone', 'project_billing/models/datum'], function(Backbone, Datum){
          assign caption, calculate and assign total after fetch is done but before rest.
          */
       this.fetch({
+    	data: opts,
         success: function(collection, response){
-          console.log(response);
+          this.response = response;
         }
       });
     }

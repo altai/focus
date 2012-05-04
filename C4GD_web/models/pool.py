@@ -3,7 +3,7 @@ import gevent
 import json # will fail in <2.6, use Flask's?
 import requests
 
-from flask import g
+from flask import g, session
 
 from storm.locals import *
 
@@ -37,13 +37,36 @@ class RestfulPool(object):
         # and authorisation at this point
         self.user = user
         self.tenant = tenant
-        self.token, nova_public_url = self.authenticate(self.user, self.tenant)
+        self.token_id, nova_public_url = self.authenticate(self.user, self.tenant)
         self.public_url = public_url if public_url else nova_public_url
+
+    @staticmethod
+    def save_token(user_name, password):
+        with benchmark('Getting token via REST'):
+            request_data = json.dumps({
+                'auth': {
+                    'passwordCredentials': {
+                        'username': user_name,
+                        'password': password
+                    },
+                }
+            })
+            response = requests.post(
+                    '%s/tokens' % app.config['KEYSTONE_URL'],
+                    data=request_data,
+                    headers = {'content-type': 'application/json'})
+        if not (200 <= response.status_code < 300):
+            return False
+        response_data = json.loads(response.text)
+        session["token_id"] = response_data['access']['token']['id']
+        session["user_name"] = user_name
+        return True
 
     def authenticate(self, user, tenant):
         app.logger.info('Started pool authentication')
         rs = Token.find_valid().find(user_id=user.id, tenant_id=tenant.id)
-        if rs.count():
+        # FIXME: never use cached tokens
+        if False and rs.count():
             app.logger.info('Database has token')
             with benchmark('Obtaining token from the database'):
                 # the database contains token for our user
@@ -75,35 +98,56 @@ class RestfulPool(object):
                 gr1 = gevent.spawn(get_token)
                 gr2 = gevent.spawn(get_public_url, g.store)
                 gevent.joinall([gr1, gr2])
-                return gr1.value, gr2.value
-        else:
-            app.logger.info('Obtaining token')
-            # the database does not store valid token
-            # ask Keystone RESTful API to generate a token
-            # it returns public_url for Nova in the same response
-            # no need to fetch it from the database
+                print "gr1.value, gr2.value: ", gr1.value, gr2.value
+                return gr1.value.id, gr2.value
+
+        app.logger.info('Obtaining token')
+        
+        def request_token(req_data): 
+            with benchmark('Getting token via REST'):
+                response = requests.post(
+                    '%s/tokens' % app.config['KEYSTONE_URL'],
+                    data=json.dumps(req_data),
+                    headers = {'content-type': 'application/json'})
+            if 200 <= response.status_code < 300:
+                return json.loads(response.text)
+
+        # the database does not store valid token
+        # ask Keystone RESTful API to generate a token
+        # it returns public_url for Nova in the same response
+        # no need to fetch it from the database
+        response_data = None
+        try:
             key = user.credentials.find(tenant_id=tenant.id)\
                 .values(Credential.key).next()
+        except StopIteration:
+            pass
+        else:
             # keys can have  tenant name appended (concatenated with ':')
             if u':' in key:
                 key = key.split(u':')[0]
-            with benchmark('Getting token via REST'):
-                request_data = json.dumps({
-                    'auth': {
-                        'passwordCredentials': {
-                            'username': g.user.name,
-                            'password': key},
-                        'tenantId': tenant.id}})
-                response = requests.post(
-                    '%s/tokens' % app.config['KEYSTONE_URL'],
-                    data=request_data,
-                    headers = {'content-type': 'application/json'})
-            assert 200 <= response.status_code < 300            
-            response_data = json.loads(response.text)
-            token_id, public_url = response_data['access']['token']['id'],\
-                response_data['access']['serviceCatalog'][0]['endpoints'][0]\
-                    ['publicURL']
-            token = g.store.get(Token, token_id)
+            response_data = request_token({
+               'auth': {
+                   'passwordCredentials': {
+                       'username': g.user.name,
+                       'password': key},
+                   'tenantId': tenant.id
+               }
+            })
+        if not response_data:
+            response_data = request_token({
+                'auth': {
+                    'token' : {'id': session["token_id"]},
+                    'tenantId': tenant.id,
+                }
+            })
+        token_id = response_data['access']['token']['id']
+        public_url = response_data['access'][
+            'serviceCatalog'][0]['endpoints'][0]['publicURL']
+        token = token_id
+        print "token: %s" % token
+        #token = g.store.get(Token, token_id)
+        #print token.__dict__
         return token, public_url
 
     def prepare_call(self, method, *args, **kwargs):
@@ -172,7 +216,7 @@ class RestfulPool(object):
 
     def call_one(self, method, *args, **kwargs):
         result = None
-        with benchmark('preparing took'):
+        with benchmark('preparing'):
             http_method, request_url, kw, response_handler, is_plural, klass = \
                 self.prepare_call(method, *args, **kwargs)
         benchmark_name = 'HTTP for %s' % \
@@ -191,7 +235,7 @@ class RestfulPool(object):
         if response_handler:
             with benchmark('handling took'):
                 with benchmark('response text in'):
-                    text = response.text
+                    text = response.content
                 with benchmark('call itself'):
                     result = self.handle_call(
                         text, response_handler, is_plural,
@@ -201,7 +245,7 @@ class RestfulPool(object):
     def headers(self):
         return {
             'X-Auth-Project-Id': str(self.tenant.id),
-            'X-Auth-Token': self.token.id,
+            'X-Auth-Token': self.token_id,
             'Content-Type': 'application/json',
             'X-Tenant-Name': self.tenant.name}
 

@@ -1,3 +1,5 @@
-from C4GD_web import app
+#!/usr/bin/python2
 
-app.run()
+if __name__ == "__main__":
+    from C4GD_web import app
+    app.run()

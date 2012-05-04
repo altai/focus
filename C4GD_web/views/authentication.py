@@ -3,6 +3,8 @@ from forms import get_login_form
 from flask import g, flash, render_template, request, redirect, url_for, \
     session
 from C4GD_web.models import User
+from C4GD_web.models.pool import RestfulPool
+
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -19,6 +21,7 @@ def login():
                     flash('Wrong username/password.', 'error')
                 else:
                     g.user = user
+                    RestfulPool.save_token(form.username.data, form.password.data)
                     session['user_id'] = g.user.id
                     flash('You were logged in successfully.', 'success')
                     return redirect(form.next.data)

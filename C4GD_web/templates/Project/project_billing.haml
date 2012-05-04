@@ -1,21 +1,22 @@
 -extends "Project/base.haml"
 -block requirejs
+  %script type="text/javascript" src="{{ url_for('static', filename='vendors/raphaeljs-2.1.1/raphael-min.js') }}"
   %script type="text/javascript" data-main="{{ url_for('static', filename='amd/main_project_billing.js') }}" src="{{ url_for('static', filename='amd/require.js') }}"
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
   %ul.nav.nav-tabs.period-view style="margin-top: 15px;"
     %li
-      %a href="{{ request.path }}#today"
+      %a href="#today"
         Today
     %li.active
-      %a href="{{ request.path }}"
+      %a href="#month"
         This Month
     %li
-      %a href="{{ request.path }}#year"
+      %a href="#year"
         This Year
     %li
-      %div.modal.hide.fade.choose-period
+      %div.modal.hide.fade#choose_period 
         %div.modal-header
           Choose period
         %div.modal-body
@@ -24,9 +25,11 @@
         %div.modal-footer
           %a.btn data-dismiss="modal" href="#" -> Cancel
           %a.btn.btn-primary href="#" -> Apply
-      %a href="#choose-period" data-toggle="modal"
+      %a href="#custom_period" data-toggle="modal" data-target="#choose_period"
         Custom Period
-  %div.graph-view
+
+  %div.graph-view.row
+    %div.span6#chart_by_type
+    %div.span6#chart_by_existence
   %div.table-view
 
-    
