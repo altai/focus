@@ -18,7 +18,8 @@ app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
 
 # config app
 app.config.from_object('C4GD_web.default_settings')
-app.config.from_envvar('C4GD_WEB_CONFIG', silent=True)
+app.config.from_object('C4GD_web.local_settings')
+
 
 # import flesh
 import C4GD_web.callbacks
