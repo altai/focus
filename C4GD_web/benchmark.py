@@ -1,3 +1,4 @@
+# coding=utf-8
 import time
 from C4GD_web import app
 

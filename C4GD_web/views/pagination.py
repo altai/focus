@@ -1,3 +1,4 @@
+# coding=utf-8
 import urllib, urlparse
 from math import ceil
 from flask import request, url_for

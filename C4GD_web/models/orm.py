@@ -1,3 +1,4 @@
+# coding=utf-8
 from storm.locals import *
 from flask import g
 from C4GD_web import app
@@ -41,11 +42,13 @@ class User(Storm):
     def is_ldap_authenticated(self, password):
         import ldap
         connection = ldap.initialize(app.config['LDAP_URI'])
-        dn = 'uid=%s,%s' % (
+        dn = u'uid=%s,%s' % (
             ldap.dn.escape_dn_chars(self.name),
             app.config['LDAP_BASEDN'])
         try:
-            connection.simple_bind_s(dn, password)
+            connection.simple_bind_s(
+                dn.encode('utf-8'),
+                password.encode('utf-8'))
         except ldap.INVALID_CREDENTIALS:
             return False
         else:

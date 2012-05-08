@@ -1,3 +1,4 @@
+# coding=utf-8
 import functools
 import os.path
 from C4GD_web.decorators import login_required

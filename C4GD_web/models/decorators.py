@@ -1,3 +1,4 @@
+# coding=utf-8
 import functools
 
 __all__ = ['plural']

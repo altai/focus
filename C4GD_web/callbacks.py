@@ -1,3 +1,4 @@
+# coding=utf-8
 from flask import g, session
 from C4GD_web import app
 from models import User, get_store

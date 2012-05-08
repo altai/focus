@@ -1,3 +1,4 @@
+# coding=utf-8
 from flask import abort, g, request, url_for
 
 from C4GD_web import app

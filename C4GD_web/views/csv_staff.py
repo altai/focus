@@ -1,3 +1,4 @@
+# coding=utf-8
 import csv, codecs
 try:
     from cStringIO import StringIO

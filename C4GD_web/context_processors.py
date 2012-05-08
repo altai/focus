@@ -1,3 +1,4 @@
+# coding=utf-8
 from flask import g
 from storm.locals import *
 from C4GD_web import app

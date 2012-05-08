@@ -1,3 +1,4 @@
+# coding=utf-8
 from flask import g
 from flaskext.wtf import Form, HiddenField, TextField, PasswordField, Required,\
     SelectField, EqualTo, SelectMultipleField

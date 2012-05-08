@@ -1,3 +1,4 @@
+# coding=utf-8
 def select_keys(d, keys, strict_order=True):
     if strict_order:
         for k in keys:

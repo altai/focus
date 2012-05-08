@@ -1,3 +1,4 @@
+# coding=utf-8
 from math import ceil
 from flask import request
 from C4GD_web import request, url_for

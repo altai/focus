@@ -1,3 +1,4 @@
+# coding=utf-8
 # TODO: create base class for RESTful objects
 # TODO: create a client Tenant to work with RESTful API
 # TODO: make client reconnecting and regenerating tokens when required

@@ -1,3 +1,4 @@
+# coding=utf-8
 import functools
 import urllib
 from C4GD_web import app

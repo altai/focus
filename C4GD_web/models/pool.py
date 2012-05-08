@@ -1,3 +1,4 @@
+# coding=utf-8
 import gevent
 import json # will fail in <2.6, use Flask's?
 import requests
@@ -36,13 +37,16 @@ class RestfulPool(object):
         # and authorisation at this point
         self.user = user
         self.tenant = tenant
-        self.token, nova_public_url = self.authenticate(self.user, self.tenant)
+        self.token_id, nova_public_url = self.authenticate(self.user, self.tenant)
         self.public_url = public_url if public_url else nova_public_url
+
+    def refresh(self):
+        self.token_id, _ = self.authenticate(self.user, self.tenant)
 
     def authenticate(self, user, tenant):
         app.logger.info('Started pool authentication')
         rs = Token.find_valid().find(user_id=user.id, tenant_id=tenant.id)
-        if rs.count():
+        if False and rs.count():
             app.logger.info('Database has token')
             with benchmark('Obtaining token from the database'):
                 # the database contains token for our user
@@ -102,6 +106,7 @@ class RestfulPool(object):
             token_id, public_url = response_data['access']['token']['id'],\
                 response_data['access']['serviceCatalog'][0]['endpoints'][0]\
                     ['publicURL']
+            return token_id, public_url
             token = g.store.get(Token, token_id)
         return token, public_url
 
@@ -199,7 +204,7 @@ class RestfulPool(object):
     def headers(self):
         return {
             'X-Auth-Project-Id': str(self.tenant.id),
-            'X-Auth-Token': self.token.id,
+            'X-Auth-Token': self.token_id,
             'Content-Type': 'application/json',
             'X-Tenant-Name': self.tenant.name}
 
