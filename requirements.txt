@@ -10,3 +10,4 @@ wsgiref
 Hamlish-Jinja
 requests
 #greenlet -- installed via YUM
+# storm -- installed via YUM
