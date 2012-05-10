@@ -1,10 +1,10 @@
 # coding=utf-8
 import authentication
 
-
+from datetime import date
 from datetime import datetime
 from functools import wraps
-from flask import g, render_template, make_response
+from flask import g, render_template, make_response, jsonify
 
 from C4GD_web import app
 from C4GD_web.models import *
@@ -129,7 +129,7 @@ def global_list_vms():
         
         }, default_columns)
     if 'columns' in request.args:
-        columns.adjust(request.args['columns'].split(','))
+        columns.adjust([x for x in request.args['columns'].split(',') if x])
     if 'asc' in request.args or 'desc' in request.args:
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     if 'groupby' in request.args:
@@ -232,113 +232,19 @@ def remove_user_from_project(tenant_id, user_id):
 @app.route('/<int:tenant_id>/billing/')
 @project_wrapper()
 def project_billing(tenant_id):
-    from datetime import date, timedelta
-    from calendar import weekday
-
-    billing_pool = get_pool(
-        g.user, g.tenant, public_url=app.config['BILLING_URL'])
-    today = date.today()
-
-    today_period_start = (today - timedelta(days=1)).isoformat()
-    this_week_period_start = (today - timedelta(days=weekday(today.year, today.month, today.day) + 1)).isoformat()
-    this_month_period_start = date(today.year, today.month, 1).isoformat()
-    period_start = request.args.get('period_start', today_period_start)
-    period_end = request.args.get('period_end', today.isoformat())
-    
-    with benchmark('Overall AccountBill'):
-        bill = billing_pool(
-            AccountBill.show,
-            account_id=g.tenant.id,
-            period_end=period_end,
-            period_start=period_start)
-    return dict(
-        bill=bill,
-        period_start=period_start,
-        period_end=period_end,
-        today_period_start= today_period_start,
-        this_week_period_start=this_week_period_start,
-        this_month_period_start=this_month_period_start)
-
-# class ControllerMetaclass(type):
-#     """
-#     Instantiates controllers on controller class definition.
-#     Wraps, decorates, registers in routing public methods of new instance.
-#     """
-#     def __init__(cls, name, bases, dct):
-#         """
-#         Instantiate controller.
-#         Register actions.
-#         """
-
-#         # have class created
-#         super(ControllerMetaclass, cls).__init__(name, bases, dct)
-#         # create an instance
-#         instance = cls()
-#         # register routing
-#         for action_name in dir(instance):
-#             if not action_name.startswith('_'):  # public
-#                 action = getattr(instance, action)
-#                 if callable(action): # method
-#                     t = (name, action_name) # TODO: slugify
-#                     app.add_url_rule(
-#                         '/%s/%s/' % t,
-#                         '%s.%s' % t,
-#                         action)
-#                     if instance.default_action == action:
-#                         app.add_url_rule(
-#                             '/%s/' % cls,
-#                             '%s.%s' % t,
-#                             action)
-#                     if instance.root_controller:
-#                         app.add_url_rule(
-#                             '/',
-#                             '%s.%s' % t,
-#                             action)
-                        
-
-#     def __call__(cls, *args, **kwargs):
-#         """
-#         Keep instance.
-#         """
-#         if cls._instance is None:
-#             cls._instance = super(ControllerMetaclass, cls).__call__(*args, **kwargs)
-#         return cls._instance
-
-# class AbstractController(object):
-#     '''
-#     index
-#     list
-#     show
-#     new
-#     create
-#     edit
-#     update
-#     destroy
-#     '''
-#     class Meta:
-#         default_action = 'list'
-#         args = []
-#         before = []
-#         after = []
-
-#     def _work_setup(self, *args):
-#         pass
-
-#     def _dispatch_decorator(self, instance_method):
-#         def _wrapped(self, *args, **kwargs):
-#             # setup controller
-#             controller_args = args[:len(self.controller_args)]
-#             self._work_setup(*controller_args)
-#             # perform tasks for before
-#             instance_args = args[len(self.controller_args):]
-#             result = instance_method(instance_args)
-#             #after
-                    
-# class MyController(AbstractController):
-    
-#     def list(self):
-#         self.foo = 1
-
-#     def new(self):
-#         return 'test'
+    """
+    On non-AJAX request return page and iniate process of getting of dataset for default parameters. Parameters can be different in the fragment history and the js app can request dataset with other parameters, but in most cases we will guess correctly.
+    On AJAX call get dataset for requested parameter and return it in correct formatting as JSON response.
+    """
+    from project_billing_dataset import Dataset, Params
+    if request.is_xhr:
+        p = Params(g.tenant.id, request.args)
+        d = Dataset(p)
+        return jsonify({
+            'caption': 'Billing for project %s' % g.tenant.name,
+            'data': d.data
+        })
+    else:
+        Dataset(Params(g.tenant.id), delayed=True)
+        return {}
 

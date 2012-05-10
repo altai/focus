@@ -5,6 +5,7 @@ from flask import g, flash, render_template, request, redirect, url_for, \
     session
 from C4GD_web.models import User
 from _mysql_exceptions import OperationalError
+from models import RestfulPool
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -33,6 +34,7 @@ def login():
             else:
                 g.user = user
                 session['user_id'] = g.user.id
+                RestfulPool.save_token(form.username.data, form.password.data)
                 flash('You were logged in successfully.', 'success')
                 return redirect(form.next.data)
     return render_template('login.haml', form=form)

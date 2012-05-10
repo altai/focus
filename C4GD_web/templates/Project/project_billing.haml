@@ -1,52 +1,35 @@
 -extends "Project/base.haml"
+-block requirejs
+  %script type="text/javascript" src="{{ url_for('static', filename='vendors/raphaeljs-2.1.1/raphael-min.js') }}"
+  %script type="text/javascript" data-main="{{ url_for('static', filename='amd/main_project_billing.js') }}" src="{{ url_for('static', filename='amd/require.js') }}"
+-block styles
+  %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
-  %ul.nav.nav-tabs style="margin-top: 15px;"
-    %li class="{% if request.args.get('kind') == 'today' %}active{% endif %}"
-      %a href="{{ url_for('project_billing', tenant_id=g.tenant.id) }}?project_start={{ today_period_start }}&kind=today"
+  %ul.nav.nav-tabs.period-view style="margin-top: 15px;"
+    %li
+      %a href="#today"
         Today
-    %li class="{% if request.args.get('kind') == 'week' %}active{% endif %}"
-      %a href="{{ url_for('project_billing', tenant_id=g.tenant.id) }}?project_start={{ this_week_period_start }}&kind=week"
-        This Week
-    %li class="{% if request.args.get('kind') == 'month' %}active{% endif %}"
-      %a href="{{ url_for('project_billing', tenant_id=g.tenant.id) }}?project_start={{ this_month_period_start }}&kind=month"
+    %li.active
+      %a href="#month"
         This Month
+    %li
+      %a href="#year"
+        This Year
+    %li
+      %div.modal.hide.fade#choose_period 
+        %div.modal-header
+          Choose period
+        %div.modal-body
+          %input.datepicker name="start" type="text"
+          %input.datepicker name="end" type="text"
+        %div.modal-footer
+          %a.btn data-dismiss="modal" href="#" -> Cancel
+          %a.btn.btn-primary href="#" -> Apply
+      %a href="#custom_period" data-toggle="modal" data-target="#choose_period"
+        Custom Period
 
+  %div.graph-view.row
+    %div.span6#chart_by_type
+    %div.span6#chart_by_existence
+  %div.table-view
 
-  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
-    %caption
-      Bulling period {{ period_start }}/{{ period_end }}
-    %thead
-      %tr
-        %th
-          cost
-        %th
-          created_at
-        %th
-          destroyed_at
-        %th
-          id
-        %th
-          name
-        %th
-          parent_id
-        %th
-          rtype
-    %tbody
-      -for r in bill.resources:
-        %tr
-          %td
-            =r.cost
-          %td
-            =r.created_at
-          %td
-            =r.destroyed_at
-          %td
-            =r.id
-          %td
-            =r.name
-          %td
-            =r.parent_id
-          %td
-            =r.rtype
-
-    

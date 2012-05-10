@@ -1,9 +1,10 @@
 # coding=utf-8
+import sys
 import gevent
 import json # will fail in <2.6, use Flask's?
 import requests
 
-from flask import g
+from flask import g, session
 
 from storm.locals import *
 
@@ -40,74 +41,69 @@ class RestfulPool(object):
         self.token_id, nova_public_url = self.authenticate(self.user, self.tenant)
         self.public_url = public_url if public_url else nova_public_url
 
+
     def refresh(self):
         self.token_id, _ = self.authenticate(self.user, self.tenant)
 
-    def authenticate(self, user, tenant):
-        app.logger.info('Started pool authentication')
-        rs = Token.find_valid().find(user_id=user.id, tenant_id=tenant.id)
-        if False and rs.count():
-            app.logger.info('Database has token')
-            with benchmark('Obtaining token from the database'):
-                # the database contains token for our user
-                # we take token and public url for Nova from db
-                def get_token():
-                    return rs.one()
-
-                def get_public_url(store):                
-                    tenant_id_template_in_use = store.find(
-                        EndpointTemplate,
-                        EndpointTemplate.public_url.like(u'%tenant_id%')).count() > 0
-                    if tenant_id_template_in_use:
-                        subselect = Select(
-                            EndpointTemplate.id,
-                            where=And(
-                                EndpointTemplate.enabled==True,
-                                EndpointTemplate.public_url.contains_string(
-                                    u'tenant_id')))
-                        endpoint = store.find(
-                            Endpoint,
-                            Endpoint.endpoint_template_id.is_in(subselect),
-                            tenant_id=tenant.id).one()
-                    else:
-                        endpoint = store.find(Endpoint, tenant_id=tenant.id).one()
-                    public_url = endpoint.endpoint_template.public_url.replace(
-                        u'%tenant_id%', 
-                        unicode(tenant.id))
-                    return public_url
-                gr1 = gevent.spawn(get_token)
-                gr2 = gevent.spawn(get_public_url, g.store)
-                gevent.joinall([gr1, gr2])
-                return gr1.value, gr2.value
-        else:
-            app.logger.info('Obtaining token')
-            # the database does not store valid token
-            # ask Keystone RESTful API to generate a token
-            # it returns public_url for Nova in the same response
-            # no need to fetch it from the database
-            key = user.credentials.find(tenant_id=tenant.id)\
-                .values(Credential.key).next()
-            # keys can have  tenant name appended (concatenated with ':')
-            if u':' in key:
-                key = key.split(u':')[0]
-            with benchmark('Getting token via REST'):
-                request_data = json.dumps({
-                    'auth': {
-                        'passwordCredentials': {
-                            'username': g.user.name,
-                            'password': key},
-                        'tenantId': tenant.id}})
-                response = requests.post(
+    @staticmethod
+    def save_token(user_name, password):
+        with benchmark('Getting token via REST'):
+            request_data = json.dumps({
+                'auth': {
+                    'passwordCredentials': {
+                        'username': user_name,
+                        'password': password
+                    },
+                }
+            })
+            response = requests.post(
                     '%s/tokens' % app.config['KEYSTONE_URL'],
                     data=request_data,
                     headers = {'content-type': 'application/json'})
-            assert 200 <= response.status_code < 300            
-            response_data = json.loads(response.text)
-            token_id, public_url = response_data['access']['token']['id'],\
-                response_data['access']['serviceCatalog'][0]['endpoints'][0]\
-                    ['publicURL']
-            return token_id, public_url
-            token = g.store.get(Token, token_id)
+        if not (200 <= response.status_code < 300):
+            return False
+        response_data = json.loads(response.text)
+        session["token_id"] = response_data['access']['token']['id']
+        session["user_name"] = user_name
+        return True
+
+    def authenticate(self, user, password, tenant):
+        app.logger.info('Started pool authentication')
+        def request_token(req_data): 
+            with benchmark('Getting token via REST'):
+                response = requests.post(
+                    '%s/tokens' % app.config['KEYSTONE_URL'],
+                    data=json.dumps(req_data),
+                    headers = {'content-type': 'application/json'})
+            if 200 <= response.status_code < 300:
+                return json.loads(response.text)
+
+        response_data = None
+        try:
+            key = user.credentials.find(tenant_id=tenant.id)\
+                .values(Credential.key).next()
+        except StopIteration:
+            response_data = request_token({
+                'auth': {
+                    'token' : {'id': session["token_id"]},
+                    'tenantId': tenant.id,
+                }
+            })
+        else:
+            # keys can have  tenant name appended (concatenated with ':')
+            if u':' in key:
+                key = key.split(u':')[0]
+            response_data = request_token({
+               'auth': {
+                   'passwordCredentials': {
+                       'username': g.user.name,
+                       'password': key},
+                   'tenantId': tenant.id
+               }
+            })
+        token = response_data['access']['token']['id']
+        public_url = response_data['access'][
+            'serviceCatalog'][0]['endpoints'][0]['publicURL']
         return token, public_url
 
     def prepare_call(self, method, *args, **kwargs):
@@ -142,7 +138,7 @@ class RestfulPool(object):
         elif method.phase == 4:
             # no request data or response handling required
             pass
-        if kw_arg_name in kw:
+        if kw_arg_name in kw and method.http_method in ('post', 'put'):
             kw[kw_arg_name] = json.dumps(kw[kw_arg_name])
         return method.http_method, request_url, kw, response_handler, \
             getattr(method, 'is_plural', False), klass
@@ -176,7 +172,7 @@ class RestfulPool(object):
 
     def call_one(self, method, *args, **kwargs):
         result = None
-        with benchmark('preparing took'):
+        with benchmark('preparing'):
             http_method, request_url, kw, response_handler, is_plural, klass = \
                 self.prepare_call(method, *args, **kwargs)
         benchmark_name = 'HTTP for %s' % \
@@ -187,6 +183,7 @@ class RestfulPool(object):
                 http_method,
                 request_url,
                 headers=self.headers(),
+                config={'verbose': sys.stderr},
                 **kw)
         errors = self.get_errors(response)
         if errors:
@@ -194,7 +191,7 @@ class RestfulPool(object):
         if response_handler:
             with benchmark('handling took'):
                 with benchmark('response text in'):
-                    text = response.text
+                    text = response.content
                 with benchmark('call itself'):
                     result = self.handle_call(
                         text, response_handler, is_plural,

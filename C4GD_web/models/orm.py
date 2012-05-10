@@ -154,12 +154,6 @@ class Token(Storm):
 
 
 def get_store(SETTINGS_PREFIX):
-    def bit(name):
-        return app.config[SETTINGS_PREFIX + '_' + name]
-    url = 'mysql://%s:%s@%s:%s/%s' % (
-            bit('DB_USER'),
-            bit('DB_PASS'),
-            bit('DB_HOST'),
-            bit('DB_PORT'),
-            bit('DB_NAME'))
-    return Store(create_database(url))
+    return Store(create_database(
+        app.config[SETTINGS_PREFIX + '_DATABASE_URI']))
+
