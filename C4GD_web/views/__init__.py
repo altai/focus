@@ -245,6 +245,5 @@ def project_billing(tenant_id):
             'data': d.data
         })
     else:
-        Dataset(Params(g.tenant.id), delayed=True)
         return {}
 
