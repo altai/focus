@@ -3,9 +3,8 @@ from C4GD_web import app
 from forms import get_login_form
 from flask import g, flash, render_template, request, redirect, url_for, \
     session
-from C4GD_web.models import User
+from C4GD_web.models import User, RestfulPool
 from _mysql_exceptions import OperationalError
-from models import RestfulPool
 
 
 @app.route('/login/', methods=['GET', 'POST'])

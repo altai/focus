@@ -67,7 +67,7 @@ class RestfulPool(object):
         session["user_name"] = user_name
         return True
 
-    def authenticate(self, user, password, tenant):
+    def authenticate(self, user, tenant):
         app.logger.info('Started pool authentication')
         def request_token(req_data): 
             with benchmark('Getting token via REST'):
