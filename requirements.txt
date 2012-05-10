@@ -1,14 +1,14 @@
 Flask
 Flask-WTF
 Jinja2
-#MySQL-python -- installed via YUM
+MySQL-python
 WTForms
 Werkzeug
-#python-ldap -- installed via YUM
-#wsgiref is already installed with python2.6
-#fabric -- installed via YUM
+python-ldap
+wsgiref
+fabric
 Hamlish-Jinja
 requests
-#greenlet -- installed via YUM
-# storm -- installed via YUM
+gevent
+storm
 
