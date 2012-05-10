@@ -63,6 +63,8 @@ class User(Storm):
     def is_project_manager(self, tenant):
         return self.user_roles.find(UserRole.role_id.is_in([1, 4]), tenant=tenant).count() > 0
 
+    def is_keystone_credentials_authenticated(self, password):
+        return self.credentials.find(key=password).count() > 0
 
 class Tenant(Storm):
     __storm_table__ = 'tenants'

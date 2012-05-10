@@ -25,7 +25,10 @@ def login():
                 flash('User `%s` does not have any role.' % user.name, 'error')
             elif not user.enabled:
                 flash('User `%s` is not enabled.' % user.name, 'error')
-            elif not user.is_ldap_authenticated(form.password.data):
+            elif not (
+                user.is_ldap_authenticated(form.password.data)
+                    or
+                user.is_keystone_credentials_authenticated(form.password.data)):
                 flash('Wrong username/password.', 'error')
             else:
                 g.user = user
