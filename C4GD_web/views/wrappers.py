@@ -4,8 +4,9 @@ import os.path
 from C4GD_web.decorators import login_required
 from C4GD_web import app
 from C4GD_web.models import *
-from flask import render_template, abort, g, redirect, url_for, session
-from C4GD_web.exceptions import KeystoneExpiresException
+from flask import render_template, abort, g, redirect, url_for, session, flash
+from C4GD_web.exceptions import KeystoneExpiresException, GentleException
+from C4GD_web.utils import obtain_scoped
 
 
 class BaseWrapper(object):
@@ -51,9 +52,12 @@ class BaseWrapper(object):
                         pass
 
                     return result
-                except KeystoneExpiresException:
-                    raise
+                except KeystoneExpiresException, e:
+                    flash(e.message, 'error')
                     return redirect(url_for('logout'))
+                except GentleException, e:
+                    flash(e.message, 'error')
+                    return render_template('blank.haml')
             return _wrapped
         return _decorator
 
@@ -79,12 +83,22 @@ class ProjectWrapper(BaseWrapper):
         super(ProjectWrapper, self).before(*args, **kwargs)
         tenant_id = kwargs['tenant_id']
         try:
+            tenant_dict = session['keystone_scoped'][tenant_id]['access']['token']['tenant']
+        except KeyError:
+            obtain_scoped(tenant_id)
+        try:
+            tenant_dict = session['keystone_scoped'][tenant_id]['access']['token']['tenant']
+        except KeyError:
+            raise GentleException('Tenant %s is not accessible for you.' % tenant_id)
+
+        try:
             tenant = g.store.get(Tenant, tenant_id)
         except TypeError:
             tenant = g.store.get(Tenant, int(tenant_id))
         g.tenant = tenant
         user_ids = tenant.user_roles.find(UserRole.role_id.is_in([1, 4])).values(UserRole.user_id)
         project_managers = list(g.store.find(User, User.id.is_in(user_ids)).order_by(User.name).values(User.name))
+            
         return dict(
-            tenant=session['keystone_scoped'][tenant_id]['access']['token']['tenant'], 
+            tenant=tenant_dict, 
             project_managers=project_managers)

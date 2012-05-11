@@ -29,6 +29,8 @@ def keystone_get(path, params={}):
             
     if 200 <= response.status_code < 300:
         return json.loads(response.content) 
+    elif response.status_code == 401:
+        raise GentleException('Access denied')
     else:
         raise KeystoneExpiresException('Identity server responded with status %d' % response.status_code)
 
@@ -44,9 +46,10 @@ def keystone_post(path, data={}):
         url, 
         data=json.dumps(data), 
         headers=headers)
-            
     if 200 <= response.status_code < 300:
-        return json.loads(response.content) 
+        return json.loads(response.content)
+    elif response.status_code == 401:
+        raise GentleException('Access denied')
     else:
         raise KeystoneExpiresException('Identity server responded with status %d' % response.status_code)
 
@@ -95,3 +98,4 @@ def obtain_scoped(tenant_id):
                 'tenantId': tenant_id,
                 }
             })
+
