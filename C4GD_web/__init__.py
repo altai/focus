@@ -2,8 +2,11 @@
 from gevent import monkey
 monkey.patch_all()
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from werkzeug import ImmutableDict
+from flask_memcache_session import Session
+from werkzeug.contrib.cache import MemcachedCache
+
 
 # initialize app
 class FlaskWithHamlish(Flask):
@@ -15,7 +18,11 @@ class FlaskWithHamlish(Flask):
     )
 
 app = FlaskWithHamlish(__name__)
+
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
+
+app.cache = MemcachedCache(['127.0.0.1:11211'])
+app.session_interface = Session()
 
 # config app
 app.config.from_object('C4GD_web.default_settings')

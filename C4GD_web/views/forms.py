@@ -21,8 +21,8 @@ def get_login_form():
         password = PasswordField('Password', [Required()])
     return LoginForm
 
-def get_spawn_form():
-    IMAGE_CHOICES, FLAVOR_CHOICES, KEYPAIR_CHOICES, SECURITY_GROUP = g.pool(
+def get_spawn_form(pool):
+    IMAGE_CHOICES, FLAVOR_CHOICES, KEYPAIR_CHOICES, SECURITY_GROUP = pool(
         [Image.list, Flavor.list, KeyPair.list, SecurityGroup.list])
     l1 = lambda x: (x.id, x.name)
     l2 = lambda x: (x.name, x.name)

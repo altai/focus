@@ -18,8 +18,8 @@ def commit_storm_store_optionally(exception):
     if hasattr(g, 'store'):
         g.store.commit()
 
+
 @app.before_request
-def load_authenticated_user():
-    if 'user_id' in session:
-        g.user = g.store.find(
-            User, id=session['user_id'], enabled=True).one()
+def is_authenticated():
+    g.is_authenticated = 'keystone_unscoped' in session
+    g.is_global_admin = g.is_authenticated and any([x.get('name') == 'Admin' for x in session['keystone_unscoped']['access']['user']['roles']])

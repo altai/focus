@@ -110,7 +110,7 @@ class Role(Storm):
 
 
 class Service(Storm):
-    __storm_table = 'services'
+    __storm_table__ = 'services'
     id = Int(primary=True)
     name = Unicode()
     type = Unicode()

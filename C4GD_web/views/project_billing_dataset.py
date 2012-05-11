@@ -6,7 +6,7 @@ from C4GD_web.models import get_pool, AccountBill, User, Tenant, get_store
 
 
 class Dataset(object):
-    def __init__(self, params=None, delayed=False):
+    def __init__(self, params=None, delayed=False, user_id=None, tenant_id=None):
         '''if delayed put task in celery
         invoke async task to call AccountBill.show and put results in db
         this call wont wait for the result of async task
@@ -16,7 +16,7 @@ class Dataset(object):
         if result exist use results from db
         '''
         self.data = account_bill_show(
-                params.account_id, g.user.id, g.tenant.id,
+                params.account_id, user_id, tenant_id,
                 app.config['BILLING_URL'],
                 period_start=params.period_start,
                 period_end=params.period_end,
@@ -106,11 +106,13 @@ def _linear_bill(bill):
 def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
     # call Account.show and save result in db
     store = get_store('RO')
-    user = store.get(User, user_id)
-    tenant = store.get(Tenant, tenant_id)
-    billing_pool = get_pool(user, tenant, public_url=public_url)
+    # try:
+    #     user = store.get(User, user_id)
+    # except TypeError:
+    #     user = store.get(User, int(user_id))
+    billing_pool = get_pool(g.user, tenant_id, public_url=public_url)
     # what db? what format? save it for future
-    bill = [billing_pool(AccountBill.show, account_id=tenant.id, **kw).__dict__]
+    bill = [billing_pool(AccountBill.show, account_id=tenant_id, **kw).__dict__]
     _linear_bill(_build_resource_tree(bill))
     return bill[0]
 

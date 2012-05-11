@@ -11,4 +11,4 @@ Hamlish-Jinja
 requests
 gevent
 storm
-
+pylibmc

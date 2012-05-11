@@ -4,7 +4,8 @@ import os.path
 from C4GD_web.decorators import login_required
 from C4GD_web import app
 from C4GD_web.models import *
-from flask import render_template, abort, g
+from flask import render_template, abort, g, redirect, url_for, session
+from C4GD_web.exceptions import KeystoneExpiresException
 
 
 class BaseWrapper(object):
@@ -26,58 +27,64 @@ class BaseWrapper(object):
             @login_required
             @functools.wraps(func)
             def _wrapped(*args, **kwargs):
-                self.before(*args, **kwargs)
-                
-                result = func(*args, **kwargs)
-                t = type(result) 
-                if t is dict:
-                    result = render_template(
-                        os.path.join(
-                            self.template_dir, 
-                            '%s%s' % (
-                                func_name or func.func_name,
-                                extension or self.extension)),
-                        **result)
-                elif t in [tuple, list] and len(result) == 2:
-                    result = render_template(result[0], **result[1])
-                else:
-                    pass
+                try:
+                    before_result = self.before(*args, **kwargs)
+                    result = func(*args, **kwargs)
+                    t = type(result) 
+                    if t is dict:
+                        context = result
+                        if type(before_result) is dict:
+                            context.update(before_result)
+                        result = render_template(
+                            os.path.join(
+                                self.template_dir, 
+                                '%s%s' % (
+                                    func_name or func.func_name,
+                                    extension or self.extension)),
+                            **context)
+                    elif t in [tuple, list] and len(result) == 2:
+                        context = result[1]
+                        if type(before_result) is dict:
+                            context.update(before_result)
+                        result = render_template(result[0], **context)
+                    else:
+                        pass
 
-                return result
+                    return result
+                except KeystoneExpiresException:
+                    raise
+                    return redirect(url_for('logout'))
             return _wrapped
         return _decorator
 
     def before(self, *args, **kwargs):
-        raise NotImplementedError
+        try:
+            g.user = g.store.get(User, session['keystone_unscoped']['access']['user']['id'])
+        except TypeError:
+            g.user = g.store.get(User, int(session['keystone_unscoped']['access']['user']['id']))
 
 
 class GlobalAdminWrapper(BaseWrapper):
     def before(self, *args, **kwargs):
-        if g.user.default_tenant is not None:
-            t = g.user.default_tenant
-        else:
-            t = g.store.get(
-                Tenant,
-                g.user.user_roles.find(UserRole.tenant_id != None)[0].tenant_id)
-        g.pool = get_pool(g.user, t)
+        super(GlobalAdminWrapper, self).before(*args, **kwargs)
 
 
-DashboardWrapper = GlobalAdminWrapper
+class DashboardWrapper(BaseWrapper):
+    def before(self, *args, **kwargs):
+        super(DashboardWrapper, self).before(*args, **kwargs)
     
 
 class ProjectWrapper(BaseWrapper):
     def before(self, *args, **kwargs):
-        g.tenant = g.store.find(Tenant, id=kwargs['tenant_id'], enabled=True).one()
-        if not g.tenant:
-            app.logger.debug('Not found tenant %s' % kwargs['tenant_id'])
-            abort(404)
-        g.pool = get_pool(g.user, g.tenant)
-        vm_id = kwargs.get('vm_id', None)
-        if vm_id:
-            g.vm = g.pool(VirtualMachine.get, vm_id) 
-            if int(g.vm.tenant_id) != g.tenant.id:
-                app.logger.debug('VM does not belong to tenant: %s != %s' % (
-                        repr(int(g.vm.tenant_id)), repr(g.tenant.id)))
-                abort(404)
-
-
+        super(ProjectWrapper, self).before(*args, **kwargs)
+        tenant_id = kwargs['tenant_id']
+        try:
+            tenant = g.store.get(Tenant, tenant_id)
+        except TypeError:
+            tenant = g.store.get(Tenant, int(tenant_id))
+        g.tenant = tenant
+        user_ids = tenant.user_roles.find(UserRole.role_id.is_in([1, 4])).values(UserRole.user_id)
+        project_managers = list(g.store.find(User, User.id.is_in(user_ids)).order_by(User.name).values(User.name))
+        return dict(
+            tenant=session['keystone_scoped'][tenant_id]['access']['token']['tenant'], 
+            project_managers=project_managers)

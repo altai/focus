@@ -2,13 +2,13 @@
 import functools
 import urllib
 from C4GD_web import app
-from flask import g, request, url_for, redirect
+from flask import g, request, url_for, redirect, session
 
 
 def login_required(view):
     @functools.wraps(view)
     def wrapped(*args, **kwargs):
-        if hasattr(g, 'user'):
+        if g.is_authenticated:
             return view(*args, **kwargs)
         else:
             return redirect(

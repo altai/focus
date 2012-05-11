@@ -1,7 +1,7 @@
 -extends "Project/base.haml"
 -block content
   %section style="margin-top: 15px"
-    %a.btn.btn-primary href="{{ url_for('spawn_vm', tenant_id=g.tenant.id) }}"
+    %a.btn.btn-primary href="{{ url_for('spawn_vm', tenant_id=tenant['id']) }}"
       %b.icon-add
       Spawn new
     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
@@ -23,13 +23,13 @@
             %td
               =n
             %td
-              =vm.name
+              =vm['name']
             %td
-              =vm.status
+              =vm['status']
             %td
-              =vm.user_id
+              =vm['user_id']
             %td
-              %div.modal.hide id="remove_vm-{{ vm.id }}"
+              %div.modal.hide id="remove_vm-{{ vm['id'] }}"
                 %div.modal-header
                   %a.close data-dismiss="modal"
                     ×
@@ -37,15 +37,15 @@
                     Confirmation request
                 %div.modal-body
                   %p
-                    Sure to remove VM "{{ vm.name }}" spawned by {{ vm.user_id }}?
+                    Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
                 %div.modal-footer
-                  %form method="post" action="{{ url_for('remove_vm', tenant_id=vm.tenant_id, vm_id=vm.id) }}"
+                  %form method="post" action="{{ url_for('remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
                     %input type="hidden" name="next" value="{{ request.path }}"
                     %button.btn
                       Yes, remove it
                     %a.btn.btn-primary href="#" data-dismiss="modal"
                       No                  
-              %a data-toggle="modal" href="#remove_vm-{{ vm.id }}" 
+              %a data-toggle="modal" href="#remove_vm-{{ vm['id'] }}" 
                 %i.icon-remove
                 remove
 

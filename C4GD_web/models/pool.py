@@ -10,9 +10,12 @@ from storm.locals import *
 
 from C4GD_web import app
 from C4GD_web.benchmark import benchmark
-from C4GD_web.utils import select_keys
+from C4GD_web.utils import select_keys, obtain_scoped, get_public_url
 
 from orm import *
+
+from exceptions import InconsistentDatabaseException
+from storm.exceptions import NotOneError
 
 
 # TODO: 
@@ -33,17 +36,20 @@ class RestfulPool(object):
     public_url = ""
     token = None
 
-    def __init__(self, user, tenant, public_url=None):
+    def __init__(self, user, tenant_id, public_url=None):
         # get token, user-tenant are already checked for existence
         # and authorisation at this point
         self.user = user
-        self.tenant = tenant
-        self.token_id, nova_public_url = self.authenticate(self.user, self.tenant)
+        self.tenant_id = tenant_id
+        self.token_id, nova_public_url = self.authenticate(
+            self.user, self.tenant_id)
+
         self.public_url = public_url if public_url else nova_public_url
+        
 
 
     def refresh(self):
-        self.token_id, _ = self.authenticate(self.user, self.tenant)
+        self.token_id, self.public_url = self.authenticate(self.user, self.tenant)
 
     @staticmethod
     def save_token(user_name, password):
@@ -63,48 +69,15 @@ class RestfulPool(object):
         if not (200 <= response.status_code < 300):
             return False
         response_data = json.loads(response.text)
-        session["token_id"] = response_data['access']['token']['id']
-        session["user_name"] = user_name
+        session["keystone_unscoped"] = response_data
         return True
 
-    def authenticate(self, user, tenant):
-        app.logger.info('Started pool authentication')
-        def request_token(req_data): 
-            with benchmark('Getting token via REST'):
-                response = requests.post(
-                    '%s/tokens' % app.config['KEYSTONE_URL'],
-                    data=json.dumps(req_data),
-                    headers = {'content-type': 'application/json'})
-            if 200 <= response.status_code < 300:
-                return json.loads(response.text)
-
-        response_data = None
-        try:
-            key = user.credentials.find(tenant_id=tenant.id)\
-                .values(Credential.key).next()
-        except StopIteration:
-            response_data = request_token({
-                'auth': {
-                    'token' : {'id': session["token_id"]},
-                    'tenantId': tenant.id,
-                }
-            })
-        else:
-            # keys can have  tenant name appended (concatenated with ':')
-            if u':' in key:
-                key = key.split(u':')[0]
-            response_data = request_token({
-               'auth': {
-                   'passwordCredentials': {
-                       'username': g.user.name,
-                       'password': key},
-                   'tenantId': tenant.id
-               }
-            })
-        token = response_data['access']['token']['id']
-        public_url = response_data['access'][
-            'serviceCatalog'][0]['endpoints'][0]['publicURL']
-        return token, public_url
+    def authenticate(self, user, tenant_id):
+        if tenant_id not in session['keystone_scoped']:
+            obtain_scoped(tenant_id)
+        return (
+            session['keystone_scoped'][tenant_id]['access']['token']['id'],
+            get_public_url(tenant_id))
 
     def prepare_call(self, method, *args, **kwargs):
         """
@@ -200,10 +173,9 @@ class RestfulPool(object):
 
     def headers(self):
         return {
-            'X-Auth-Project-Id': str(self.tenant.id),
+            'X-Auth-Project-Id': str(self.tenant_id),
             'X-Auth-Token': self.token_id,
-            'Content-Type': 'application/json',
-            'X-Tenant-Name': self.tenant.name}
+            'Content-Type': 'application/json'}
 
     def __call__(self,  method_or_data, *args, **kwargs):
         """
@@ -251,6 +223,7 @@ class RestfulPool(object):
                 self.collections[klass.__name__][obj.get_key()] = obj
                 ids.append(obj.get_key())
             return list(select_keys(self.collections[klass.__name__], ids))
+
 
 
 def get_pool(user, tenant, public_url=None):

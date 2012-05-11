@@ -46,7 +46,8 @@ class VirtualMachine(RESTModelBase):
     @post('')
     def spawn(cls, *args, **kwargs):
         d = args[0]
-        image = g.pool.collections['Image'][int(d['image'])]
+        pool = kwargs['pool']
+        image = pool.collections['Image'][int(d['image'])]
         result = {
             'server': {
                 'name': d['name'],
@@ -62,7 +63,7 @@ class VirtualMachine(RESTModelBase):
             security_group_keys = d.getlist('security_groups')
             if len(security_group_keys):
                 security_groups = select_keys(
-                    g.pool.collections['SecurityGroup'],
+                    pool.collections['SecurityGroup'],
                     map(int, security_group_keys))            
                 result['server']['security_groups'] = [
                     {'name': x.name} for x in security_groups]
