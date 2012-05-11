@@ -206,7 +206,7 @@ class RestfulPool(object):
             # TODO: handle only handlable
             with benchmark('handling'):
                 return [
-                    self.handle_call(r.text, *a) for r, a in zip(
+                    self.handle_call(r.content, *a) for r, a in zip(
                         responses, map(lambda x: (x[3], x[4], x[5]), prepared))
                     ]
         else:
