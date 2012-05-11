@@ -4,9 +4,7 @@ Jinja2
 MySQL-python
 WTForms
 Werkzeug
-python-ldap
 wsgiref
-fabric
 Hamlish-Jinja
 requests
 gevent
