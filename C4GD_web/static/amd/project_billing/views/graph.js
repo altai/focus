@@ -9,7 +9,7 @@ function(Backbone, Underscore, gRaphael) {
 			function drawPie(elemId, title, values, legends, onClick) {
 				var displayedLegends = [];
 				for ( var i = 0; i < legends.length; ++i) {
-					displayedLegends.push(legends[i] + " ("
+					displayedLegends.push(legends[i] + " ($"
 							+ formatCost(values[i]) + ")");
 				}
 				var delta = 0;

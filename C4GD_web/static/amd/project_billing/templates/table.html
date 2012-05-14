@@ -5,7 +5,7 @@
   <thead>
     <tr>
       <td colspan="4">Total</td>
-      <td><%= formatCost(data.cost) %></td>
+      <td>$<%= formatCost(data.cost) %></td>
     </tr>
     <tr>
       <th>
@@ -32,7 +32,7 @@
       <td><%= datum.name ? datum.name : "&nbsp;" %></td>
       <td><%= datum.created_at %></td>
       <td><%= datum.destroyed_at ? datum.destroyed_at : "alive" %></td>      
-      <td><%= formatCost(datum.cost) %></td>
+      <td>$<%= formatCost(datum.cost) %></td>
     </tr>
     <% })%>
   </tbody>
