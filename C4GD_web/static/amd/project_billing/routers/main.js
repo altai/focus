@@ -17,6 +17,10 @@ define([
   , GraphView
   , DataCollection
 ){
+  function formatDateToISO(date){
+    new_date = new Date(date.replace(/-/g, '/'));
+    return new_date.toISOString();
+  }
   return Backbone.Router.extend({
     initialize: function(){
       this.data = new DataCollection();
@@ -51,7 +55,10 @@ define([
     , custom_period: function(period_start, period_end, actions){
       $('.period-view a[href="#custom_period"]').tab('show');
       $('.custom-period-indicator').html(period_start+' / '+period_end);
-      this.data.load({"period_start": period_start, "period_end": period_end});
+      this.data.load({
+        "period_start": formatDateToISO(period_start),
+        "period_end": formatDateToISO(period_end)
+      })
     }
   });
 })
