@@ -99,3 +99,19 @@ def obtain_scoped(tenant_id):
                 }
             })
 
+
+def billing_get(path, params={}):
+    url = app.config['BILLING_URL'] + path
+    headers = {
+            'X-Auth-Token': session['keystone_unscoped']['access']\
+                ['token']['id'],
+            'Content-Type': 'application/json'
+            }
+    response = requests.get(
+        url,
+        params=json.dumps(params), 
+        headers=headers)
+    if 200 <= response.status_code < 300:
+        return json.loads(response.content)
+    else:
+        raise BillingAPIError('Billing API responds with code %s' % response.status_code)

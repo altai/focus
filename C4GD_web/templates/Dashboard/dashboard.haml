@@ -11,6 +11,8 @@
         %ul.nav.nav-pills
           %li
             %a href="{{ url_for('global_list_vms') }}" -> Virtual machines      
+          %li
+            %a href="{{ url_for('global_billing') }}" -> Billing     
       
   -if tenants_with_roles|length
     %section

@@ -29,7 +29,9 @@ from flask import g, flash, render_template, request, redirect, url_for, \
 from pagination import Pagination
 from dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
 from exporter import Exporter
-from C4GD_web.utils import nova_get, obtain_scoped
+from C4GD_web.utils import nova_get, obtain_scoped, billing_get
+from C4GD_web.exceptions import BillingAPIError, GentleException
+
 
 def per_page():
     return 10
@@ -106,6 +108,42 @@ def remove_vm(tenant_id, vm_id):
         flash('Virtual machine removed successfully.', 'success')
     return redirect(get_next_url())
 
+
+@app.route('/g/billing/')
+@global_wrapper()
+def global_billing():
+    try:
+        billing_accounts = billing_get('/account')
+    except BillingAPIError, e:
+        raise GentleException(e.message)
+    if len(billing_accounts):
+        return redirect(
+            url_for(
+                'global_billing_details',
+                tenant_id=billing_accounts[0]['name']))    
+    else:
+        raise GentleException('No billing accounts to show')
+    
+
+@app.route('/g/billing/<tenant_id>/')
+@global_wrapper()
+def global_billing_details(tenant_id):
+    def get_tenant(x_id):
+        try:
+            try:
+                tenant = g.store.get(Tenant, x_id)
+            except TypeError:
+                tenant = g.store.get(Tenant, int(x_id))
+        except ValueError:
+            tenant = None # Lyosha promised
+        return tenant
+    try:
+        billing_accounts = billing_get('/account')
+    except BillingAPIError, e:
+        raise GentleException(e.message)
+    else:
+        tenants = [x for x in [get_tenant(x['name']) for x in billing_accounts] if x is not None]
+    return generic_billing(tenant_id, tenants=tenants)
 
 
 @app.route('/g/')
@@ -219,9 +257,7 @@ def remove_user_from_project(tenant_id, user_id):
     return redirect(url_for('list_users', tenant_id=tenant_id))
     
 
-@app.route('/<tenant_id>/billing/')
-@project_wrapper()
-def project_billing(tenant_id):
+def generic_billing(tenant_id, tenants=None):
     """
     On non-AJAX request return page and iniate process of getting of dataset for default parameters. Parameters can be different in the fragment history and the js app can request dataset with other parameters, but in most cases we will guess correctly.
     On AJAX call get dataset for requested parameter and return it in correct formatting as JSON response.
@@ -236,5 +272,17 @@ def project_billing(tenant_id):
             'data': d.data
         })
     else:
-        return {}
+        context = {
+            'tenant_id': tenant_id
+            }
+        if tenants is not None:
+            context.update({
+                'tenants': tenants
+                })
+        return context
 
+
+@app.route('/<tenant_id>/billing/')
+@project_wrapper()
+def project_billing(tenant_id):
+    return generic_billing(tenant_id)

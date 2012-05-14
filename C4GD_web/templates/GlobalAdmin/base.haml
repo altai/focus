@@ -8,7 +8,10 @@
         Cloud-wide information and actions
     %div.subnav
       %ul.nav.nav-pills
-        %li.active
+        %li{% if request.path == url_for('global_list_vms') %} class="active"{% endif %}
           %a href="{{ url_for('global_list_vms') }}"
             Virtual machines
+        %li{% if request.path != url_for('global_list_vms') %} class="active"{% endif %}
+          %a href="{{ url_for('global_billing') }}"
+            Billing
 

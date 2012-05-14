@@ -4,3 +4,7 @@ class KeystoneExpiresException(Exception):
 
 class GentleException(Exception):
     pass
+
+
+class BillingAPIError(Exception):
+    pass
