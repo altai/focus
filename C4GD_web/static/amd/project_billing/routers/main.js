@@ -36,17 +36,21 @@ define([
     , today: function(actions){
       $('.period-view a[href="#today"]').tab('show');      
       this.data.load({"kind": "today"});
+      $('.custom-period-indicator').html('&nbsp;');
     }
     , month: function(actions){
       $('.period-view a[href="#month"]').tab('show');
       this.data.load({"kind": "month"});      
+      $('.custom-period-indicator').html('&nbsp;');
     }
     , year: function(actions){
       $('.period-view a[href="#year"]').tab('show');
       this.data.load({"kind": "year"});
+      $('.custom-period-indicator').html('&nbsp;');
     }
     , custom_period: function(period_start, period_end, actions){
-      $('.period-view a[href="#custom_period"]').tab('show');      
+      $('.period-view a[href="#custom_period"]').tab('show');
+      $('.custom-period-indicator').html(period_start+' / '+period_end);
       this.data.load({"period_start": period_start, "period_end": period_end});
     }
   });
