@@ -1,10 +1,27 @@
-define([ 'backbone', 'underscore', 'm/graphael' ],
+define([ 'backbone', 'underscore', 'm/graphael', 'jquery' ],
 
-function(Backbone, Underscore, gRaphael) {
+       function(Backbone, Underscore, gRaphael, $) {
 	return Backbone.View.extend({
 		initialize : function() {
 			this.options.router.data.on('reset', this.render, this);
 		},
+          events: {
+            'click a.toggle_diagram': 'toggle_diagram',
+          },
+          toggle_diagram: function(e){
+            var $a = this.$("a.toggle_diagram");
+            if ($a.hasClass('hided')){
+              $a.html('hide');
+              this.$('.toggleable').show();
+              $a.removeClass('hided');
+            }else{
+              $a.html('show diagrams');
+              this.$('.toggleable').hide();
+              $a.addClass('hided');
+            }
+           
+            e.preventDefault();
+          },
 		render : function() {
 			function drawPie(elemId, title, values, legends, onClick) {
 				var displayedLegends = [];
