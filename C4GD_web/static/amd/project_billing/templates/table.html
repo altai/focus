@@ -28,8 +28,8 @@
     <tr>
       <td><span style="display: inline-block; width: <% print(datum.depth * 8); %>px;">&nbsp;</span><%= datum.rtype %></td>
       <td><%= datum.name ? datum.name : "&nbsp;" %></td>
-      <td><%= datum.created_at %></td>
-      <td><%= datum.destroyed_at ? datum.destroyed_at : "alive" %></td>      
+      <td><%= formatDate(datum.created_at) %></td>
+      <td><%= datum.destroyed_at ? formatDate(datum.destroyed_at) : "alive" %></td>      
       <td>$<%= formatCost(datum.cost) %></td>
     </tr>
     <% })%>
