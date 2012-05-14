@@ -23,7 +23,7 @@ app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
 
 app.cache = MemcachedCache(
     ['127.0.0.1:11211'],
-    default_timeout=300000,
+    default_timeout=100000,
     key_prefix='focus')
 app.session_interface = Session()
 

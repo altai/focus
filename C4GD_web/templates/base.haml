@@ -35,4 +35,8 @@
               %div class="alert alert-{{ category }}"
                 =message
       -block content
+    %div.modal.hide.fade#error_message_modal 
+        %div.modal-body
+        %div.modal-footer
+          %a.btn data-dismiss="modal" href="#" -> OK
 
