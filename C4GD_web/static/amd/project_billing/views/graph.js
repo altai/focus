@@ -134,9 +134,9 @@ function(Backbone, Underscore, gRaphael) {
 				}
 				router.table_view.render();
 			}
-			drawPie("chart_by_type", "Bill by type", costs, legends,
+			drawPie("chart_by_type", "Bill by type*", costs, legends,
 					filter_type);
-			drawPie("chart_by_existence", "Bill by existence", byExistence, [
+			drawPie("chart_by_existence", "Bill by existence*", byExistence, [
 					"Present", "Destroyed" ], filter_presence);
 
 		}
