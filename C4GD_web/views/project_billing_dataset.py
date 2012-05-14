@@ -32,8 +32,8 @@ class Params(object):
         self.account_id = account_id
         if 'period_start' in args and 'period_end' in args:
             # control format of dates
-            period_start = args['period_start']
-            period_end = args['period_end']
+            self.period_start = args['period_start']
+            self.period_end = args['period_end']
         else:
             kind = args.get('kind', 'month')
             if kind == 'today':

@@ -38,8 +38,19 @@ define([
       , ':period_start/:period_end*actions': 'custom_period'
     }
     , today: function(actions){
-      $('.period-view a[href="#today"]').tab('show');      
-      this.data.load({"kind": "today"});
+      $('.period-view a[href="#today"]').tab('show');
+      today = new Date();
+      today.setHours(0);
+      today.setMinutes(0);
+      today.setSeconds(0);
+      tomorrow = new Date();
+      tomorrow.setHours(24);
+      tomorrow.setMinutes(0);
+      tomorrow.setSeconds(0);
+      this.data.load({
+        "period_start": today.toISOString(),
+        "period_end": tomorrow.toISOString()
+      });
       $('.custom-period-indicator').html('&nbsp;');
     }
     , month: function(actions){
