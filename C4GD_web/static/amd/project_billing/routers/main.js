@@ -3,14 +3,16 @@ function formatCost(cost) {
 }
 
 define([
-  'backbone'
+  'jq'
+  , 'backbone'
   , 'm/bootstrap/tab'
   , 'project_billing/views/period'
   , 'project_billing/views/table'
   , 'project_billing/views/graph'
   , 'project_billing/collections/data'
 ], function(
-  Backbone
+  $
+  , Backbone
   , BootstrapTab
   , PeriodView
   , TableView

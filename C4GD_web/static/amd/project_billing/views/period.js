@@ -1,4 +1,4 @@
-define(['backbone', 'jqueryui/datepicker'], function(Backbone){
+define(['jq', 'backbone', 'jqueryui/datepicker'], function($, Backbone){
   return Backbone.View.extend({
     initialize: function(){
       this.$el.find('input.datepicker').datepicker({ dateFormat: "yy-mm-dd" });

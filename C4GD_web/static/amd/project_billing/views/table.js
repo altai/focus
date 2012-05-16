@@ -20,7 +20,6 @@ define([
   'backbone', 
   'text!project_billing/templates/table.html'
 ], function(_, Backbone, table_tmpl){
-  console.log(Backbone)
   return Backbone.View.extend({
     initialize: function(){
       this.options.router.data.on('reset', this.render, this);
