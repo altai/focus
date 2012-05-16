@@ -1,6 +1,6 @@
 define([
-  'js!vendors/underscore-1.3.3/underscore.js'
-], 
-       function(){
-         return _;
+  'amd/loader'
+], function(Loader){ 
+  console.log(Loader._);
+  return Loader._; 
 })

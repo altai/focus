@@ -15,7 +15,12 @@
       return date_string
     }
   }
-define(['backbone', 'underscore', 'text!project_billing/templates/table.html'], function(Backbone, _, table_tmpl){
+define([
+  'underscore', 
+  'backbone', 
+  'text!project_billing/templates/table.html'
+], function(_, Backbone, table_tmpl){
+  console.log(Backbone)
   return Backbone.View.extend({
     initialize: function(){
       this.options.router.data.on('reset', this.render, this);
