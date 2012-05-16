@@ -1,5 +1,10 @@
 /* default_columns is global variable from the page */
-define(['jquery', 'backbone', 'URI', 'Columns'], function($, Backbone, URI, Columns){
+define([
+  'jq', 
+  'backbone', 
+  'm/uri', 
+  'global_list_vms/utils/columns_util'
+], function($, Backbone, URI, Columns){
   return Backbone.View.extend({
     uri: URI(window.location.toString()),
 

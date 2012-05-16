@@ -1,7 +1,7 @@
+
 -extends "Project/base.haml"
--block requirejs
-  %script type="text/javascript" src="{{ url_for('static', filename='vendors/raphaeljs-2.1.1/raphael-min.js') }}"
-  %script type="text/javascript" data-main="{{ url_for('static', filename='amd/main_project_billing.js') }}" src="{{ url_for('static', filename='amd/require.js') }}"
+-block amdjs
+  %script type="text/javascript"  src="{{ url_for('static', filename='amd/main_billing_curl.js') }}"
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content

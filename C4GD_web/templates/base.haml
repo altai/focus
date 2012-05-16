@@ -6,8 +6,24 @@
       C4GD-web
     %meta name="description" content=""
     %meta name="author" content=""
-    -block requirejs
-      %script data-main="{{ url_for('static', filename='amd/main_common.js') }}" src="{{ url_for('static', filename='amd/require.js') }}"
+    %script
+      | var curl_cfg = {
+      |  baseUrl: '/static'
+      |  , paths: {
+      |  'jq': 'amd/jq.charged'
+      |  , 'backbone': 'amd/backbone'
+      |  , 'underscore': 'amd/underscore'
+      |  , 'graphael': 'amd/m/graphael'
+      |  , 'm': 'amd/m'
+      |  , 'jqueryui': 'amd/jqueryui'
+      |  , 'project_billing': 'amd/project_billing'
+      |  , 'global_list_vms': 'amd/global_list_vms'
+      |  }
+      | }
+    -block curljs
+      %script type="text/javascript" src="{{ url_for('static', filename='amd/curl.js') }}"
+    -block amdjs
+      %script src="{{ url_for('static', filename='amd/main_common.js') }}"
     %link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}"
     %link href="{{ url_for('static', filename='stylesheets/app.mini.css') }}" rel="stylesheet" type="text/css"  
     ;%link href="{{ url_for('static', filename='stylesheets/app.less') }}" rel="stylesheet/less" type="text/css"  

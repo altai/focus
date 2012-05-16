@@ -1,1 +1,5 @@
-define(['jquery', 'm/bootstrap/transition', 'm/bootstrap/tooltip', '/static/vendors/twitter-bootstrap-aaabe2a/js/bootstrap-popover.js'], function($){});
+define([
+  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-transition.js!order'
+  , 'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-tooltip.js!order'
+  , 'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-popover.js!order'
+], function(){});

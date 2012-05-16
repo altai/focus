@@ -1,4 +1,8 @@
-define(['backbone', 'URI', 'jquery'], function(Backbone, URI, $){
+define([
+  'backbone', 
+  'm/uri', 
+  'jq'
+], function(Backbone, URI, $){
   return Backbone.View.extend({
     events: {
       'click a[data-groupping-value]': function (event){

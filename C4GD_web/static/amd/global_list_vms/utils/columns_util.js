@@ -1,4 +1,4 @@
-define(['underscore', 'URI'], function (_, URI){
+define(['underscore', 'm/uri'], function (_, URI){
   return function (){
     var uri = URI(window.location.toString());
     // default columns come from page in global context

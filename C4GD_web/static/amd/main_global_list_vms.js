@@ -1,4 +1,4 @@
-define.amd.jQuery = true;
+/*define.amd.jQuery = true;
 require.config({
   paths: {
     URI: 'm/uri'
@@ -17,4 +17,12 @@ require([
 , 'm/bootstrap/collapse'
 ], function(App){
   App.initialize();
-});
+});*/
+
+curl(curl_cfg, [
+  'global_list_vms/main',
+  'm/bootstrap/dropdown',
+  'm/bootstrap/collapse'
+], function(main_app){
+  main_app.initialize();
+})

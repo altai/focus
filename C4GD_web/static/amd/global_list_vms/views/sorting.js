@@ -1,4 +1,8 @@
-define(['jquery', 'underscore', 'backbone', 'URI'], function($, _, Backbone, URI){
+define([
+  'jq', 
+  'backbone', 
+  'm/uri'
+], function($, Backbone, URI){
   return Backbone.View.extend({
     events: {
       'click ul > li > a': function(e){

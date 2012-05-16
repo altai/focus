@@ -1,4 +1,9 @@
-define([ 'backbone', 'underscore', 'm/graphael', 'jquery' ],
+define([
+  'backbone', 
+  'underscore', 
+  'm/graphael', 
+  'jq' 
+],
 
        function(Backbone, Underscore, gRaphael, $) {
 	return Backbone.View.extend({

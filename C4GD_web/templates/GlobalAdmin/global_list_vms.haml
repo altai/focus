@@ -1,8 +1,8 @@
 -extends "GlobalAdmin/base.haml"
--block requirejs
+-block amdjs
   %script
     |var default_columns = {{ columns.default_names.__repr__()|safe }};
-  %script data-main="{{ url_for('static', filename='amd/main_global_list_vms.js') }}" src="{{ url_for('static', filename='amd/require.js') }}" 
+  %script src="{{ url_for('static', filename='amd/main_global_list_vms.js') }}"
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content

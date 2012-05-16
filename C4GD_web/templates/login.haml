@@ -1,6 +1,6 @@
 -extends "base.haml"
--block requirejs
-  %script data-main="{{ url_for('static', filename='amd/main_login.js') }}" src="{{ url_for('static', filename='amd/require.js') }}"
+-block amdjs
+  %script src="{{ url_for('static', filename='amd/main_login.js') }}"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_field
   %form method="POST" action="." class="well offset4 span4 form-vertical login"
@@ -12,8 +12,3 @@
     {{ render_field(form.password) }}
     %button type="submit" class="btn btn-primary"
       Sign in
-  ;%script type="text/javascript" -- move to rquirement maybe
-  ;  |$(document).ready(function(){
-  ;  |  $('#username').focus();
-  ;  |});
-

@@ -1,5 +1,8 @@
 /* default_columns is global variable from the page */
-define(['underscore', 'backbone', 'URI'], function(_, Backbone, URI){
+define([
+  'backbone', 
+  'm/uri'
+], function(Backbone, URI){
   return Backbone.View.extend({
     uri: URI(window.location.toString()),
 

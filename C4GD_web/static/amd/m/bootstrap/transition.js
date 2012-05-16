@@ -1,1 +1,4 @@
-define(['jquery', '/static/vendors/twitter-bootstrap-aaabe2a/js/bootstrap-transition.js'], function($){});
+define([
+  'js!amd/jq.vanilla.js!order',
+  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-transition.js!order'
+], function(){});
