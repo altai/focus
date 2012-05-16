@@ -1,4 +1,4 @@
-define('jqueryui/effects/shake', ['jquery','jqueryui/effects/core'], function (jQuery) {
+define('jqueryui/effects/shake', ['jq','jqueryui/effects/core'], function (jQuery) {
 /*!
  * jQuery UI Effects Shake 1.8.19
  *

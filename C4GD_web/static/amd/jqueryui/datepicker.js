@@ -1,4 +1,4 @@
-define('jqueryui/datepicker', ['jquery','jqueryui/core'], function (jQuery) {
+define('jqueryui/datepicker', ['jq','jqueryui/core'], function (jQuery) {
 /*!
  * jQuery UI Datepicker 1.8.19
  *

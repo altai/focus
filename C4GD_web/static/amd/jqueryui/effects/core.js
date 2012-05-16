@@ -1,4 +1,4 @@
-define('jqueryui/effects/core', ['jquery'], function (jQuery) {
+define('jqueryui/effects/core', ['jq'], function (jQuery) {
 /*!
  * jQuery UI Effects 1.8.19
  *

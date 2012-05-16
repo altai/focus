@@ -9,7 +9,6 @@ define([
   return {
     'initialize': function(){
       $(function(){
-        console.log('here')
         new ColumnsController({el: $('#columns-controller')});
         new DumpController({el: $('#dump-controller')});
         $('th.sorting-contoller').each(function(num, val){

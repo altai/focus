@@ -1,4 +1,4 @@
-define('jqueryui/slider', ['jquery','jqueryui/core','jqueryui/mouse','jqueryui/widget'], function (jQuery) {
+define('jqueryui/slider', ['jq','jqueryui/core','jqueryui/mouse','jqueryui/widget'], function (jQuery) {
 /*!
  * jQuery UI Slider 1.8.19
  *

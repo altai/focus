@@ -1,4 +1,4 @@
-define('jqueryui/effects/bounce', ['jquery','jqueryui/effects/core'], function (jQuery) {
+define('jqueryui/effects/bounce', ['jq','jqueryui/effects/core'], function (jQuery) {
 /*!
  * jQuery UI Effects Bounce 1.8.19
  *

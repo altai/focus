@@ -1,4 +1,4 @@
-define('jqueryui/datepicker-af', ['jquery','jqueryui/datepicker'], function (jQuery) {
+define('jqueryui/datepicker-af', ['jq','jqueryui/datepicker'], function (jQuery) {
 /* Afrikaans initialisation for the jQuery UI date picker plugin. */
 /* Written by Renier Pretorius. */
 jQuery(function($){

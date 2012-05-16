@@ -23,7 +23,6 @@ define([
         var from = ui.draggable.parents('[data-attr-name]').attr('data-attr-name');
         var to = $(event.target).attr('data-attr-name');
         if (from != to){
-          console.log('from ' + from + ' to ' + to)
           columns = new Columns();
           window.location.assign(columns.flip_columns(from, to));
         }

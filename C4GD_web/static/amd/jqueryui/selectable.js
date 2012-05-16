@@ -1,4 +1,4 @@
-define('jqueryui/selectable', ['jquery','jqueryui/core','jqueryui/mouse','jqueryui/widget'], function (jQuery) {
+define('jqueryui/selectable', ['jq','jqueryui/core','jqueryui/mouse','jqueryui/widget'], function (jQuery) {
 /*!
  * jQuery UI Selectable 1.8.19
  *

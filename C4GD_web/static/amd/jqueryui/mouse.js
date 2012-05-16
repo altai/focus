@@ -1,4 +1,4 @@
-define('jqueryui/mouse', ['jquery','jqueryui/widget'], function (jQuery) {
+define('jqueryui/mouse', ['jq','jqueryui/widget'], function (jQuery) {
 /*!
  * jQuery UI Mouse 1.8.19
  *

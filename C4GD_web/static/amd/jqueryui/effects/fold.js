@@ -1,4 +1,4 @@
-define('jqueryui/effects/fold', ['jquery','jqueryui/effects/core'], function (jQuery) {
+define('jqueryui/effects/fold', ['jq','jqueryui/effects/core'], function (jQuery) {
 /*!
  * jQuery UI Effects Fold 1.8.19
  *

@@ -1,4 +1,4 @@
-define('jqueryui/effects/fade', ['jquery','jqueryui/effects/core'], function (jQuery) {
+define('jqueryui/effects/fade', ['jq','jqueryui/effects/core'], function (jQuery) {
 /*!
  * jQuery UI Effects Fade 1.8.19
  *
