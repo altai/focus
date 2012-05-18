@@ -9,7 +9,8 @@ from forms import InviteForm, InviteRegisterForm
 from flask import g, render_template, flash, render_template, url_for, redirect, request
 from flaskext.mail import Message
 
-from neo4j_orm import save_invitation, get_invitation_by_hash, update_invitation, create_new_user
+from neo4j_orm import save_invitation, get_invitation_by_hash, \
+    update_invitation, create_new_user, get_masks
 
 
 @app.route('/invite/finish/<invitation_hash>/', methods=['GET', 'POST'])
@@ -37,17 +38,22 @@ def invite():
         h.update(str(datetime.datetime.now()))
         return h.hexdigest()       
         
+    masks = get_masks()
     form = InviteForm()
     if form.validate_on_submit():
-        hash = create_invitation_hash(form.email.data)
-        
-        save_invitation(form.email.data, hash, 0)
+        user_email = form.email.data
+        hash = create_invitation_hash(user_email)
+        domain = user_email.split('@')[-1]
+        if (domain,) not in masks:
+            flash('Not allowed mail mask')
+            return render_template('invite.haml', form=form, masks=masks)
+        save_invitation(user_email, hash, 0)
         invite_link = "http://%s%s" % (request.host, url_for('invite_finish', invitation_hash=hash))
-        msg = Message('Invitation', recipients=[form.email.data])
+        msg = Message('Invitation', recipients=[user_email])
         msg.body = render_template('InviteEmail/body.txt', invite_link=invite_link)
         try:
-            #mail.send(msg)
+            mail.send(msg)
             flash('Invitation sent successfully', 'info')  
         except Exception, e:
             raise GentleException(e.message)
-    return render_template('invite.haml', form=form)
+    return render_template('invite.haml', form=form, masks=masks)

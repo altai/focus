@@ -4,8 +4,15 @@
   %form method="POST" action="." class="well offset4 span4 form-vertical invite"
     %legend
       Invitation Form
+    Allowed domains:
+    %ul class="unstyled"
+      {% for mask in masks: %}
+          %li
+            {{ mask.0 }}
+      {% endfor %}
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
     {{ render_field(form.email) }}
+    Allowed email masks:
     %button type="submit" class="btn btn-primary"
       Invite
