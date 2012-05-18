@@ -27,4 +27,4 @@ MAIL_USE_SSL = False
 MAIL_DEBUG = True
 MAIL_USERNAME = 'c4gd-focus-robot@griddynamics.com'
 MAIL_PASSWORD = None
-DEFAULT_MAIL_SENDER = 'Do Not Reply'
+DEFAULT_MAIL_SENDER = 'DoNotReply'
