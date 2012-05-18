@@ -1,14 +1,13 @@
--extends "base.haml"
--block amdjs
-  %script src="{{ url_for('static', filename='amd/main_login.js') }}"
+-extends "authenticated_base.haml"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_field
-  %form method="POST" action="." class="well offset4 span4 form-vertical login"
+  %form method="POST" action="." class="well offset4 span4 form-vertical invite_registration"
     %legend
-      Cloud Web GUI
+      Registration Form
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
-    {{ render_field(form.username) }}
+    Email: {{ email }}
+    {{ render_field(form.email) }}
     {{ render_field(form.password) }}
     %button type="submit" class="btn btn-primary"
-      Sign in
+      Register

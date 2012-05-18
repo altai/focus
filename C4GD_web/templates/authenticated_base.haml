@@ -34,6 +34,9 @@
                         =tenant['name'] 
           %ul class="nav pull-right"
             %li
+              %a href="{{ url_for('invite') }}"
+                Invite
+            %li
               %a
                 =session['keystone_unscoped']['access']['user']['name']
             %li

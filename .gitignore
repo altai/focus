@@ -11,3 +11,7 @@ local_fab_settings.py
 \#*.*#
 \.#*.*
 3dparty
+.project
+.pydevproject
+.settings
+venv

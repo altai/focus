@@ -6,6 +6,7 @@ from flask import Flask, render_template, session
 from werkzeug import ImmutableDict
 from flask_memcache_session import Session
 from werkzeug.contrib.cache import MemcachedCache
+from flaskext.mail import Mail
 
 
 # initialize app
@@ -34,8 +35,13 @@ app.config.from_object('C4GD_web.local_settings')
 if not app.debug:
     import logging, sys
     logging.basicConfig(stream=sys.stderr)
+    
+# SMTP
+mail = Mail(app)
 
 # import flesh
 import C4GD_web.callbacks
 import C4GD_web.context_processors
 import C4GD_web.views
+import C4GD_web.invitations
+

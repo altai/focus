@@ -1,5 +1,6 @@
 Flask
 Flask-WTF
+Flask-Mail
 Jinja2
 MySQL-python
 WTForms
