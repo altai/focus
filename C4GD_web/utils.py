@@ -3,7 +3,7 @@ from flask import session, flash
 import requests
 from C4GD_web import app
 import json
-from C4GD_web.exceptions import KeystoneExpiresException, GentleException
+from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
 
 
 def select_keys(d, keys, strict_order=True):
