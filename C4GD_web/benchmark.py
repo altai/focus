@@ -1,12 +1,13 @@
 # coding=utf-8
 import time
-from C4GD_web import app
+
+from flask import current_app
 
 
 class benchmark(object):
-    def __init__(self, name, logger=app.logger.info):
+    def __init__(self, name, logger=None):
         self.name = name
-        self.logger = logger
+        self.logger = logger or current_app.logger.info
 
     def __enter__(self):
         self.start = time.time()

@@ -19,3 +19,5 @@ RW_DB_NAME = ''
 KEYSTONE_URL = 'http://172.18.41.1:5000/v2.0'
 BILLING_URL = 'http://172.30.0.3:8787/v1'
 DEV = False
+TEMPLATE_EXTENSION = '.haml'
+ANONYMOUS_ALLOWED = ['login']

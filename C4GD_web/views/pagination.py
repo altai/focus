@@ -1,8 +1,6 @@
 # coding=utf-8
-import urllib, urlparse
 from math import ceil
 from flask import request, url_for
-from C4GD_web import app
 
 
 class Pagination(object):
@@ -38,16 +36,5 @@ class Pagination(object):
             last = num
 
 
-from werkzeug.datastructures import iter_multi_items
-
-
-def url_for_other_page(page):
-    args = request.args.copy()
-    args['page'] = page
-    result = '%s?%s' % (
-        request.path,
-        urllib.urlencode(
-            tuple(args.iterlists()), 
-            doseq=1))
-    return result
-app.jinja_env.globals['url_for_other_page'] = url_for_other_page
+def per_page():
+    return 10

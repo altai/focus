@@ -1,23 +1,16 @@
-from flask import g
-from C4GD_web import app
 from datetime import date
 
-from C4GD_web.models import get_pool, AccountBill, User, Tenant, get_store
+from flask import g, current_app
+
+from C4GD_web.models.orm import User, Tenant, get_store
+from C4GD_web.utils import billing_get
 
 
 class Dataset(object):
     def __init__(self, params=None, delayed=False, user_id=None, tenant_id=None):
-        '''if delayed put task in celery
-        invoke async task to call AccountBill.show and put results in db
-        this call wont wait for the result of async task
-
-        if not delayed then look in db fo result matching params
-        if no result call for AccountBill.show, put results in db and return results
-        if result exist use results from db
-        '''
         self.data = account_bill_show(
                 params.account_id, user_id, tenant_id,
-                app.config['BILLING_URL'],
+                current_app.config['BILLING_URL'],
                 period_start=params.period_start,
                 period_end=params.period_end,
                 time_period=params.time_period)
@@ -104,15 +97,11 @@ def _linear_bill(bill):
 
 
 def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
-    # call Account.show and save result in db
-    store = get_store('RO')
-    # try:
-    #     user = store.get(User, user_id)
-    # except TypeError:
-    #     user = store.get(User, int(user_id))
-    billing_pool = get_pool(g.user, tenant_id, public_url=public_url)
-    # what db? what format? save it for future
-    bill = [billing_pool(AccountBill.show, account_id=tenant_id, **kw).__dict__]
+    request_data = dict(kw.items() + {
+        'account': account_id,
+        }.items())
+    response_data = billing_get('/bill', params=request_data)
+    bill = response_data['bill']
     _linear_bill(_build_resource_tree(bill))
     return bill[0]
 
