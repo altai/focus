@@ -17,7 +17,7 @@
                 Dashboard
             -if g.is_global_admin:
               %li
-                %a href="{{ url_for('global_list_vms')}}"
+                %a href="{{ url_for('global_views.list_vms')}}"
                   Global administration
             -if tenants_with_roles:
               %li class="dropdown{% if tenant %} active{% endif %}"
@@ -30,7 +30,7 @@
                 %ul.dropdown-menu
                   -for tenant, roles in  tenants_with_roles
                     %li
-                      %a href="{{ url_for('show_tenant', tenant_id=tenant['id']) }}"
+                      %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                         =tenant['name'] 
           %ul class="nav pull-right"
             %li
