@@ -1,7 +1,5 @@
 # coding=utf-8
-from flask import abort, g, request, url_for
-
-from C4GD_web import app
+from flask import abort, g, request, url_for, current_app
 
 
 def get_next_url():
@@ -16,7 +14,7 @@ def get_next_url():
         d = request.form
     else:
         d = request.args
-    return d.get('next', url_for(app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
+    return d.get('next', url_for(current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
 
 
 def get_object_or_404(klass, object_id, store=None):

@@ -1,7 +1,7 @@
--extends "Project/base.haml"
+-extends "project_views/base.haml"
 -block content
   %section style="margin-top: 15px"
-    %a.btn.btn-primary href="{{ url_for('spawn_vm', tenant_id=tenant['id']) }}"
+    %a.btn.btn-primary href="{{ url_for('project_views.spawn_vm', tenant_id=tenant['id']) }}"
       %b.icon-add
       Spawn new
     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
@@ -39,7 +39,7 @@
                   %p
                     Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
                 %div.modal-footer
-                  %form method="post" action="{{ url_for('remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+                  %form method="post" action="{{ url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
                     %input type="hidden" name="next" value="{{ request.path }}"
                     %button.btn
                       Yes, remove it

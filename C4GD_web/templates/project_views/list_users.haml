@@ -1,7 +1,7 @@
--extends "Project/base.haml"
+-extends "project_views/base.haml"
 -block content
   -if g.user.is_project_manager(g.tenant)
-    %a.btn.btn-primary href="{{ url_for("new_user_to_project", tenant_id=g.tenant.id) }}" style="margin-top: 15px"
+    %a.btn.btn-primary href="{{ url_for("project_views.new_user_to_project", tenant_id=g.tenant.id) }}" style="margin-top: 15px"
       %b.icon-add
       Add user
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
@@ -19,7 +19,7 @@
       -for user in objects
         %tr
           %td
-            ;%a href="{{ url_for('show_user_in_project', tenant_id=g.tenant.id, user_id=user.id) }}"
+            ;%a href="{{ url_for('project_views.show_user_in_project', tenant_id=g.tenant.id, user_id=user.id) }}"
             =user.name
           %td
             =user.email
@@ -37,7 +37,7 @@
                   %p
                     Sure to remove user {{ user.name }} from the project "{{ g.tenant.name }}"?
                 %div.modal-footer
-                  %form method="post" action="{{ url_for('remove_user_from_project', tenant_id=g.tenant.id, user_id=user.id) }}"
+                  %form method="post" action="{{ url_for('project_views.remove_user_from_project', tenant_id=g.tenant.id, user_id=user.id) }}"
                     %input type="hidden" name="next" value="{{ request.path }}"
                     %button.btn -> Yes, remove the user
                     %a.btn.btn-primary href="#" data-dismiss="modal" -> No

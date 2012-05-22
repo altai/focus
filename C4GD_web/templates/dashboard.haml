@@ -10,9 +10,9 @@
       %div.subnav
         %ul.nav.nav-pills
           %li
-            %a href="{{ url_for('global_list_vms') }}" -> Virtual machines      
+            %a href="{{ url_for('global_views.list_vms') }}" -> Virtual machines      
           %li
-            %a href="{{ url_for('global_billing') }}" -> Billing     
+            %a href="{{ url_for('global_views.billing') }}" -> Billing     
       
   -if tenants_with_roles|length
     %section
@@ -28,12 +28,11 @@
           -for tenant, roles in tenants_with_roles
             %tr
               %td
-                %a href="{{ url_for('show_tenant', tenant_id=tenant['id']) }}"
+                %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                   =tenant['name']
               %td
-                -for role in roles
-                  =role['name']
-                  -if not loop.last -> ,
+                {% for role in roles %}{{ role['name'] }}{% if not loop.last %}, {% endif %}{% endfor %}
+
 
         
       
