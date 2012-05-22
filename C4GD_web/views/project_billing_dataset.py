@@ -100,5 +100,5 @@ def _linear_bill(bill):
 def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
     bill = AccountBill.get(account_id, **kw)['bill']
     _linear_bill(_build_resource_tree(bill))
-    return bill[0]
+    return bill[0] if len(bill) else []
 
