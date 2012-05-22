@@ -11,6 +11,11 @@ from C4GD_web.exceptions import KeystoneExpiresException, GentleException, Billi
 from .benchmark import benchmark
 
 
+def unjson(response, attr='content'):
+    value = getattr(response, attr)
+    return json.loads(value) if value != '' else ''
+
+
 def response_ok(response):
     return  200 <= response.status_code < 300
 
@@ -38,10 +43,10 @@ def keystone_obtain_unscoped(user_name, password):
             '%s/tokens' % current_app.config['KEYSTONE_URL'],
             data=request_data,
             headers = {'content-type': 'application/json'})
-    if not (200 <= response.status_code < 300):
-        return False, ""
-    response_data = json.loads(response.text)
-    return True, response_data
+    if response_ok(response):
+        return True, unjson(response, attr='text')
+    return False, ""
+    
 
 
 def keystone_get(path, params={}):
@@ -51,17 +56,21 @@ def keystone_get(path, params={}):
                 ['token']['id'],
             'Content-Type': 'application/json'
             }
+
     response = requests.get(
         url, 
         params=params, 
         headers=headers)
             
-    if 200 <= response.status_code < 300:
-        return json.loads(response.content) 
-    elif response.status_code == 401:
-        raise GentleException('Access denied', response)
-    else:
-        raise KeystoneExpiresException('Identity server responded with status %d' % response.status_code, response)
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response)
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
+
+    return unjson(response)
 
 
 def keystone_post(path, data={}):
@@ -71,16 +80,22 @@ def keystone_post(path, data={}):
                 ['token']['id'],
             'Content-Type': 'application/json'
             }
+
     response = requests.post(
         url, 
         data=json.dumps(data), 
         headers=headers)
-    if 200 <= response.status_code < 300:
-        return json.loads(response.content)
-    elif response.status_code == 401:
-        raise GentleException('Access denied', response)
-    else:
-        raise KeystoneExpiresException('Identity server responded with status %d' % response.status_code, response)
+
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response)
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
+
+    return unjson(response)
+
 
 def get_public_url(tenant_id):
     """
@@ -106,7 +121,7 @@ def nova_api_call(tenant_id, path, params={}, http_method=False):
     Can raise AssertionError if http_method was not passed in (unwrapped 
     function was called).
     '''
-    assert http_method, 'Nova API call must be executed via special functions'
+    assert http_method, 'Use wrapped Nova API calls'
     def perform(tenant_id, path, params={}):
         '''
         Calls API.
@@ -140,7 +155,7 @@ def nova_api_call(tenant_id, path, params={}, http_method=False):
         if  not response_ok(response):
             raise GentleException('Can\'t make API call for nova for tenant "%s"' % tenant_id, response)
 
-    return json.loads(response.content) if response.content != '' else ''         
+    return unjson(response)        
 
 
 nova_get = functools.partial(nova_api_call, http_method=requests.get)
@@ -159,18 +174,30 @@ def obtain_scoped(tenant_id):
             })
 
 
-def billing_get(path, params={}):
+def billing_api_call(path, params={}, http_method=False):
+    assert http_method, 'Use billing API functions wrapped'
     url = current_app.config['BILLING_URL'] + path
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
             'Content-Type': 'application/json'
             }
-    response = requests.get(
-        url,
-        params=json.dumps(params), 
-        headers=headers)
-    if 200 <= response.status_code < 300:
-        return json.loads(response.content)
+
+    if http_method in [requests.post, requests.put, requests.patch]:
+        kw = {'data': json.dumps(params)}
     else:
-        raise BillingAPIError('Billing API responds with code %s' % response.status_code, response)
+        kw = {'params': params}
+    
+    response = http_method(
+        url,
+        headers=headers,
+        **kw)
+
+    if not response_ok(response):
+        raise BillingAPIError('Billing API responds with code %s' % response.status_code, response)      
+
+    return unjson(response)
+
+
+billing_get = functools.partial(billing_api_call, http_method=requests.get)
+
