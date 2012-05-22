@@ -206,11 +206,11 @@ class AccountBill(Base):
     @classmethod
     def get(cls, account_id, **kwargs):
         request_data = {
-                'account': account_id,
+                'account_name': account_id,
         }
 
         for x in 'time_period', 'period_start', 'period_end':
             if kwargs.get(x) is not None:
                 request_data[x] = kwargs[x]
         
-        return billing_get('/bill', params=request_data)
+        return billing_get('/report', params=request_data)['accounts']

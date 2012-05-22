@@ -191,10 +191,11 @@ def billing_api_call(path, params={}, http_method=False):
         kw = {'data': json.dumps(params)}
     else:
         kw = {'params': params}
-    
+    #import sys
     response = http_method(
         url,
         headers=headers,
+        #config={'verbose': sys.stdout},
         **kw)
 
     if not response_ok(response):
