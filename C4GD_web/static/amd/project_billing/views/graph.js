@@ -1,164 +1,153 @@
 define([
-  'backbone', 
-  'underscore', 
-  'm/graphael', 
-  'jq' 
+  'backbone'
+  , 'underscore'
+  , 'jq'
+  , 'text!project_billing/templates/graph.html' 
+  , 'project_billing/views/chart'
+  , 'project_billing/events/collection_ready'
 ],
 
-       function(Backbone, Underscore, gRaphael, $) {
+function(Backbone, Underscore, $, tmpl_name, ChartView, dispatcher) {
 	return Backbone.View.extend({
-		initialize : function() {
-			this.options.router.data.on('reset', this.render, this);
-		},
-          events: {
+        initialize: function(){
+            this.options.router.data.on('reset', this.render, this);
+        }
+        , events: {
             'click a.toggle_diagram': 'toggle_diagram',
-          },
-          toggle_diagram: function(e){
+        }
+        , fireDataReload: function(context){
+            filterResources = function(resources, condition) {
+                var resLen = resources.length;
+                var filtered = [];
+                var addIt = true;
+                var cost = 0.0;
+                for ( var i = 0; i < resLen; ++i) {
+                    var res = resources[i];
+                    if (res.depth == 0) {
+                        addIt = condition(res);
+                        if (addIt)
+                            cost += res.cost;
+                    }
+                    if (addIt)
+                        filtered.push(res);
+                }
+                return {
+                    resources : filtered,
+                    cost : cost
+                };
+            } 
+            if (context){
+                // BY TYPE
+                if (context.type == 'type'){
+                    var rtype = context.legends[context.order];
+                    if (rtype == "Others") {
+                        this.options.router.filter = undefined;
+                    } else {
+                        this.filters_state['type'] = function(data) {
+                            if (context.order != '-1'){
+                                return {
+                                    data : filterResources(data.data.resources,
+                                        function(res) {
+                                            return res.rtype == rtype;
+                                        }),
+                                    caption : "Resources of " + rtype + " type",
+                                };
+                            }else{
+                                return {
+                                    data : filterResources(data.data.resources,
+                                        function(res) {return res})
+                                };
+                            }
+                        }
+                    }
+                }
+                // BY EXISTENCE
+                if (context.type == 'existence'){
+                    var showDestroyed = context.order;
+                    this.filters_state['existence'] = function(data) {
+                        if (context.order != '-1'){
+                            return {
+                                data : filterResources(data.data.resources, function(res) {
+                                    return (res.destroyed_at == null) ^ showDestroyed;
+                                }),
+                                caption : (showDestroyed ? "Destroyed resources"
+                                    : "Present resources"),
+                            };
+                        }else{
+                            return {
+                                data : filterResources(data.data.resources, function(res) {
+                                    return res;
+                                })
+                            }
+                        }
+                    }
+                }
+
+                if (this.filters_state['type']){
+                    this.options.router.filter.push(this.filters_state['type']);
+                }
+                if (this.filters_state['existence']){
+                    this.options.router.filter.push(this.filters_state['existence']);
+                }
+                
+                this.options.router.table_view.render();
+                this.options.router.filter = [];
+            }
+        }
+        , toggle_diagram: function(e){
             var $a = this.$("a.toggle_diagram");
             if ($a.hasClass('hided')){
-              $a.html('hide');
-              this.$('.toggleable').show();
-              $a.removeClass('hided');
+                $a.html('hide');
+                this.$('.toggleable').show();
+                $a.removeClass('hided');
             }else{
-              $a.html('show diagrams');
-              this.$('.toggleable').hide();
-              $a.addClass('hided');
+                $a.html('show diagrams');
+                this.$('.toggleable').hide();
+                $a.addClass('hided');
             }
-           
             e.preventDefault();
-          },
-		render : function() {
-			function drawPie(elemId, title, values, legends, onClick) {
-				var displayedLegends = [];
-				for ( var i = 0; i < legends.length; ++i) {
-					displayedLegends.push(legends[i] + " ($"
-							+ formatCost(values[i]) + ")");
-				}
-				var delta = 0;
-				for ( var i = values.length - 1; i >= 0; --i)
-					delta += values[i];
-				delta = delta < 1e-6 ? 1.0 : delta * 0.1 / (values.length + 1);
-				for ( var i = values.length - 1; i >= 0; --i)
-					values[i] += delta;
-
-				$("#" + elemId).children().remove();
-				var r = Raphael(elemId, 460, 380);
-				var pie = r.piechart(320, 240, 100, values, {
-					legend : displayedLegends,
-					legendpos : "west",
-				});
-				r.text(320, 100, title).attr({
-					font : "20px sans-serif"
-				});
-				pie.click(function() {
-					onClick(legends, this.value.order);
-				});
-				pie.hover(function() {
-					this.sector.stop();
-					this.sector.scale(1.1, 1.1, this.cx, this.cy);
-					if (this.label) {
-						this.label[0].stop();
-						this.label[0].attr({
-							r : 7.5
-						});
-						this.label[1].attr({
-							"font-weight" : 800
-						});
-					}
-				}, function() {
-					this.sector.animate({
-						transform : 's1 1 ' + this.cx + ' ' + this.cy
-					}, 500, "bounce");
-					if (this.label) {
-						this.label[0].animate({
-							r : 5
-						}, 500, "bounce");
-						this.label[1].attr({
-							"font-weight" : 400
-						});
-					}
-				});
-			}
-
-			var router = this.options.router;
-			var models = router.data.models;
-			if (models.length < 1) {
-				return;
-			}
-			var resources = models[0].attributes.data.resources;
-			var rtypeCost = {};
-			var byExistence = [ 0, 0 ];
-			for ( var i = resources.length - 1; i >= 0; --i) {
-				var res = resources[i];
-				if (res.depth > 0)
-					continue;
-				var sumCost = rtypeCost[res["rtype"]];
-				var cost = parseFloat(res["cost"]);
-				byExistence[res["destroyed_at"] == null ? 0 : 1] += cost;
-				rtypeCost[res["rtype"]] = cost
-						+ (sumCost ? parseFloat(sumCost) : 0.0);
-			}
-			var costs = [], legends = [];
-			for ( var rtype in rtypeCost) {
-				costs.push(rtypeCost[rtype]);
-				legends.push(rtype);
-			}
-			function filterResources(resources, condition) {
-				var resLen = resources.length;
-				var filtered = [];
-				var addIt = true;
-				var cost = 0.0;
-				for ( var i = 0; i < resLen; ++i) {
-				  var res = resources[i];
-				  addIt = condition(res);
-				  if (addIt)
-				    cost += res.cost;
-				  if (addIt)
-				    filtered.push(res);
-				}
-				return {
-					resources : filtered,
-					cost : cost
-				};
-			}
-
-			function filter_type(legends, id) {
-				var rtype = legends[id];
-				if (rtype == "Others") {
-					router.filter = undefined;
-				} else {
-					router.filter = function(data) {
-						return {
-							data : filterResources(data.data.resources,
-									function(res) {
-										return res.rtype == rtype;
-									}),
-							caption : "Resources of " + rtype + " type",
-						};
-					}
-				}
-				router.table_view.render();
-			}
-
-			function filter_presence(legends, id) {
-				var showDestroyed = id;
-				router.filter = function(data) {
-					return {
-						data : filterResources(data.data.resources, function(
-								res) {
-							return (res.destroyed_at == null) ^ showDestroyed;
-						}),
-						caption : (showDestroyed ? "Destroyed resources"
-								: "Present resources"),
-					};
-				}
-				router.table_view.render();
-			}
-			drawPie("chart_by_type", "Bill by type*", costs, legends,
-					filter_type);
-			drawPie("chart_by_existence", "Bill by existence*", byExistence, [
-					"Present", "Destroyed" ], filter_presence);
-
-		}
+        }
+        , render : function() {
+          this.filters_state = {'type': undefined, 'existence': undefined};
+          var router = this.options.router;
+          var models = router.data.models;
+          if (models.length < 1) {
+            return;
+            }
+          var resources = models[0].attributes.data.resources;
+          var rtypeCost = {};
+          var byExistence = [ 0, 0 ];
+          for ( var i = resources.length - 1; i >= 0; --i) {
+            var res = resources[i];
+            var sumCost = rtypeCost[res["rtype"]];
+            var cost = parseFloat(res["cost"]);
+            byExistence[res["destroyed_at"] == null ? 0 : 1] += cost;
+            rtypeCost[res["rtype"]] = cost
+              + (sumCost ? parseFloat(sumCost) : 0.0);
+          }
+          var costs = [], legends = [];
+          for ( var rtype in rtypeCost) {
+            costs.push(rtypeCost[rtype]);
+            legends.push(rtype);
+          }          
+          
+          this.options.el.html(_.template(tmpl_name));
+          
+          var chart_by_type = new ChartView({ 
+            el: $("#chart_by_type")
+            , title: "Bill by type*"
+            , values: costs
+            , legends: legends
+            , type: 'type'
+          });
+          var chart_by_existence = new ChartView({ 
+            el: $("#chart_by_existence")
+                , title: "Bill by existence*"
+            , values: byExistence
+            , legends: ["Present", "Destroyed"]
+            , type: 'existence'
+          });
+          dispatcher.on("dataReload", this.fireDataReload, this)
+	}
 	});
 });

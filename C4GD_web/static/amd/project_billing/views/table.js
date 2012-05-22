@@ -31,10 +31,13 @@ define([
     }
     , render: function(){
       var data = this.options.router.data.models[0].attributes;
-      /* filter can be introduced by othe parts of the app, like diagrams */
-      var filter = this.options.router.filter;
-      if (filter){
-    	data = filter(data);
+      /* filters can be introduced by othe parts of the app, like diagrams */
+      var filters = this.options.router.filter;
+      if (filters.length > 0){
+        for (var i=0; i<filters.length;i++){
+          filter = filters[i];
+          data = filters[i](data);
+        }
       } else {
         data.data.cost = _.reduce(
           data.data.resources,
