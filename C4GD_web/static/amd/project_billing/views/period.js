@@ -28,10 +28,12 @@ define(['jq', 'backbone', 'jqueryui/datepicker'], function($, Backbone){
         validateField($end);
         if (!sin){
           if ($start.val() > $end.val()){
-            oy($end, 'The end happens earlier than the start');
+            oy($end, 'The end happens earlier than the start.');
+          }
+          if (new Date($start.val()) > Date.now()){
+            oy($end, 'Both dates are in future.');
           }
         }
-
         if (!sin){
           /* actually change dates */
           var path = $start.val() + '/' + $end.val();
