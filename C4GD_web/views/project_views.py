@@ -136,7 +136,7 @@ def list_users(tenant_id):
         }
 
 
-@bp.route('/users/new/', methods=['GET', 'POST'])
+#@bp.route('/users/new/', methods=['GET', 'POST'])
 @pm_only
 def new_user_to_project(tenant_id):
     """
