@@ -16,12 +16,15 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
             "click option": "callDataReloader",
         }
         , callDataReloader: function(){
+            var order = this.$el.find("option:selected").attr('order');
             dispatcher.trigger("dataReload", {
                 'legends': this.options.legends
-                , 'order': this.$el.find("option:selected").attr('order')
+                , 'order': order
                 , 'type': this.options.type
                 }
             );
+            this.$(this.$el.find("svg tspan")).attr('style', 'font-weight : 400;');
+            this.$(this.$el.find("svg tspan")[order]).attr('style', 'font-weight : 800;');
         }
 		, render: function() {
             var view = this;
