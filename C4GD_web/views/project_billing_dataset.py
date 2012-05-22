@@ -2,6 +2,7 @@ from datetime import date
 
 from flask import g, current_app
 
+from C4GD_web.models.abstract import AccountBill
 from C4GD_web.models.orm import User, Tenant, get_store
 from C4GD_web.utils import billing_get
 
@@ -97,11 +98,7 @@ def _linear_bill(bill):
 
 
 def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
-    request_data = dict(kw.items() + {
-        'account': account_id,
-        }.items())
-    response_data = billing_get('/bill', params=request_data)
-    bill = response_data['bill']
+    bill = AccountBill.get(account_id, **kw)['bill']
     _linear_bill(_build_resource_tree(bill))
     return bill[0]
 

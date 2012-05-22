@@ -1,6 +1,7 @@
 from flask import g, request, session
 from flask import jsonify
 
+from C4GD_web.models.orm import get_store, Tenant
 from .project_billing_dataset import Dataset, Params
 
 
@@ -13,7 +14,11 @@ def generic_billing(tenant_id, tenants=None):
     if request.is_xhr:
         p = Params(tenant_id, request.args)
         d = Dataset(p, user_id=g.user.id, tenant_id=tenant_id)
-        tenant_name = session['keystone_scoped'][tenant_id]['access']['token']['tenant']['name']
+        try:
+            tenant_name = session['keystone_scoped'][tenant_id]['access']['token']['tenant']['name']
+        except KeyError:
+            store = get_store('RO')
+            tenant_name = store.get(Tenant, int(tenant_id)).name
         return jsonify({
             'caption': 'Billing for project %s' % tenant_name,
             'data': d.data

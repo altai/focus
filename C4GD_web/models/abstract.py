@@ -1,7 +1,9 @@
-from flask import session
-from C4GD_web.exceptions import GentleException
+from flask import session, current_app
+
+from C4GD_web.benchmark import benchmark
+from C4GD_web.exceptions import GentleException, BillingAPIError
 from C4GD_web.utils import nova_get, nova_post, nova_delete, select_keys, \
-    response_ok
+    response_ok, billing_get
 
 
 class Base(object):
@@ -194,3 +196,21 @@ class SecurityGroup(NovaAPI):
     @staticmethod
     def list_accessor(obj):
         return obj['security_groups']
+
+
+class AccountBill(Base):
+    @classmethod
+    def list(cls):
+        return billing_get('/account')
+
+    @classmethod
+    def get(cls, account_id, **kwargs):
+        request_data = {
+                'account': account_id,
+        }
+
+        for x in 'time_period', 'period_start', 'period_end':
+            if kwargs.get(x) is not None:
+                request_data[x] = kwargs[x]
+        
+        return billing_get('/bill', params=request_data)

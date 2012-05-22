@@ -175,12 +175,8 @@ def remove_user_from_project(tenant_id, user_id):
     TODO: access control via Principal
     """
     writable_store = get_store('RW')
-    try:
-        rs = writable_store.find(
-            UserRole, tenant_id=tenant_id, user_id=user_id)
-    except TypeError:
-        rs = writable_store.find(
-            UserRole, tenant_id=int(tenant_id), user_id=user_id)
+    rs = writable_store.find(
+        UserRole, tenant_id=int(tenant_id), user_id=user_id)
     for user_role in rs:
         writable_store.remove(user_role)
     writable_store.commit() 

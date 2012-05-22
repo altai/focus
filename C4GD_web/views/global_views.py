@@ -6,6 +6,7 @@ from flask import redirect, url_for
 from flask.blueprints import Blueprint
 
 from C4GD_web.exceptions import BillingAPIError, GentleException
+from C4GD_web.models.abstract import AccountBill
 from C4GD_web.models.orm import Tenant
 from C4GD_web.utils import nova_get, billing_get
 
@@ -24,7 +25,7 @@ def billing():
 
     Not all tenants are accessible! Check '11' (pmo)
     '''
-    billing_accounts = billing_get('/account')
+    billing_accounts = AccountBill.list()
     if len(billing_accounts):
         return redirect(
             url_for(
@@ -48,7 +49,7 @@ def billing_details(tenant_id):
         except ValueError:
             tenant = None
         return tenant
-    billing_accounts = billing_get('/account')
+    billing_accounts = AccountBill.list()
     tenants = [x for x in [get_tenant(x['name']) for x in billing_accounts] if x is not None]
     return generic_billing(tenant_id, tenants=tenants)
 

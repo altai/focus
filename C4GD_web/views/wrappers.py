@@ -90,11 +90,7 @@ class ProjectWrapper(BaseWrapper):
             tenant_dict = session['keystone_scoped'][tenant_id]['access']['token']['tenant']
         except KeyError:
             raise GentleException('Tenant %s is not accessible for you.' % tenant_id)
-
-        try:
-            tenant = g.store.get(Tenant, tenant_id)
-        except TypeError:
-            tenant = g.store.get(Tenant, int(tenant_id))
+        tenant = g.store.get(Tenant, int(tenant_id))
         g.tenant = tenant
         user_ids = tenant.user_roles.find(UserRole.role_id.is_in([1, 4])).values(UserRole.user_id)
         project_managers = list(g.store.find(User, User.id.is_in(user_ids)).order_by(User.name).values(User.name))
