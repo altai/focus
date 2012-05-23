@@ -13,10 +13,10 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
             this.render();
 		}
         , events: {
-            "click option": "callDataReloader",
+            "change select": "callDataReloader",
         }
         , callDataReloader: function(){
-            var order = this.$el.find("option:selected").attr('order');
+            var order = this.$el.find("option:selected").attr('value');
             dispatcher.trigger("dataReload", {
                 'legends': this.options.legends
                 , 'order': order
@@ -48,8 +48,9 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
 				font : "20px sans-serif"
 			});
 			this.pie.click(function() {
-                view.$el.find('option[order="'+this.value.order+'"]').attr("selected", "selected");
-                view.$el.find('option[order="'+this.value.order+'"]').click();
+                view.$el.find('option').removeAttr('selected');
+                view.$el.find('option[value="'+this.value.order+'"]').attr("selected", "selected");
+                view.$el.find('option[value="'+this.value.order+'"]').change();
 			});
 			this.pie.hover(function() {
 				this.sector.stop();
