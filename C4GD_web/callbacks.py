@@ -43,6 +43,5 @@ def inject_user():
 @app.before_request
 def mock_xhr():
     if 'is_xhr' in request.args:
-        request.xhr = True
         request.environ['HTTP_X_REQUESTED_WITH'] = 'xmlhttprequest'
 
