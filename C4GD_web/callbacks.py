@@ -38,3 +38,11 @@ def inject_user():
     if g.is_authenticated:
         g.user = g.store.get(
             User, int(session['keystone_unscoped']['access']['user']['id']))
+
+
+@app.before_request
+def mock_xhr():
+    if 'is_xhr' in request.args:
+        request.xhr = True
+        request.environ['HTTP_X_REQUESTED_WITH'] = 'xmlhttprequest'
+
