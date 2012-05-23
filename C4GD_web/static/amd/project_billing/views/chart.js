@@ -27,7 +27,7 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
             this.$(this.$el.find("svg tspan")[order]).attr('style', 'font-weight : 800;');
         }
 		, render: function() {
-            var view = this;
+            var self = this;
             legends = this.options.legends;
             values = this.options.values;
         
@@ -47,12 +47,30 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
 			r.text(320, 100, this.options.title).attr({
 				font : "20px sans-serif"
 			});
-			this.pie.click(function() {
-                view.$el.find('option').removeAttr('selected');
-                view.$el.find('option[value="'+this.value.order+'"]').attr("selected", "selected");
-                view.$el.find('option[value="'+this.value.order+'"]').change();
+			this.pie.click(function(event) {
+                var val = parseInt(self.$el.find("option:selected").attr('value'));
+                self.$el.find('option').removeAttr('selected');
+                if(val == this.value.order){
+                    this.sector.animate({
+					    transform : 's1 1 ' + this.cx + ' ' + this.cy
+				    }, 500, "bounce");
+                    self.$el.find('option[value="-1"]').attr("selected", "selected");
+                }else{
+                    if (val != -1){
+                        for (var i=0;i<self.pie.series.length;i++){
+                            if (self.pie.series[i].value && self.pie.series[i].value.order == val){
+                                self.pie.series[i].animate({
+	                                transform : 's1 1 ' + this.cx + ' ' + this.cy
+                                }, 100, ">");
+                            }                            
+                        }                        
+                    }
+                    this.sector.scale(1.1, 1.1, this.cx, this.cy);
+                    self.$el.find('option[value="'+this.value.order+'"]').attr("selected", "selected");
+                }
+                self.$el.find('option[value="'+this.value.order+'"]').change();
 			});
-			this.pie.hover(function() {
+			/*this.pie.hover(function() {
 				this.sector.stop();
 				this.sector.scale(1.1, 1.1, this.cx, this.cy);
 				if (this.label) {
@@ -76,7 +94,7 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
 						"font-weight" : 400
 					});
 				}
-			});
+			});*/
 	    }
 	});
 });
