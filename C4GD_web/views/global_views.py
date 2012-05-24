@@ -6,9 +6,8 @@ from flask import redirect, url_for
 from flask.blueprints import Blueprint
 
 from C4GD_web.exceptions import BillingAPIError, GentleException
-from C4GD_web.models.abstract import AccountBill
+from C4GD_web.models.abstract import AccountBill, VirtualMachine
 from C4GD_web.models.orm import Tenant
-from C4GD_web.utils import nova_get, billing_get
 
 from .dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
 from .exporter import Exporter
@@ -81,7 +80,7 @@ def list_vms():
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     if 'groupby' in request.args:
         columns.adjust_groupby(request.args['groupby'])
-    vms = response_data = nova_get('6', '/servers/detail')['servers']
+    vms = response_data = VirtualMachine.list(6)
     dataset = DataSet(vms, columns)
     if 'export' in request.args:
         try:

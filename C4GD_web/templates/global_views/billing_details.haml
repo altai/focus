@@ -1,6 +1,5 @@
 -extends "global_views/base.haml"
 -block amdjs
-  ;%script type="text/javascript" src="{{ url_for('static', filename='vendors/raphaeljs-2.1.1/raphael-min.js') }}"
   %script type="text/javascript" src="{{ url_for('static', filename='amd/main_billing_curl.js') }}"
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
@@ -9,7 +8,7 @@
     %select.change-tenant
       -for tenant in tenants
         %option value="{{ tenant.id }}" {% if tenant_id|int == tenant.id|int %} selected="selected"{% endif %}
-          =tenant.name
+        =tenant.name
   %ul.nav.nav-tabs.period-view style="margin-top: 15px;"
     %li
       %a href="#today"

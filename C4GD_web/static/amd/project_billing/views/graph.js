@@ -109,14 +109,12 @@ define([
 				var addIt = true;
 				var cost = 0.0;
 				for ( var i = 0; i < resLen; ++i) {
-					var res = resources[i];
-					if (res.depth == 0) {
-						addIt = condition(res);
-						if (addIt)
-							cost += res.cost;
-					}
-					if (addIt)
-						filtered.push(res);
+				  var res = resources[i];
+				  addIt = condition(res);
+				  if (addIt)
+				    cost += res.cost;
+				  if (addIt)
+				    filtered.push(res);
 				}
 				return {
 					resources : filtered,

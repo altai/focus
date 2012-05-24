@@ -1,11 +1,10 @@
 # coding=utf-8
 import requests
 import json
-<<<<<<< HEAD
 from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
-=======
 import functools
 
+import sys
 
 from flask import session, flash, current_app
 
@@ -21,7 +20,6 @@ def unjson(response, attr='content'):
 
 def response_ok(response):
     return  200 <= response.status_code < 300
->>>>>>> 67125a7... few isses remain
 
 
 def select_keys(d, keys, strict_order=True):
@@ -68,7 +66,7 @@ def keystone_get(path, params={}):
             
     if not response_ok(response):
         if response.status_code == 401:
-            raise GentleException('Access denied', response)
+            raise GentleException('Access denied', response, params)
         else:
             raise KeystoneExpiresException(
                 'Identity server responded with status %d' % \
@@ -92,7 +90,7 @@ def keystone_post(path, data={}):
 
     if not response_ok(response):
         if response.status_code == 401:
-            raise GentleException('Access denied', response)
+            raise GentleException('Access denied', response, data)
         else:
             raise KeystoneExpiresException(
                 'Identity server responded with status %d' % \
@@ -101,17 +99,23 @@ def keystone_post(path, data={}):
     return unjson(response)
 
 
-def get_public_url(tenant_id):
+def get_public_url(tenant_id, service_type):
     """
-    token obtained
+    Return public url for Openstack service of a given type.
+
+    Can raise exception if url can't be found.
+    This function depends on scoped token for tenant_id in the session.
     """
-    nova_url = [endpoint['endpoints'][0]['publicURL'] for endpoint in session['keystone_scoped'][tenant_id]['access']['serviceCatalog'] if endpoint['type']==u'compute']
-    if len(nova_url) == 0:
-        raise GentleException('No public URL for nova for tenant "%s"' % tenant_id)
-    return nova_url[0]
+    catalog = session['keystone_scoped'][tenant_id]['access']['serviceCatalog']
+    for endpoint  in catalog:
+        if endpoint['type'] == service_type:
+            return endpoint['endpoints'][0]['publicURL']
+    raise GentleException(
+        'No public URL for %s for tenant "%s"' % (
+            service_type, tenant_id))
 
 
-def nova_api_call(tenant_id, path, params={}, http_method=False):
+def openstack_api_call(service_type, tenant_id, path, params={}, http_method=False):
     '''
     Perform call to Nova API. Manage tokens yourself.
     Return unserialized data or raise an exception.
@@ -132,7 +136,7 @@ def nova_api_call(tenant_id, path, params={}, http_method=False):
 
         Separate function is easy to retry.
         '''
-        url = get_public_url(tenant_id) + path
+        url = get_public_url(tenant_id, service_type) + path
         headers = {
             'X-Auth-Token': session['keystone_scoped'][tenant_id]['access']\
                 ['token']['id'],
@@ -144,11 +148,20 @@ def nova_api_call(tenant_id, path, params={}, http_method=False):
         else:
             kw = {'params': params}
 
+        if current_app.debug:
+            config = {'verbose': sys.stdout}
+        else:
+            config = {}
+
         response = http_method(
             url, 
             headers=headers,
+            config=config,
             **kw
             )
+
+        if current_app.debug:
+            current_app.logger.info(response.content)
 
         return response
 
@@ -157,15 +170,21 @@ def nova_api_call(tenant_id, path, params={}, http_method=False):
         obtain_scoped(tenant_id)
         response = perform(tenant_id, path, params)
         if  not response_ok(response):
-            raise GentleException('Can\'t make API call for nova for tenant "%s"' % tenant_id, response)
+            try:
+                r = unjson(response)
+                raise GentleException(
+                    'API response was: %s' % \
+                        r['cloudServersFault']['message'], response)
+            except Exception:
+                raise
+            else:
+                raise GentleException(
+                    'Can\'t make API call for %s for tenant "%s"' % (
+                        service_type, tenant_id), response)
+
 
     return unjson(response)        
 
-
-nova_get = functools.partial(nova_api_call, http_method=requests.get)
-nova_post = functools.partial(nova_api_call, http_method=requests.post)
-nova_delete = functools.partial(nova_api_call, http_method=requests.delete)
-        
 
 def obtain_scoped(tenant_id):
     session['keystone_scoped'][tenant_id] = keystone_post(
@@ -191,16 +210,22 @@ def billing_api_call(path, params={}, http_method=False):
         kw = {'data': json.dumps(params)}
     else:
         kw = {'params': params}
-    #import sys
+    if current_app.debug:
+        config = {'verbose': sys.stdout}
+    else:
+        config = {}
     response = http_method(
         url,
         headers=headers,
-        #config={'verbose': sys.stdout},
+        config=config,
         **kw)
 
+    if current_app.debug:
+        current_app.logger.info(response.content)
+    
     if not response_ok(response):
         raise BillingAPIError('Billing API responds with code %s' % response.status_code, response)      
-
+    
     return unjson(response)
 
 

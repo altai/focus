@@ -5,6 +5,8 @@ monkey.patch_all()
 
 from flask import Flask
 from flask import flash, render_template, session, redirect, url_for
+from flask import request, jsonify
+
 
 from werkzeug import ImmutableDict
 from flask_memcache_session import Session
@@ -13,7 +15,7 @@ from werkzeug.contrib.cache import MemcachedCache
 
 from .application import FatFlask
 from .blueprints.show_one import get_one
-from .models.abstract import Image, VirtualMachine
+from .models.abstract import Image, VirtualMachine, Volume
 from .exceptions import KeystoneExpiresException, GentleException
 from .views.project_views import bp as project_views_bp
 from .views.global_views import bp as global_views_bp
@@ -55,7 +57,10 @@ def gentle_exception(error):
     # TODO: separate Exception type for nova
     app.logger.error(error.args[1].status_code)
     app.logger.error(error.args[1].content)
-    return render_template('blank.haml')
+    if request.is_xhr:
+        return jsonify({'status': 'error', 'message': error.args[0]})
+    else:
+        return render_template('blank.haml')
 
 if not app.debug:
     @app.errorhandler(Exception)
@@ -74,6 +79,8 @@ import C4GD_web.views.dashboard
 
 app.register_blueprint(get_one('images'), url_prefix='/images/', model=Image)
 app.register_blueprint(get_one('virtual_machines'), url_prefix='/virtual-machines/', model=VirtualMachine)
+app.register_blueprint(get_one('volumes'), url_prefix='/volumes/', model=Volume)
+
 app.register_blueprint(project_views_bp)
 app.register_blueprint(global_views_bp)
 

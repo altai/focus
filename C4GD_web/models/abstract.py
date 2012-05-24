@@ -1,9 +1,12 @@
+import functools
+
 from flask import session, current_app
+
+import requests
 
 from C4GD_web.benchmark import benchmark
 from C4GD_web.exceptions import GentleException, BillingAPIError
-from C4GD_web.utils import nova_get, nova_post, nova_delete, select_keys, \
-    response_ok, billing_get
+from C4GD_web.utils import openstack_api_call, select_keys, billing_get
 
 
 class Base(object):
@@ -25,7 +28,7 @@ class Base(object):
     def update(cls, obj_id): raise NotImplementedError
 
 
-class NovaAPIListMixin(object):
+class OpenstackListMixin(object):
     @classmethod
     def list(cls, *args, **kwargs):
         """
@@ -36,71 +39,62 @@ class NovaAPIListMixin(object):
         404 considered an error here.
         """
         acc = []
-        def haul(nova_response):
-            acc.extend(cls.list_accessor(nova_response))
+        def haul(response):
+            acc.extend(cls.list_accessor(response))
         path = cls.base + getattr(cls, 'list_prefix', '')
         if 'tenant_id' in kwargs:
-            cls.snap(kwargs['tenant_id'], path, success=haul)
+            tenant_id = kwargs['tenant_id']
+            del(kwargs['tenant_id'])
         else:
-            tenant_ids = [tenant['id'] for tenant in cls.tenants(**kwargs)]
-            if len(tenant_ids):
+            tenant_id = None
+        snap = functools.partial(
+            cls._snap,
+            path=path,
+            success=haul,
+            params=kwargs,
+            api_func=functools.partial(
+                openstack_api_call,
+                cls.service_type,
+                http_method=requests.get)) 
+        if tenant_id is not None:
+            snap(tenant_id)
+        else:
+            for tenant in cls._tenants(**kwargs):
+                snap(tenant['id'])
                 if getattr(cls, 'list_any_one_tenant', False):
-                    tenant_id = tenant_ids[0]
-                    cls.snap(tenant_id, path, success=haul)
-                else:
-                    for tenant_id in tenant_ids:
-                        cls.snap(tenant_id, path, success=haul)
+                    break
         return acc
 
-
-class NovaAPIDeleteMixin(object):
+class OpenstackMixinBase(object):
     @classmethod
-    def delete(cls, obj_id, tenant_id=None):
-        """
-        Deletes object by id.
-        """
+    def _call(cls, obj_id, tenant_id, prefix, http_method, **kwargs):
         path = '%s%s/%s' % (
             cls.base,
-            getattr(cls, 'delete_prefix', ''),
+            getattr(cls, prefix, ''),
             obj_id)
+        snap = functools.partial(
+            cls._snap,
+            path=path,
+            params=kwargs,
+            api_func=functools.partial(
+                openstack_api_call,
+                cls.service_type,
+                http_method=http_method))
         if tenant_id is not None:
-            return cls.snap(tenant_id, path, api_func=nova_delete)
+            return snap(tenant_id)
         else:
-            for tenant in cls.tenants(**kwargs):
-                return cls.snap(tenant['id'], path, api_func=nova_delete)
-        raise cls.NotFound
-        
-
-class NovaAPIGetMixin(object):
-    @classmethod
-    def get(cls, obj_id, tenant_id=None, **kwargs):
-        """
-        Gets an object by id.
-        Accepts useful hint about what tenant requested object belongs to.
-        If hint is missing iterates through tenants to find the obj.
-        In the second case 404 is not an error because Nova API returns 404
-        for both unknown path and object requested in incorrect tenant.
-        """
-        path = '%s%s/%s' % (
-            cls.base,
-            getattr(cls, 'get_prefix', ''),
-            obj_id)
-        if tenant_id is not None:
-            return cls.snap(tenant_id, path)
-        else:
-            for tenant in cls.tenants(**kwargs):
-                return cls.snap(tenant['id'], path)
+            for tenant in cls._tenants(**kwargs):
+                return snap(tenant['id'])
         raise cls.NotFound
 
-
-class NovaSnapMxn(object):
     @staticmethod
-    def snap(tenant_id, path, success=None, tolerate404=True, api_func=nova_get):
+    def _snap(tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
         """
         Used when we uncertain what tenant is correct for an object
         """
+        assert api_func, 'snap() was used directly without api_func'
         try:
-            trophy = api_func(tenant_id, path)
+            trophy = api_func(tenant_id, path, **kw)
         except GentleException, e:
             if tolerate404:
                 if e.args[1].status_code == 404:
@@ -116,7 +110,7 @@ class NovaSnapMxn(object):
                 success(trophy)
 
     @staticmethod
-    def tenants(**kwargs):
+    def _tenants(**kwargs):
         """
         Utility to list tenants for user.
         """
@@ -126,12 +120,41 @@ class NovaSnapMxn(object):
             return session['tenants']['tenants']['values']
 
 
-class NovaAPI(
-    NovaSnapMxn, NovaAPIListMixin, NovaAPIGetMixin, NovaAPIDeleteMixin, Base):
+class OpenstackDeleteMixin(object):
+    @classmethod
+    def delete(cls, obj_id, tenant_id=None):
+        """
+        Deletes object by id.
+        """
+        return cls._call(obj_id, tenant_id, 'delete_prefix', requests.delete)
+        
+
+class OpenstackGetMixin(object):
+    @classmethod
+    def get(cls, obj_id, tenant_id=None, **kwargs):
+        """
+        Gets an object by id.
+        Accepts useful hint about what tenant requested object belongs to.
+        If hint is missing iterates through tenants to find the obj.
+        In the second case 404 is not an error because Nova API returns 404
+        for both unknown path and object requested in incorrect tenant.
+        """
+        return cls._call(obj_id, tenant_id, 'get_prefix', requests.get)
+
+
+class OpenstackAPI(OpenstackMixinBase, OpenstackListMixin, OpenstackGetMixin, OpenstackDeleteMixin, Base): 
     pass
 
 
-class Image(NovaAPI):
+class NovaAPI(OpenstackAPI):
+    service_type = 'compute'
+
+
+class GlanceAPI(OpenstackAPI):
+    service_type = 'image'
+
+
+class Image(GlanceAPI):
     base = '/images'
     list_any_one_tenant = True
 
@@ -167,7 +190,7 @@ class VirtualMachine(NovaAPI):
             request_data['server']['security_groups'] = select_keys(
                 SecurityGroup.list(),
                 map(int, security_group_keys))
-        nova_post(tenant_id, cls.base, request_data)
+        openstack_api_call(tenant_id, cls.base, request_data, serice_type=cls.service_type, http_method=requests.post)
 
 
 class Flavor(NovaAPI):
@@ -214,3 +237,11 @@ class AccountBill(Base):
                 request_data[x] = kwargs[x]
         
         return billing_get('/report', params=request_data)['accounts']
+
+
+class Volume(NovaAPI):
+    base = '/gd-local-volumes'
+
+    @staticmethod
+    def list_accessor(obj):
+        return obj['volumes']
