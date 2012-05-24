@@ -21,10 +21,12 @@ function formatDate(date_string){
   }
 }
 define([
-  'underscore', 
-  'backbone', 
-  'text!project_billing/templates/table.html'
-], function(_, Backbone, table_tmpl){
+  'jq'
+  , 'underscore' 
+  , 'backbone'
+  , 'text!project_billing/templates/table.html'
+  , 'm/bootstrap/popover'
+], function($, _, Backbone, table_tmpl){
   return Backbone.View.extend({
     initialize: function(){
       this.options.router.data.on('reset', this.render, this);
@@ -45,6 +47,9 @@ define([
         )
       }
       this.$el.html(this.template(data));
+      // required to activate popovers after rendered template
+      // was installed into HTML page 
+      $(".detailed-cost-info").popover();
     }
     , template: _.template(table_tmpl)
   });

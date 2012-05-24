@@ -2,12 +2,16 @@
   <caption><%= caption %></caption>
   <thead>
     <tr>
-      <td colspan="3">Total</td>
+      <td>Total</td>
       <td>$<%= formatCost(data.cost) %></td>
+      <td colspan="2">&nbsp;</td>
     </tr>
     <tr>
       <th>
         Resource
+      </th>
+      <th>
+        Cost
       </th>
       <th>
         Created At
@@ -15,13 +19,9 @@
       <th>
         Destroyed At
       </th>
-      <th>
-        Cost
-      </th>
     </tr>
   </thead>
   <tbody>
-    
     <% _.each(data.resources, function(datum){%>
     <tr>
       <td>
@@ -44,11 +44,24 @@
         <% } else { %>
         <%= datum.rtype %>/<%= datum.name %>
         <% } %>
+
+        <% if (datum.children){ %>
+        <span class="detailed-cost-info label label-info"
+              data-content="<table class='table table-striped table-condensed'>
+<% _.each(datum.children, function(child){ %>
+                            <tr>
+                              <td><%= child.rtype %></td>
+                            <td><%= "$" + formatCost(child.cost) + "<br>" %></td>
+                            </tr><% }) %></table>"
+              data-original-title="Cost Details"
+                            >cost details</span>
+        <% } %>
       </td>
+      <td>$<%= formatCost(datum.cost) %></td>
       <td><%= formatDate(datum.created_at) %></td>
       <td><%= datum.destroyed_at ? formatDate(datum.destroyed_at) : "alive" %></td>      
-      <td>$<%= formatCost(datum.cost) %></td>
     </tr>
-    <% })%>
+    <% });%>
+    
   </tbody>
 </table>
