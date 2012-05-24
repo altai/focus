@@ -1,6 +1,11 @@
 # coding=utf-8
-import requests
 import json
+import functools
+import requests
+import sys
+
+from flask import session, flash, current_app
+
 from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
 import functools
 
@@ -9,6 +14,17 @@ import sys
 from flask import session, flash, current_app
 
 from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
+
+from .benchmark import benchmark
+
+
+def unjson(response, attr='content'):
+    value = getattr(response, attr)
+    return json.loads(value) if value != '' else ''
+
+
+def response_ok(response):
+    return  200 <= response.status_code < 300
 
 from .benchmark import benchmark
 
@@ -31,6 +47,7 @@ def select_keys(d, keys, strict_order=True):
             if k in keys:
                 yield v
 
+
 def keystone_obtain_unscoped(user_name, password):
     with benchmark('Getting token via REST'):
         request_data = json.dumps({
@@ -49,7 +66,6 @@ def keystone_obtain_unscoped(user_name, password):
         return True, unjson(response, attr='text')
     return False, ""
     
-
 
 def keystone_get(path, params={}):
     url = current_app.config['KEYSTONE_URL'] + path
