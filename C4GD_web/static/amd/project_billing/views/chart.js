@@ -55,25 +55,6 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
                             this.fadeSector(i);
                         }                            
                     }                        
-                    if (new_order != -1){
-                        /* 
-                            Both clicked sectors were not ALL
-                            Have rise currently 
-                        */
-                        this.pie.series[new_order].scale(1.1, 1.1, this.cx, this.cy);
-                    } 
-                } else {
-                    /* 
-                        If previously there were no selected sectors. 'All' were active
-                        Have to rise clicked 
-                    */
-                    if (new_order != -1){
-                        /* 
-                            No sectors were active previously,
-                            Have to rise that clicked one
-                        */
-                        this.pie.series[new_order].scale(1.1, 1.1, this.cx, this.cy);
-                    }
                 }
             }
         }
@@ -102,25 +83,41 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
                 var val = parseInt(self.$el.find("option:selected").attr('value'));
                 self.$el.find('option').removeAttr('selected');
                 if(val == this.value.order){
-                    /*this.sector.animate({
-					    transform : 's1 1 ' + this.cx + ' ' + this.cy
-				    }, 100, ">");*/
                     self.$el.find('option[value="-1"]').attr("selected", "selected");
                 }else{
-                    /*if (val != -1){
-                        for (var i=0;i<self.pie.series.length;i++){
-                            if (self.pie.series[i].value && self.pie.series[i].value.order == val){
-                                self.pie.series[i].animate({
-	                                transform : 's1 1 ' + this.cx + ' ' + this.cy
-                                }, 100, ">");
-                            }                            
-                        }                        
-                    }
-                    this.sector.scale(1.1, 1.1, this.cx, this.cy);*/
                     self.$el.find('option[value="'+this.value.order+'"]').attr("selected", "selected");
                 }
                 self.$el.find('option[value="'+this.value.order+'"]').change();
 			});
+            this.pie.hover(function() {
+                if (this.value.order != self.last_selected){
+                    this.sector.stop();
+                    this.sector.scale(1.1, 1.1, this.cx, this.cy);
+                    if (this.label) {
+                            this.label[0].stop();
+                            this.label[0].attr({
+                                    r : 7.5
+                            });
+                            this.label[1].attr({
+                                    "font-weight" : 800
+                            });
+                    }
+                }
+            }, function() {
+                if (this.value.order != self.last_selected){
+                    this.sector.animate({
+                            transform : 's1 1 ' + this.cx + ' ' + this.cy
+                    }, 500, "bounce");
+                }
+                if (this.label) {
+                        this.label[0].animate({
+                                r : 5
+                        }, 500, "bounce");
+                        this.label[1].attr({
+                                "font-weight" : 400
+                        });
+                }
+            });
 	    }
 	});
 });
