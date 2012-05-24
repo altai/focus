@@ -3,7 +3,7 @@
   %div.container
     %header.jumbotron.subhead#overview
       %h1
-        =tenant['name']
+        =g.tenant_dict['name']
       %p.lead
         Project management:
         -for name in project_managers
@@ -12,12 +12,12 @@
             ,          
     %div.subnav
       %ul.nav.nav-pills
-        %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=tenant['id']) %}active{% endif %}"
-          %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
+        %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=g.tenant_id) %}active{% endif %}"
+          %a href="{{ url_for('project_views.show_tenant', tenant_id=g.tenant_id) }}"
             Virtual Machines
-        %li class="{% if request.path == url_for('project_views.billing', tenant_id=tenant['id']) %}active{% endif %}"
-          %a href="{{ url_for('project_views.billing', tenant_id=tenant['id']) }}"
+        %li class="{% if request.path == url_for('project_views.billing', tenant_id=g.tenant_id) %}active{% endif %}"
+          %a href="{{ url_for('project_views.billing', tenant_id=g.tenant_id) }}"
             Billing
-        %li class="{% if request.path == url_for('project_views.list_users', tenant_id=tenant['id']) %}active{% endif %}"
-          %a href="{{ url_for('project_views.list_users', tenant_id=tenant['id']) }}"
+        %li class="{% if request.path == url_for('project_views.list_users', tenant_id=g.tenant_id) %}active{% endif %}"
+          %a href="{{ url_for('project_views.list_users', tenant_id=g.tenant_id) }}"
             Users

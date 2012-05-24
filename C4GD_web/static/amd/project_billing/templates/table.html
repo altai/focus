@@ -2,15 +2,12 @@
   <caption><%= caption %></caption>
   <thead>
     <tr>
-      <td colspan="4">Total</td>
+      <td colspan="3">Total</td>
       <td>$<%= formatCost(data.cost) %></td>
     </tr>
     <tr>
       <th>
-        Type
-      </th>
-      <th>
-        Name
+        Resource
       </th>
       <th>
         Created At
@@ -24,10 +21,30 @@
     </tr>
   </thead>
   <tbody>
-    <% _.each(data.resources, function(datum){ %>
+    
+    <% _.each(data.resources, function(datum){%>
     <tr>
-      <td><span style="display: inline-block; width: <% print(datum.depth * 8); %>px;">&nbsp;</span><%= datum.rtype %></td>
-      <td><%= datum.name ? datum.name : "&nbsp;" %></td>
+      <td>
+        <% if (datum.rtype == 'nova/instance'){ %>
+        <img src="/static/img/glyphicons-400-free/glyphicons_137_computer_service.png" width="14">
+        <% } else if (datum.rtype == 'nova/volume'){ %>
+        <i class="icon-hdd"></i>
+        <% } else if (datum.rtype == 'glance/image'){ %>
+        <i class="icon-file"></i>
+        <% } %>
+        
+        <% if (datum.detailed){ %>
+        <a href="<%= datum.detailed.focus_url %>">
+          <% if (datum.rtype == 'nova/volume'){ %>
+          <%= datum.detailed.device %>@<%= datum.detailed.instance_info.name %>
+          <% } else { %>
+          <%= datum.detailed.name  %>
+          <% } %>
+        </a>        
+        <% } else { %>
+        <%= datum.rtype %>/<%= datum.name %>
+        <% } %>
+      </td>
       <td><%= formatDate(datum.created_at) %></td>
       <td><%= datum.destroyed_at ? formatDate(datum.destroyed_at) : "alive" %></td>      
       <td>$<%= formatCost(datum.cost) %></td>

@@ -6,7 +6,7 @@
     {{ form.hidden_tag() }}
     %fieldset
       %legend
-        Spawn VM in tenant {{ tenant.name }}    
+        Spawn VM in tenant {{ g.tenant.name }}    
       {{ render_h_field(form.image, True) }}
       {{ render_h_field(form.flavor, True) }}
       {{ render_h_field(form.name, True) }}

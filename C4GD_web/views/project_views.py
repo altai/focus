@@ -12,7 +12,7 @@ from C4GD_web.exceptions import GentleException
 from C4GD_web.models.abstract import VirtualMachine, Image, Flavor, KeyPair, \
     SecurityGroup
 from C4GD_web.models.orm import get_store, Tenant, UserRole, User, Role
-from C4GD_web.utils import nova_get, obtain_scoped
+from C4GD_web.utils import obtain_scoped
 
 from .generic_billing import generic_billing
 from .pagination import Pagination, per_page
@@ -64,21 +64,12 @@ def setup_tenant():
     g.project_managers = project_managers
 
 
-@bp.context_processor
-def common_data():
-    return {
-        'tenant': g.tenant_dict,
-        'project_managers': g.project_managers
-        }
-
-
 @bp.route('/')
 def show_tenant(tenant_id):
     """
     List VMs for the project
     """
-    response_data = nova_get(tenant_id, '/servers/detail')
-    vms_data = [x for x in response_data['servers'] if \
+    vms_data = [x for x in VirtualMachine.list(tenant_id) if \
                     x['tenant_id'] == tenant_id]
     vms = enumerate(sorted(vms_data, key=lambda x: x['name']))
     return dict(vms=vms)

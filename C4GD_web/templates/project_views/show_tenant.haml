@@ -1,7 +1,7 @@
 -extends "project_views/base.haml"
 -block content
   %section style="margin-top: 15px"
-    %a.btn.btn-primary href="{{ url_for('project_views.spawn_vm', tenant_id=tenant['id']) }}"
+    %a.btn.btn-primary href="{{ url_for('project_views.spawn_vm', tenant_id=g.tenant_id) }}"
       %b.icon-add
       Spawn new
     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
