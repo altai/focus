@@ -26,10 +26,12 @@
 
   %div.graph-view.row
     %div.span
-      Tariffs:
-      {% for tariff_name,  tariff_price in tariffs.items(): %}
-        {{ tariff_name }}: $<b>{{ tariff_price }}</b>/sec{% if not loop.last %},{% endif %}
-      {%- endfor %}
+        Tariffs:
+        {% for item in tariffs|dictsort: %}
+          {% if item[0] != 0.0 %}
+          {{ item[0] }}: $<b>{{ item[1] }}</b>/year{% if not loop.last %},{% endif %}
+          {% endif %}
+        {% endfor %}      
     %div.pull-right style="font-style: italic"
       %span.toggleable
         *click diagrams to narrow the output
