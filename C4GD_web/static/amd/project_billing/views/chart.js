@@ -75,19 +75,28 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
             }
         }
 		, render: function() {
-            var self = this;
-            legends = this.options.legends;
-            values = this.options.values;
-            this.last_selected = -1;
-            this.hovered_sector = -1;
-            this.is_popuped = false;
- 
-            var displayedLegends = [];
+      var self = this;
+      legends = this.options.legends;
+      values = this.options.values;
+      this.last_selected = -1;
+      this.hovered_sector = -1;
+      this.is_popuped = false;
+
+      var displayedLegends = [];
 			for (var i = 0; i < legends.length; ++i) {
 				displayedLegends.push(legends[i] + " ($"
 						+ formatCost(values[i]) + ")");
 			}
-            this.options.el.html(_.template(tmpl_name));
+      this.options.el.html(_.template(tmpl_name));
+
+
+      /* hack for incorrect displaying of 0.0 */
+      values = _.map(values, function(num){
+        if (num == 0){
+          return 0.001;
+        }
+        return num;
+      });
             
 			var r = Raphael(this.$('.chart')[0], 460, 380);
 			this.pie = r.piechart(320, 240, 100, values, {
@@ -97,6 +106,9 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
 			r.text(320, 100, this.options.title).attr({
 				font : "20px sans-serif"
 			});
+
+
+      
 			this.pie.click(function(event) {
                 var val = parseInt(self.$el.find("option:selected").attr('value'));
                 self.$el.find('option').removeAttr('selected');
