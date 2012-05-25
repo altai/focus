@@ -24,20 +24,13 @@
       %span.custom-period-indicator style="display:block;"
         &nbsp;
 
-  %div.graph-view.row
+  %div.row
     %div.span
-        Tariffs:
-        {% for item in tariffs|dictsort: %}
-          {% if item[0] != 0.0 %}
-          {{ item[0] }}: $<b>{{ item[1] }}</b>/year{% if not loop.last %},{% endif %}
-          {% endif %}
-        {% endfor %}      
-    %div.pull-right style="font-style: italic"
-      %span.toggleable
-        *click diagrams to narrow the output
-      %a.toggle_diagram href="#"      
-        hide
-    %div.span6.toggleable#chart_by_type
-    %div.span6.toggleable#chart_by_existence
-
+      Tariffs:
+      {% for item in tariffs|dictsort: %}
+      {% if item[0] != 0.0 %}
+      {{ item[0] }}: $<b>{{ item[1] }}</b>/year{% if not loop.last %},{% endif %}
+      {% endif %}
+      {% endfor %}
+  %div.graph-view.row
   %div.table-view
