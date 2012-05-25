@@ -136,12 +136,17 @@ function(Backbone, Underscore, $, tmpl_name, ChartView, dispatcher) {
           
           this.options.el.html(_.template(tmpl_name));
           
-          this.byTypeWasreversed = false;
+          unsortedCosts = costs.slice()
+          sortedCosts = costs.sort(function(a,b){return b-a})
+          sortedLegends = _.map(sortedCosts, function(num){ 
+            return legends[unsortedCosts.indexOf(num)]
+          });
+
           var chart_by_type = new ChartView({ 
             el: $("#chart_by_type")
             , title: "Bill by type*"
-            , values: costs
-            , legends: legends
+            , values: sortedCosts
+            , legends: sortedLegends
             , type: 'type'
           });
 

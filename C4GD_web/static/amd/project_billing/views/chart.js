@@ -97,7 +97,8 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
         }
         return num;
       });
-           
+      
+      console.log("chart:", values, displayedLegends)
 			var r = Raphael(this.$('.chart')[0], 460, 380);
 			this.pie = r.piechart(320, 240, 100, values, {
 				legend : displayedLegends,
