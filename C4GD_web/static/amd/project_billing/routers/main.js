@@ -1,5 +1,9 @@
 function formatCost(cost) {
-	return cost.toFixed(2);
+    if (typeof(cost) == 'number')
+        return cost.toFixed(2);
+    else{
+        return cost.value.toFixed(2);
+    }
 }
 
 define([
@@ -30,7 +34,7 @@ define([
       this.period_view = new PeriodView({el: $('.period-view'), router: this});
       this.table_view = new TableView({el: $('.table-view'), router: this});
       this.graph_view = new GraphView({el: $('.graph-view'), router: this});
-      this.filter = undefined;
+      this.filter = [];
     },
     routes: {
       '': 'month'
