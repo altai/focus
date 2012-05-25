@@ -34,6 +34,13 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
 		    }, 100, ">");
         }
         , piePopup: function(last_selected, new_order){
+            if ((new_order == this.hovered_sector) && !(this.is_popuped)){
+                if (new_order != -1){
+                    this.pie.series[new_order].scale(1.1, 1.1, this.cx, this.cy);  
+                }
+            }
+            this.is_popuped = false;
+            
             if(last_selected == new_order){
                 /* 
                     When SAME sector was clicked previously and is already active now 
@@ -55,6 +62,15 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
                             this.fadeSector(i);
                         }                            
                     }                        
+                } 
+            }
+
+            if (this.hovered_sector == -1){
+                /* choosed from <select> */
+                if (last_selected == new_order || new_order == -1){
+                    this.fadeSector(last_selected);
+                }else if (last_selected == -1 || new_order != last_selected){
+                    this.pie.series[new_order].scale(1.1, 1.1, this.cx, this.cy);
                 }
             }
         }
@@ -63,6 +79,8 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
             legends = this.options.legends;
             values = this.options.values;
             this.last_selected = -1;
+            this.hovered_sector = -1;
+            this.is_popuped = false;
  
             var displayedLegends = [];
 			for (var i = 0; i < legends.length; ++i) {
@@ -90,7 +108,9 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
                 self.$el.find('option[value="'+this.value.order+'"]').change();
 			});
             this.pie.hover(function() {
+                self.hovered_sector = this.value.order;
                 if (this.value.order != self.last_selected){
+                    self.is_popuped = true;
                     this.sector.stop();
                     this.sector.scale(1.1, 1.1, this.cx, this.cy);
                     if (this.label) {
@@ -104,7 +124,9 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
                     }
                 }
             }, function() {
+                self.hovered_sector = -1;
                 if (this.value.order != self.last_selected){
+                    self.is_popuped = false;
                     this.sector.animate({
                             transform : 's1 1 ' + this.cx + ' ' + this.cy
                     }, 500, "bounce");
