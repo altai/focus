@@ -90,14 +90,14 @@ function(Backbone, Underscore, gRaphael, $, dispatcher, tmpl_name) {
       this.options.el.html(_.template(tmpl_name));
 
 
-      /* hack for incorrect displaying of 0.0 */
+      /* hack for incorrect displaying of "0.0" */
       values = _.map(values, function(num){
         if (num == 0){
           return 0.001;
         }
         return num;
       });
-            
+           
 			var r = Raphael(this.$('.chart')[0], 460, 380);
 			this.pie = r.piechart(320, 240, 100, values, {
 				legend : displayedLegends,
