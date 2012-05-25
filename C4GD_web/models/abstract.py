@@ -245,3 +245,9 @@ class Volume(NovaAPI):
     @staticmethod
     def list_accessor(obj):
         return obj['volumes']
+
+
+class Tariff(Base):
+    @classmethod
+    def list(cls):
+        return billing_get('/tariff')
