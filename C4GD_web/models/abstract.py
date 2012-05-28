@@ -4,9 +4,8 @@ from flask import session, current_app
 
 import requests
 
-from C4GD_web.benchmark import benchmark
-from C4GD_web.exceptions import GentleException, BillingAPIError
-from C4GD_web.utils import openstack_api_call, select_keys, billing_get
+from C4GD_web import exceptions
+from C4GD_web import utils
 
 
 class Base(object):
@@ -22,7 +21,7 @@ class Base(object):
     def delete(cls, obj_id): raise NotImplementedError
 
     @classmethod
-    def create(cls, obj_id): raise NotImplementedError
+    def create(cls, *args, **kwargs): raise NotImplementedError
 
     @classmethod
     def update(cls, obj_id): raise NotImplementedError
@@ -37,6 +36,8 @@ class OpenstackListMixin(object):
         tenants concatenated. Response is usually a dictionary with one key and
         an array corresponding to that list.
         404 considered an error here.
+
+        :: params
         """
         acc = []
         def haul(response):
@@ -53,7 +54,7 @@ class OpenstackListMixin(object):
             success=haul,
             params=kwargs,
             api_func=functools.partial(
-                openstack_api_call,
+                utils.openstack_api_call,
                 cls.service_type,
                 http_method=requests.get)) 
         if tenant_id is not None:
@@ -77,7 +78,7 @@ class OpenstackMixinBase(object):
             path=path,
             params=kwargs,
             api_func=functools.partial(
-                openstack_api_call,
+                utils.openstack_api_call,
                 cls.service_type,
                 http_method=http_method))
         if tenant_id is not None:
@@ -95,7 +96,7 @@ class OpenstackMixinBase(object):
         assert api_func, 'snap() was used directly without api_func'
         try:
             trophy = api_func(tenant_id, path, **kw)
-        except GentleException, e:
+        except exceptions.GentleException, e:
             if tolerate404:
                 if e.args[1].status_code == 404:
                     pass
@@ -187,10 +188,10 @@ class VirtualMachine(NovaAPI):
         if keypair:
             request_data['server']['key_name'] = keypair
         if len(security_groups):
-            request_data['server']['security_groups'] = select_keys(
+            request_data['server']['security_groups'] = utils.select_keys(
                 SecurityGroup.list(),
                 map(int, security_group_keys))
-        openstack_api_call(tenant_id, cls.base, request_data, serice_type=cls.service_type, http_method=requests.post)
+        utils.openstack_api_call(tenant_id, cls.base, request_data, service_type=cls.service_type, http_method=requests.post)
 
 
 class Flavor(NovaAPI):
@@ -224,7 +225,7 @@ class SecurityGroup(NovaAPI):
 class AccountBill(Base):
     @classmethod
     def list(cls):
-        return billing_get('/account')
+        return utils.billing_get('/account')
 
     @classmethod
     def get(cls, account_id, **kwargs):
@@ -236,7 +237,7 @@ class AccountBill(Base):
             if kwargs.get(x) is not None:
                 request_data[x] = kwargs[x]
         
-        return billing_get('/report', params=request_data)['accounts']
+        return utils.billing_get('/report', params=request_data)['accounts']
 
 
 class Volume(NovaAPI):
@@ -250,4 +251,68 @@ class Volume(NovaAPI):
 class Tariff(Base):
     @classmethod
     def list(cls):
-        return billing_get('/tariff')
+        return utils.billing_get('/tariff')
+
+
+class SSHKey(NovaAPI):
+    base = '/os-keypairs'
+    list_any_one_tenant = True
+
+    @staticmethod
+    def list_accessor(r):
+        return [x['keypair'] for x in r['keypairs']]
+
+    @classmethod
+    def create(cls, name, public_key):
+        if public_key:
+            cls.register(name, public_key)
+        else:
+            # returns private key
+            return cls.generate(name)
+
+    @classmethod
+    def register(cls, name, public_key):
+        request = {
+            "keypair": {
+                "name": name,
+                "public_key": public_key
+            }
+        }
+        for tenant in cls._tenants():
+            result = cls._snap(
+                tenant['id'],
+                cls.base,
+                api_func=functools.partial(
+                    utils.openstack_api_call,
+                    cls.service_type,
+                    http_method=requests.post),
+                params=request)
+            if result != None:#some tenant allowed to post
+                return
+        raise RuntimeError, 'No tenant to post'
+
+    @classmethod
+    def generate(cls, name):
+        request = {
+            "keypair": {
+                "name": name
+            }
+        }
+        for tenant in cls._tenants():
+            result = cls._snap(
+                tenant['id'],
+                cls.base,
+                api_func=functools.partial(
+                    utils.openstack_api_call,
+                    cls.service_type,
+                    http_method=requests.post),
+                params=request)
+            if result != None:#some tenant allowed to post
+                return result["keypair"]
+        raise RuntimeError, 'No tenant to post'
+
+    @classmethod
+    def get(cls, keypair_name):
+        for keydata in cls.list():
+            if keypair_name == keydata['name']:
+                return keydata

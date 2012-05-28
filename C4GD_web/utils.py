@@ -13,7 +13,13 @@ from .benchmark import benchmark
 
 def unjson(response, attr='content'):
     value = getattr(response, attr)
-    return json.loads(value) if value != '' else ''
+    if 'json' in response.headers['content-type']:
+        if '' == value:
+            return value
+        else:
+            return json.loads(value)
+    else:
+        return value
 
 
 def response_ok(response):

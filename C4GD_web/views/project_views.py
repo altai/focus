@@ -1,5 +1,5 @@
 # coding=utf-8
-from functools import wraps
+import functools
 
 from flask import g, request, session, current_app
 from flask import render_template, make_response, jsonify, flash, redirect, url_for, abort
@@ -10,7 +10,7 @@ from storm.locals import *
 from C4GD_web.benchmark import benchmark
 from C4GD_web.exceptions import GentleException
 from C4GD_web.models.abstract import VirtualMachine, Image, Flavor, KeyPair, \
-    SecurityGroup
+    SecurityGroup, SSHKey
 from C4GD_web.models.orm import get_store, Tenant, UserRole, User, Role
 from C4GD_web.utils import obtain_scoped
 
@@ -22,7 +22,7 @@ from .utils import get_next_url
 
 
 def pm_only(view):
-    @wraps(view)
+    @functools.wraps(view)
     def decorated(*args, **kwargs):
         if g.user.is_project_manager(g.tenant):
             return view(*args, **kwargs)
@@ -178,3 +178,8 @@ def remove_user_from_project(tenant_id, user_id):
 @bp.route('/billing/')
 def billing(tenant_id):
     return generic_billing(tenant_id)
+
+
+
+
+    

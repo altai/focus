@@ -1,0 +1,32 @@
+-extends "authenticated_base.haml"
+-block amdjs
+  %script  type="text/javascript"  src="{{ url_for('static', filename='amd/main_list_keys.js') }}"
+-block content
+  %a.btn.btn-primary href="{{ url_for('.new') }}"
+    Add key
+  %table.table.table-striped.table-bordered.table-condensed
+    %thead
+      %tr
+        %th
+          Key Name
+        %th
+          Fingerprint
+        %th
+          Public_key
+        %th
+          Actions
+    %tbody
+      -for key in keys:
+        %tr
+          %td
+            "{{key['name']}}"
+          %td
+            "{{key['fingerprint']}}"
+          %td
+            %a.btn href="javascript:alert('{{ key['public_key'] }}'); return 0;"
+              show
+          %td
+            %form method="POST" action="{{ url_for('.delete', name=key['name']) }}"
+              =delete_form.hidden_tag()
+              %button
+                Remove

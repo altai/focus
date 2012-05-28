@@ -1,0 +1,17 @@
+-extends "authenticated_base.haml"
+-block content
+  %form.form-horizontal method="POST" action="."
+    =form.hidden_tag()
+    %legend
+      Delete keypair
+    %fieldset    
+      %div.control-group
+        %label.control-label for="id_name"
+          Key name
+        %div.controls
+          %input.input-xlarge type="text" disabled="1" value="{{ keydata['name'] }}"        
+    %div.form-actions
+      %button.btn.btn-primary type="submit"
+        Delete
+      %a.btn href="javascript:go(-1)"
+        Cancel
