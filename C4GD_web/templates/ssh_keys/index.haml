@@ -26,7 +26,7 @@
             %a.btn href="javascript:alert('{{ key['public_key'] }}'); return 0;"
               show
           %td
-            %form method="POST" action="{{ url_for('.delete', name=key['name']) }}"
+            %form method="POST" action="{{ url_for('.delete', name=key['name']) }}" onsubmit="return confirm('Sure to delete keypair {{key['name']}}?');"
               =delete_form.hidden_tag()
               %button
                 Remove
