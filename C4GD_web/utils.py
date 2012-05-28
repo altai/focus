@@ -7,6 +7,24 @@ import sys
 from flask import session, flash, current_app
 
 from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
+import functools
+
+import sys
+
+from flask import session, flash, current_app
+
+from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
+
+from .benchmark import benchmark
+
+
+def unjson(response, attr='content'):
+    value = getattr(response, attr)
+    return json.loads(value) if value != '' else ''
+
+
+def response_ok(response):
+    return  200 <= response.status_code < 300
 
 from .benchmark import benchmark
 
