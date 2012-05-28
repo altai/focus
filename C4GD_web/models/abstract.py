@@ -271,7 +271,9 @@ class SSHKey(NovaAPI):
             return cls.generate(name)
 
     @classmethod
-    def register(cls, name, public_key):
+    def register(cls, **kwargs):
+        name, public_key = list(
+            utils.select_keys(kwargs, ('name', 'public_key'), True))
         request = {
             "keypair": {
                 "name": name,
