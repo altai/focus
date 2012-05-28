@@ -1,0 +1,15 @@
+-extends "project_views/base.haml"
+-block content
+  -from "_formhelpers.haml" import render_form_errors, render_field
+  %form.form-horizontal method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()
+    %fieldset
+      %legend
+        Add user to the project
+      =render_field(form.user)
+      =render_field(form.roles)
+      ; URGENT: show description for selected role
+      %div.form-actions
+        %button.btn.btn-primary type="submit"
+          Add

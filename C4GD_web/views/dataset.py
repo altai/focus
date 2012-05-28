@@ -1,6 +1,8 @@
 # coding=utf-8
 import copy
 
+from C4GD_web.utils import select_keys
+
 
 class Column(object):
     sorted = None
@@ -37,7 +39,6 @@ class ColumnKeeper(object):
         self.adjust(default_names)
 
     def adjust(self, names):
-        from C4GD_web.utils import select_keys
         self.selected = list(select_keys(self.mapping, names, True))
         self.spare = list(select_keys(
                 self.mapping, set(self.mapping) - set(names)))

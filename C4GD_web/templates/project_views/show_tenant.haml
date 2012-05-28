@@ -1,0 +1,53 @@
+-extends "project_views/base.haml"
+-block content
+  %section style="margin-top: 15px"
+    %a.btn.btn-primary href="{{ url_for('project_views.spawn_vm', tenant_id=g.tenant_id) }}"
+      %b.icon-add
+      Spawn new
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+      %thead
+        %tr
+          %th
+            #
+          %th
+            Name
+          %th
+            Status
+          %th
+            User
+          %th
+            Actions
+      %tbody
+        -for n, vm in vms
+          %tr
+            %td
+              =n
+            %td
+              =vm['name']
+            %td
+              =vm['status']
+            %td
+              =vm['user_id']
+            %td
+              %div.modal.hide id="remove_vm-{{ vm['id'] }}"
+                %div.modal-header
+                  %a.close data-dismiss="modal"
+                    ×
+                  %h3
+                    Confirmation request
+                %div.modal-body
+                  %p
+                    Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
+                %div.modal-footer
+                  %form method="post" action="{{ url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+                    %input type="hidden" name="next" value="{{ request.path }}"
+                    %button.btn
+                      Yes, remove it
+                    %a.btn.btn-primary href="#" data-dismiss="modal"
+                      No                  
+              %a data-toggle="modal" href="#remove_vm-{{ vm['id'] }}" 
+                %i.icon-remove
+                remove
+
+            
+              

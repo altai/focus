@@ -1,7 +1,7 @@
 # coding=utf-8
 from storm.locals import *
-from flask import g
-from C4GD_web import app
+from flask import g, current_app
+
 
 
 __all__ = ['User', 'Tenant', 'Credential', 'UserRole', 'Role', 'Service', 
@@ -41,10 +41,10 @@ class User(Storm):
 
     def is_ldap_authenticated(self, password):
         import ldap
-        connection = ldap.initialize(app.config['LDAP_URI'])
+        connection = ldap.initialize(current_app.config['LDAP_URI'])
         dn = u'uid=%s,%s' % (
             ldap.dn.escape_dn_chars(self.name),
-            app.config['LDAP_BASEDN'])
+            current_app.config['LDAP_BASEDN'])
         try:
             connection.simple_bind_s(
                 dn.encode('utf-8'),
@@ -148,12 +148,12 @@ class Token(Storm):
         from datetime import datetime, timedelta
         # respect timezones and have small handicap
         valid_until = datetime.now() + \
-            timedelta(hours=app.config['RELATIVE_TO_API_HOURS_SHIFT']) + \
+            timedelta(hours=current_app.config['RELATIVE_TO_API_HOURS_SHIFT']) + \
             timedelta(minutes=1)
         return g.store.find(cls, cls.expires > valid_until)
     
 
 def get_store(SETTINGS_PREFIX):
     return Store(create_database(
-        app.config[SETTINGS_PREFIX + '_DATABASE_URI']))
+        current_app.config[SETTINGS_PREFIX + '_DATABASE_URI']))
 

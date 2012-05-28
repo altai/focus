@@ -17,9 +17,8 @@ RW_DB_USER = ''
 RW_DB_PASS = ''
 RW_DB_NAME = ''
 KEYSTONE_URL = 'http://172.18.41.1:5000/v2.0'
-BILLING_URL = 'http://172.30.0.3:8787/v1'
+BILLING_URL = 'http://172.30.0.3:8787/v2'
 DEV = False
-
 
 MAIL_SERVER = 'mail.vm.griddynamics.net'
 MAIL_PORT = 25
@@ -28,3 +27,6 @@ MAIL_DEBUG = True
 MAIL_USERNAME = 'c4gd-focus-robot@griddynamics.com'
 MAIL_PASSWORD = None
 DEFAULT_MAIL_SENDER = 'DoNotReply'
+
+TEMPLATE_EXTENSION = '.haml'
+ANONYMOUS_ALLOWED = ['login']

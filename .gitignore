@@ -15,3 +15,4 @@ local_fab_settings.py
 .pydevproject
 .settings
 venv
+tests

@@ -1,23 +1,18 @@
-from flask import g
-from C4GD_web import app
+import copy
 from datetime import date
 
-from C4GD_web.models import get_pool, AccountBill, User, Tenant, get_store
+from flask import g, current_app, url_for
+
+from C4GD_web.models.abstract import AccountBill, VirtualMachine, Image, Volume
+from C4GD_web.models.orm import User, Tenant, get_store
+from C4GD_web.utils import billing_get
 
 
 class Dataset(object):
     def __init__(self, params=None, delayed=False, user_id=None, tenant_id=None):
-        '''if delayed put task in celery
-        invoke async task to call AccountBill.show and put results in db
-        this call wont wait for the result of async task
-
-        if not delayed then look in db fo result matching params
-        if no result call for AccountBill.show, put results in db and return results
-        if result exist use results from db
-        '''
         self.data = account_bill_show(
                 params.account_id, user_id, tenant_id,
-                app.config['BILLING_URL'],
+                current_app.config['BILLING_URL'],
                 period_start=params.period_start,
                 period_end=params.period_end,
                 time_period=params.time_period)
@@ -48,71 +43,92 @@ class Params(object):
             self.account_id, self.period_start,
             self.period_end, self.time_period)
 
-def _build_resource_tree(bill):
 
-    def get_resource_tree(resources):
-        res_by_id = dict(((res["id"], res) for res in resources))
-        for res in resources:
-            try:
-                parent = res_by_id[res["parent_id"]]
-            except KeyError:
-                pass
-            else:
-                parent.setdefault("children", []).append(res)
-        return filter(
-            lambda res: res["parent_id"] not in res_by_id,
-            resources)
-
-    def calc_cost(res):
-        cost = res.get("cost", 0.0)
-        for child in res.get("children", ()):
-            calc_cost(child)
-            cost += child["cost"]
-        res["cost"] = cost
-
-    for acc in bill:
-        subtree = get_resource_tree(acc["resources"])
-        acc_cost = 0.0
-        for res in subtree:
-            calc_cost(res)
-            acc_cost += res["cost"]
-        acc["cost"] = acc_cost
-        acc["resources"] = subtree
-    return bill
+def _calc_cost(res):
+    '''
+    Currently one level of folded data.
+    '''
+    cost = res.get("cost", 0.0)
+    for child in res.get("children", ()):
+        cost += _calc_cost(child)
+    return cost
+    res["cost"] = cost
 
 
-def _linear_bill(bill):
-    linear_bill = []
-    def print_res(res, depth):
-        res["depth"] = depth        
-        linear_bill.append(res)
-        depth += 1
-        for child in res.get("children", ()):
-            print_res(child, depth)
-        try:
-            del res["children"]
-        except KeyError:
-            pass
-        del res["parent_id"]
+def _compact_bill(resources):
+    '''
+    Return list of resources which do not have parents, in descending 
+    chronological order.
+    Resourced with parents must be grouped under their parents.
+    Cost must be calculated for parents based on their children cost.
+    '''
+    # build dict of resources
+    res_by_id = {}
+    for res in resources:
+        res_by_id[res['id']] = res
+    # iterate through non-orphans
+    for res in filter(lambda x: x['parent_id'] is not None, resources):
+        #  add non-orphan to 'children' of it's parent in dict of resources
+        parent = res_by_id[res['parent_id']]
+        if not 'children' in parent:
+            parent['children'] = []
+        parent['children'].append(res)
+    # iterate through orphans
+    for res in filter(lambda x: x['parent_id'] is None, resources):
+        orphan = res_by_id[res['id']]
+        #  calculate cost based on children recorded in dict of resources
+        #  change cost in resource in the dict
+        orphan['cost'] = _calc_cost(orphan)
+    # return orphans sorted chronologically
+    return [res_by_id[res['id']] for res in sorted(
+        filter(
+                lambda x: x['parent_id'] is None,
+                resources),
+        key=lambda x: x['created_at'],
+        reverse=True)]
 
-    for acc in bill:
-        linear_bill = []
-        for res in sorted(acc["resources"], 
-                key=lambda res: (res["rtype"], res["name"])):            
-            print_res(res, 0)
-        acc["resources"] = linear_bill
+                  
+def _concentrate_resources(resources, tenant_id):
+    '''
+    For every orphan resource add verbose name and brief info url.
+    '''
+    def process(objs, model, endpoint):
+        '''
+        Nova does not return deleted servers.
+        '''
+        info = model.list()
+        ref = dict([(x['name'], x) for x in objs])
+        result = {}
+        # some objs will lack detailed info. it is not a problem
+        # it is solved during presentation to user
+        informative = filter(lambda x: unicode(x['id']) in ref.keys(), info)
+        if model is Volume:
+            instances_info = dict([(x['id'], x) for x in VirtualMachine.list()])
+            for x in informative:
+                x['instance_info'] = instances_info[x['instance_id']]
+        for x in informative:
+            actual = copy.deepcopy(ref[unicode(x['id'])])
+            actual['detailed'] = x
+            actual['detailed']['focus_url'] = url_for(endpoint, obj_id=x['id'])
+            result[(actual['id'], actual['rtype'])] = actual
+        return result
+    def filter_type(resource_type):
+        return [x for x in resources if x['rtype'] == resource_type and x['parent_id'] is None]
+    processors = (
+        ('nova/instance', VirtualMachine, 'virtual_machines.show'),
+        ('glance/image', Image, 'images.show'),
+        ('nova/volume', Volume, 'volumes.show')
+        )
+    d = {}
+    for rtype, model, endpoint in processors:        
+        d.update(process(filter_type(rtype), model, endpoint))
+    return [x if (x['id'], x['rtype']) not in d else d[(x['id'], x['rtype'])] for x in resources]
 
 
 def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
-    # call Account.show and save result in db
-    store = get_store('RO')
-    # try:
-    #     user = store.get(User, user_id)
-    # except TypeError:
-    #     user = store.get(User, int(user_id))
-    billing_pool = get_pool(g.user, tenant_id, public_url=public_url)
-    # what db? what format? save it for future
-    bill = [billing_pool(AccountBill.show, account_id=tenant_id, **kw).__dict__]
-    _linear_bill(_build_resource_tree(bill))
-    return bill[0]
+    bill = AccountBill.get(account_id, **kw)[0] # list with tenant_id as ['name']
+    bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
+    bill['resources'] = _compact_bill(bill['resources'])
+    return bill
+
 

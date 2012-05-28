@@ -1,0 +1,36 @@
+  %ul.nav.nav-tabs.period-view style="margin-top: 15px;"
+    %li
+      %a href="#today"
+        Today
+    %li.active
+      %a href="#month"
+        This Month
+    %li
+      %a href="#year"
+        This Year
+    %li
+      %div.modal.hide.fade#choose_period 
+        %div.modal-header
+          Choose period
+        %div.modal-body
+          %input.datepicker name="start" type="text"
+          %input.datepicker name="end" type="text"
+        %div.modal-footer
+          %a.btn data-dismiss="modal" href="#" -> Cancel
+          %a.btn.btn-primary href="#" -> Apply
+      %a href="#custom_period" data-toggle="modal" data-target="#choose_period"
+        Custom Period
+    %li
+      %span.custom-period-indicator style="display:block;"
+        &nbsp;
+
+  %div.row
+    %div.span
+      Tariffs:
+      {% for item in tariffs|dictsort: %}
+      {% if item[0] != 0.0 %}
+      {{ item[0] }}: $<b>{{ item[1] }}</b>/year{% if not loop.last %},{% endif %}
+      {% endif %}
+      {% endfor %}
+  %div.graph-view.row
+  %div.table-view
