@@ -194,9 +194,17 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
         if  not response_ok(response):
             try:
                 r = unjson(response)
-                raise GentleException(
-                    'API response was: %s' % \
-                        r['cloudServersFault']['message'], response)
+                if 'cloudServersFault' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['cloudServersFault']['message'], response)
+                elif 'itemNotFound' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['itemNotFound']['message'], response)
+                else:
+                    raise GentleException(
+                        'API response was: %s' % r, response)
             except Exception:
                 raise
             else:
