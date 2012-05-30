@@ -208,6 +208,15 @@ class VirtualMachine(NovaAPI):
         utils.openstack_api_call(
             cls.service_type, tenant_id, cls.base, request_data, 
             http_method=requests.post)
+    
+    @classmethod
+    def reboot(cls, tenant_id, vm_id, type):
+        utils.openstack_api_call(
+            cls.service_type, 
+            tenant_id, 
+            "%s/%s/action" % (cls.base, vm_id),  
+            {'reboot': {'type': type}}, 
+            requests.post)
 
 
 class Flavor(NovaAPI):

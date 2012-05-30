@@ -211,8 +211,6 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
                 raise GentleException(
                     'Can\'t make API call for %s for tenant "%s"' % (
                         service_type, tenant_id), response)
-
-
     return unjson(response)        
 
 
