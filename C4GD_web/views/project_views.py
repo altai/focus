@@ -32,7 +32,7 @@ def pm_only(view):
     return decorated
 
 
-bp = Blueprint('project_views', __name__, url_prefix='/<tenant_id>');
+bp = Blueprint('project_views', __name__, url_prefix='/projects/<tenant_id>');
 
 
 
@@ -69,7 +69,7 @@ def show_tenant(tenant_id):
     """
     List VMs for the project
     """
-    vms_data = [x for x in VirtualMachine.list(tenant_id) if \
+    vms_data = [x for x in VirtualMachine.list(tenant_id=tenant_id) if \
                     x['tenant_id'] == tenant_id]
     vms = enumerate(sorted(vms_data, key=lambda x: x['name']))
     return dict(vms=vms)
