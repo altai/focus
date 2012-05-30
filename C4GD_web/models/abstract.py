@@ -98,7 +98,9 @@ class OpenstackMixinBase(object):
             trophy = api_func(tenant_id, path, **kw)
         except exceptions.GentleException, e:
             if tolerate404:
-                if e.args[1].status_code == 404:
+                if len(e.args) > 1 and e.args[1].status_code == 404:
+                    pass
+                elif e.args[0].startswith('No public URL'):
                     pass
                 else:
                     raise
