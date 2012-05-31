@@ -1,14 +1,22 @@
 import MySQLdb
 
-conn = MySQLdb.connect(host="localhost", user="root", passwd="8903324", db="invitations")
+from C4GD_web import app
+
+
+conn = MySQLdb.connect(
+    host="localhost", 
+    user=app.config['INVITATIONS_DB_USER'], 
+    passwd=app.config['INVITATIONS_DB_PASS'], 
+    db=app.config['INVITATIONS_DB_NAME'])
 cursor = conn.cursor()
 
 # invitations
-def save_invitation(email, hash, complete):
+def save_invitation(email, hash, complete, role):
     query = "INSERT INTO invitations.invitations SET "+\
         "email='%s'," % email +\
         "hash='%s'," % hash +\
-        "complete=%d;" % (1 if complete else 0)
+        "complete=%d," % (1 if complete else 0) +\
+        "role='%s';" % role
     cursor.execute(query) 
     conn.commit()
     
@@ -31,17 +39,7 @@ def update_invitation(id, email, hash, complete):
         WHERE id=%d""" % (email, hash, 1 if complete else 0, id)
     cursor.execute(query) 
     conn.commit()
-    
-    
-# users
-def create_new_user(email, password):
-    query = """
-        INSERT INTO invitations.users 
-        SET email='%s', password='%s';
-    """ % email, password
-    cursor.execute(query)
-    conn.commit()
-    
+       
 #masks
 def get_masks():
     query = """SELECT email_mask FROM invitations.email_masks;"""

@@ -38,7 +38,7 @@
                 Invite
             %li
               %a
-                =session['keystone_unscoped']['access']['user']['name']
+                =session['user']['username']
             %li
               %a href="{{ url_for('logout') }}"
                 Logout

@@ -13,6 +13,10 @@
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
     {{ render_field(form.email) }}
-    Allowed email masks:
+    {% if g.is_global_admin %}
+        {{ render_field(form.role) }}
+    {% else %}
+        %input type="hidden" name="role" value="user"
+    {% endif %}
     %button type="submit" class="btn btn-primary"
       Invite

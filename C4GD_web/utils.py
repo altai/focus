@@ -3,6 +3,7 @@ import json
 import functools
 import requests
 import sys
+import hashlib
 
 from flask import session, flash, current_app
 
@@ -247,3 +248,34 @@ def billing_api_call(path, params={}, http_method=False):
 
 billing_get = functools.partial(billing_api_call, http_method=requests.get)
 
+
+def create_hash_from_data(data):
+    h = hashlib.new('ripemd160')
+    h.update(data)
+    h.hexdigest()
+    return h.hexdigest()
+
+
+def neo4j_api_call(path, params={}, method='GET'):
+    url = current_app.config['NEO4J_API_URL'] + path
+    headers = {'Content-Type': 'application/json'}
+    
+    if method == 'POST':
+        response = requests.post(
+            url, 
+            data=json.dumps(params), 
+            headers=headers)
+    if method == 'GET':
+        response = requests.get(
+            url, 
+            params=params, 
+            headers=headers)
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response, params)
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
+
+    return unjson(response)

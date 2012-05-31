@@ -26,9 +26,9 @@ def commit_storm_store_optionally(exception):
 
 @app.before_request
 def authenticate():
-    g.is_authenticated = 'keystone_unscoped' in session
+    g.is_authenticated = 'user' in session
     if not g.is_authenticated:
-        if request.endpoint not in current_app.config['ANONYMOUS_ALLOWED']:
+        if not request.endpoint in current_app.config['ANONYMOUS_ALLOWED']:
             return redirect(url_for('login'))
 
 

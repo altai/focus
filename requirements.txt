@@ -2,12 +2,12 @@ Flask
 Flask-WTF
 Flask-Mail
 Jinja2
-MySQL-python
+#MySQL-python
 WTForms
 Werkzeug
 wsgiref
 Hamlish-Jinja
 requests
-gevent
-storm
-pylibmc
+#gevent
+#storm
+#pylibmc
