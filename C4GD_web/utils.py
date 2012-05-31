@@ -283,11 +283,6 @@ def neo4j_api_call(path, params={}, method='GET'):
             params=params, 
             headers=headers)
     if not response_ok(response):
-        if response.status_code == 401:
-            raise GentleException('Access denied', response, params)
-        else:
-            raise KeystoneExpiresException(
-                'Identity server responded with status %d' % \
-                    response.status_code, response)
+        raise GentleException('ODB request returned %s' % response.status_code, response)
 
     return unjson(response)

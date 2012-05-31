@@ -155,7 +155,7 @@ def login():
     if form.validate_on_submit():
         try:
             user = neo4j_api_call('/users', {'email': form.username.data},'GET')[0]
-        except KeyError:
+        except KeyError, GentleException:
             flash("User doesn't exists, code: 2", 'error')
             return {'form': form}
         if user['passwordHash'] != create_hash_from_data(form.password.data):
