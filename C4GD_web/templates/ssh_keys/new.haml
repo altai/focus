@@ -1,0 +1,14 @@
+-extends "authenticated_base.haml"
+-block content
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
+  %form.form-horizontal method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()  
+    %fieldset
+      %legend
+        Adding SSH Key
+      {{ render_h_field(form.name, True) }}
+      {{ render_h_field(form.public_key) }}
+      %div.form-actions
+        %button.btn.btn-primary type="submit" -> Add Key
+        %a.btn href="javascript:history.go(-1)" -> Cancel

@@ -1,25 +1,19 @@
 # coding=utf-8
 from flask import g
 
-from C4GD_web.models.orm import User, Role
+from flaskext import wtf
 
-from flaskext.wtf import Form, HiddenField, TextField, PasswordField, Required,\
-    SelectField, EqualTo, SelectMultipleField
-
-from storm.locals import Not
-
-from .utils import get_next_url
-
+import utils
 
 
 def get_login_form():
     """
     Return login form class with correct default value of "next".
     """
-    class LoginForm(Form):
-        next = HiddenField(default=get_next_url())
-        username = TextField('Username', [Required()])
-        password = PasswordField('Password', [Required()])
+    class LoginForm(wtf.Form):
+        next = wtf.HiddenField(default=utils.get_next_url())
+        username = wtf.TextField('Username', [wtf.Required()])
+        password = wtf.PasswordField('Password', [wtf.Required()])
     return LoginForm
 
 
@@ -40,23 +34,37 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     SECURITY_GROUP = sorted(map(l1, security_groups), key=l3)
     KEYPAIR_CHOICES = sorted(map(l4, key_pairs), key=l3)   
 
-    class SpawnForm(Form):
-        image = SelectField('Image', [Required()], choices=IMAGE_CHOICES)
-        flavor = SelectField('Flavor', [Required()], choices=FLAVOR_CHOICES, coerce=int)
-        name = TextField('Name', [Required()])
-        password = PasswordField('Password')
-        confirm_password = PasswordField('Confirm Password', [EqualTo('password')])
-        keypair = SelectField('Key Pair', choices=KEYPAIR_CHOICES)
-        security_groups = SelectMultipleField('Security Groups', choices=SECURITY_GROUP, coerce=int)
+    class SpawnForm(wtf.Form):
+        image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES, coerce=int)
+        flavor = wtf.SelectField('Flavor', [wtf.Required()], choices=FLAVOR_CHOICES, coerce=int)
+        name = wtf.TextField('Name', [wtf.Required()])
+        password = wtf.PasswordField('Password')
+        confirm_password = wtf.PasswordField('Confirm Password', [wtf.EqualTo('password')])
+        keypair = wtf.SelectField('Key Pair', choices=KEYPAIR_CHOICES)
+        security_groups = wtf.SelectMultipleField('Security Groups', choices=SECURITY_GROUP, coerce=int)
 
     return SpawnForm
 
 def get_new_user_to_project_form(users, roles):
     USERS_CHOICES = [(x.id, x.name) for x in users]
     ROLES_CHOICES = [(x.id, x.name) for x in roles]
-    class NewUserToProjectForm(Form):
-        user = SelectField(
-            'User', [Required()], choices=USERS_CHOICES, coerce=int)
-        roles = SelectMultipleField(
-            'Roles', [Required()], choices=ROLES_CHOICES, coerce=int)
+    class NewUserToProjectForm(wtf.Form):
+        user = wtf.SelectField(
+            'User', [wtf.Required()], choices=USERS_CHOICES, coerce=int)
+        roles = wtf.SelectMultipleField(
+            'Roles', [wtf.Required()], choices=ROLES_CHOICES, coerce=int)
     return NewUserToProjectForm
+
+
+class DeleteSSHKey(wtf.Form):
+    '''
+    Just an empty form to easily bypass CSRF checks.
+    '''
+
+class CreateSSHKey(wtf.Form):
+    # TODO(apugachev) look in nova for boundaries
+    name = wtf.TextField('Name of keypair', [wtf.Required()])
+    public_key = wtf.TextField(
+        'Public Key', [wtf.Optional()],
+        description='Can be omitted. New keypair will be generated')
+

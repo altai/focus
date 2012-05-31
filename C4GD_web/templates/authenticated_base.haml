@@ -31,7 +31,9 @@
                   -for tenant, roles in  tenants_with_roles
                     %li
                       %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
-                        =tenant['name'] 
+                        =tenant['name']
+              %li
+                %a href="{{ url_for('ssh_keys.index') }}" -> SSH Keys
           %ul class="nav pull-right"
             %li
               %a href="{{ url_for('invite') }}"

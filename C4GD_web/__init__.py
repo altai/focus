@@ -81,6 +81,7 @@ import C4GD_web.invitations
 
 import C4GD_web.views.authentication
 import C4GD_web.views.dashboard
+from C4GD_web.views import ssh_keys
 
 app.register_blueprint(get_one('images'), url_prefix='/images/', model=Image)
 app.register_blueprint(get_one('virtual_machines'), url_prefix='/virtual-machines/', model=VirtualMachine)
@@ -88,4 +89,5 @@ app.register_blueprint(get_one('volumes'), url_prefix='/volumes/', model=Volume)
 
 app.register_blueprint(project_views_bp)
 app.register_blueprint(global_views_bp)
+app.register_blueprint(ssh_keys.bp)
 

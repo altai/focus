@@ -30,4 +30,6 @@ ADMIN_KEYSTONE_USERNAME = 'invite_bot'
 ADMIN_KEYSTONE_PASSWORD = 'invite_bot'
 
 TEMPLATE_EXTENSION = '.haml'
+
 ANONYMOUS_ALLOWED = ['login', 'invite_finish', 'logout']
+DEFAULT_APP_PORT = 5000

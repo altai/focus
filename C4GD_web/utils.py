@@ -32,7 +32,13 @@ from .benchmark import benchmark
 
 def unjson(response, attr='content'):
     value = getattr(response, attr)
-    return json.loads(value) if value != '' else ''
+    if 'json' in response.headers['content-type']:
+        if '' == value:
+            return value
+        else:
+            return json.loads(value)
+    else:
+        return value
 
 
 def response_ok(response):
@@ -189,17 +195,23 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
         if  not response_ok(response):
             try:
                 r = unjson(response)
-                raise GentleException(
-                    'API response was: %s' % \
-                        r['cloudServersFault']['message'], response)
+                if 'cloudServersFault' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['cloudServersFault']['message'], response)
+                elif 'itemNotFound' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['itemNotFound']['message'], response)
+                else:
+                    raise GentleException(
+                        'API response was: %s' % r, response)
             except Exception:
                 raise
             else:
                 raise GentleException(
                     'Can\'t make API call for %s for tenant "%s"' % (
                         service_type, tenant_id), response)
-
-
     return unjson(response)        
 
 
