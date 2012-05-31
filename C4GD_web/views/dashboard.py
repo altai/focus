@@ -24,5 +24,5 @@ def dashboard():
         context.update(dict(
                 total_users=g.store.find(User).count(),
                 total_projects=g.store.execute('select count(distinct(tenant_id)) from user_roles').get_one()[0],
-                total_vms=len(VirtualMachine.list(6))))
+                total_vms=len(VirtualMachine.list(tenant_id='6'))))
     return context

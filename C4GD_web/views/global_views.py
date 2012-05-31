@@ -81,7 +81,7 @@ def list_vms():
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     if 'groupby' in request.args:
         columns.adjust_groupby(request.args['groupby'])
-    vms = response_data = VirtualMachine.list(6)
+    vms = response_data = VirtualMachine.list(tenant_id='6')
     # inject flavors info
     flavors = dict([(int(x['id']), x) for x in Flavor.list()])
     for row in vms:
