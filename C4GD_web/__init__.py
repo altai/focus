@@ -75,8 +75,3 @@ import context_processors
 import views.authentication
 import views.autorization
 import views.dashboard
-
-@app.after_request
-def for_static(response):
-    response.data = response.data.replace('/static/', 'http://static.localhost:3000/static/')
-    return response
