@@ -17,15 +17,15 @@
          %thead
            %tr
              %th
-               Role
-             %th
                Tenant
-           -for role in user_roles
+             %th
+               Role
+           -for k, v in user_roles.items()
              %tr
                %td
-                 =role.role
+                 =k
                %td
-                 =role.tenantName
+                 =v
     
   %a href="{{ url_for('list_users') }}"
     back

@@ -124,6 +124,27 @@ def keystone_post(path, data={}, is_admin=False):
 
     return unjson(response)
 
+def keystone_delete(path):
+    url = current_app.config['KEYSTONE_URL'] + path
+    url = url.replace('5000', '35357')
+    headers = {
+            'X-Auth-Token': session['keystone_unscoped']['access']\
+                ['token']['id'],
+            'Content-Type': 'application/json'
+            }
+
+    response = requests.delete(
+        url, 
+        headers=headers)
+
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response, {})
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
+
 
 def get_public_url(tenant_id, service_type):
     """

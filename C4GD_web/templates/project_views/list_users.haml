@@ -23,10 +23,26 @@
             -if user.email != 'None'
               =user.email
           %td
-            <form method="POST" action="{{ url_for('delete_user') }}">
-                {{ user.delete_form.hidden_tag() }}
-                <input type="submit" value="remove">
-            </form>
+            %div.modal.hide id="delete_user_{{ user.id }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to to delete "{{ user.name }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('delete_user') }}"
+                  {{ user.delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_user_{{ user.id }}"
+              delete
+                
+            
 
   %div.pagination
     %ul

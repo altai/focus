@@ -2,7 +2,7 @@ from C4GD_web import app
 
 from flask import render_template, request, redirect, url_for, flash
 
-from C4GD_web.utils import keystone_get
+from C4GD_web.utils import keystone_get, keystone_delete
 
 from .pagination import Pagination, per_page
 
@@ -70,7 +70,7 @@ def user_details(user_id):
     user_request = keystone_get('/users/%s/' % user_id, is_admin=True)
     user = user_request['user']
     
-    user_roles = keystone_get('/users/%s/roleRefs' % user['id'],
+    user_orig_roles = keystone_get('/users/%s/roleRefs' % user['id'],
                           is_admin=True)['roles']['values']
                           
     tenants_request = keystone_get('/tenants', is_admin=True)
@@ -79,13 +79,24 @@ def user_details(user_id):
     for t in tenants:
         tenants_dict[t['id']] = t['name']
     
-    for role in user_roles:
+    user_roles = {}
+    for role in user_orig_roles:
         role['role'] = USER_ROLES[role['roleId']]  
         if 'tenantId' in role:
             if role['tenantId'] in tenants_dict:
                 role['tenantName'] = tenants_dict[role['tenantId']]
             else:
                 role['tenantName'] = "Tenant: %s" % role['tenantId']
+            user_roles[role['tenantName']] = []
+        else:
+            user_roles[' '] = []
+    for role in user_orig_roles:
+        if 'tenantName' in role:
+            user_roles[role['tenantName']].append(role['role'])
+        else:
+            user_roles[' '].append(role['role'])
+    for k, v in user_roles.items():
+        user_roles[k] = ", ".join(v)
     return render_template('project_views/user_details.haml', 
                            user=user,
                            user_roles=user_roles)
@@ -95,6 +106,7 @@ def user_details(user_id):
 def delete_user():
     form = DeleteUserForm()
     if form.validate_on_submit():
+        delete_response = keystone_delete('/users/%s/' % form.user_id.data)
         flash('User was deleted', 'success')
     else:
         flash('User was not deleted', 'error')
