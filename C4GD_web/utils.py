@@ -103,6 +103,7 @@ def keystone_get(path, params={}, is_admin=False):
 
 def keystone_post(path, data={}, is_admin=False):
     url = current_app.config['KEYSTONE_URL'] + path
+    print url, data
     if is_admin:
         url = url.replace('5000', '35357')
     headers = {
@@ -115,7 +116,6 @@ def keystone_post(path, data={}, is_admin=False):
         url, 
         data=json.dumps(data), 
         headers=headers)
-
     if not response_ok(response):
         if response.status_code == 401:
             raise GentleException('Access denied', response, data)
@@ -146,7 +146,7 @@ def keystone_delete(path):
             raise KeystoneExpiresException(
                 'Identity server responded with status %d' % \
                     response.status_code, response)
-
+            
 
 def get_public_url(tenant_id, service_type):
     """
@@ -242,7 +242,7 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
     return unjson(response)        
 
 
-def obtain_scoped(tenant_id):
+def obtain_scoped(tenant_id, is_admin=True):
     session['keystone_scoped'][tenant_id] = keystone_post(
         '/tokens',
         data={

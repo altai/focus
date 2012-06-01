@@ -31,7 +31,7 @@
                   Confirmation request
               %div.modal-body
                 %p
-                  Sure to to delete "{{ user.name }}"?
+                  Sure to delete "{{ user.name }}"?
               %div.modal-footer
                 %form method="post" action="{{ url_for('delete_user') }}"
                   {{ user.delete_form.hidden_tag() }}
@@ -41,8 +41,13 @@
                     No
             %a data-toggle="modal" href="#delete_user_{{ user.id }}"
               delete
-                
-            
+            &nbsp;|&nbsp;
+            -if user.is_global_admin:
+              %a href="{{ url_for('remove_global_admin_role', user_id=user.id) }}"
+                remove "Admin" role
+            -else
+              %a href="{{ url_for('grant_global_admin_role', user_id=user.id) }}"
+                grant "Admin" role
 
   %div.pagination
     %ul

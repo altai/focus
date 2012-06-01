@@ -8,6 +8,8 @@ from .pagination import Pagination, per_page
 
 from C4GD_web.views.forms import DeleteUserForm 
 
+import MySQLdb
+
 
 #  Roles available from the DB 'keystone' table 'roles'  
 #+----+----------------------+------+------------+
@@ -40,6 +42,8 @@ USER_ROLES = {
     "10": 'DNS_Admin'
 }
 
+GLOBAL_ADMIN_ROLE_ID = 1
+
 @app.route('/users/', methods=['GET'])
 def list_users():
     """
@@ -59,8 +63,12 @@ def list_users():
         form = DeleteUserForm()
         form.user_id.data = user['id']
         user['delete_form'] = form
-    
-    
+        user_orig_roles = keystone_get('/users/%s/roleRefs' % user['id'],
+                          is_admin=True)['roles']['values']
+        for role in user_orig_roles:
+            if role['roleId'] == u'1':
+                user['is_global_admin'] = True
+                break
     return render_template('project_views/list_users.haml', 
                            pagination=pagination,
                            data=data)
@@ -100,6 +108,42 @@ def user_details(user_id):
     return render_template('project_views/user_details.haml', 
                            user=user,
                            user_roles=user_roles)
+    
+@app.route('/users/<user_id>/grant/Admin/', methods=['GET'])
+def grant_global_admin_role(user_id):
+    db = MySQLdb.connect(
+        "localhost",
+        app.config['RW_DB_USER'],
+        app.config['RW_DB_PASS'],
+        app.config['RW_DB_NAME']
+    )
+    cursor = db.cursor()
+    q = "INSERT INTO user_roles (user_id, role_id) VALUES (%s, 1)" % user_id
+    cursor.execute(q)
+    db.commit()
+    cursor.close()
+    db.close()
+    flash('Admin role granted', 'success')
+    return redirect(url_for('list_users'))
+
+@app.route('/users/<user_id>/remove/Admin/', methods=['GET'])
+def remove_global_admin_role(user_id):
+    db = MySQLdb.connect(
+        "localhost",
+        app.config['RW_DB_USER'],
+        app.config['RW_DB_PASS'],
+        app.config['RW_DB_NAME']
+    )
+    cursor = db.cursor()
+    q = "DELETE FROM user_roles WHERE user_id = %s AND role_id = %d;" % \
+        (user_id, GLOBAL_ADMIN_ROLE_ID)
+                                                                         
+    cursor.execute(q)
+    db.commit()
+    cursor.close()
+    db.close()
+    flash('Admin role removed', 'success')
+    return redirect(url_for('list_users'))
 
     
 @app.route('/users/delete/', methods=['POST'])
