@@ -1,3 +1,4 @@
+import urlparse 
 from C4GD_web import app
 
 from flask import render_template, request, redirect, url_for, flash
@@ -111,11 +112,12 @@ def user_details(user_id):
     
 @app.route('/users/<user_id>/grant/Admin/', methods=['GET'])
 def grant_global_admin_role(user_id):
+    connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
-        "localhost",
-        app.config['RW_DB_USER'],
-        app.config['RW_DB_PASS'],
-        app.config['RW_DB_NAME']
+        connection_params.hostname,
+        connection_params.username,
+        connection_params.password,
+        connection_params.path.replace('/', '')
     )
     cursor = db.cursor()
     q = "INSERT INTO user_roles (user_id, role_id) VALUES (%s, 1)" % user_id
@@ -128,11 +130,12 @@ def grant_global_admin_role(user_id):
 
 @app.route('/users/<user_id>/remove/Admin/', methods=['GET'])
 def remove_global_admin_role(user_id):
+    connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
-        "localhost",
-        app.config['RW_DB_USER'],
-        app.config['RW_DB_PASS'],
-        app.config['RW_DB_NAME']
+        connection_params.hostname,
+        connection_params.username,
+        connection_params.password,
+        connection_params.path.replace('/', '')
     )
     cursor = db.cursor()
     q = "DELETE FROM user_roles WHERE user_id = %s AND role_id = %d;" % \
