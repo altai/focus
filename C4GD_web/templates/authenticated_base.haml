@@ -19,6 +19,9 @@
               %li
                 %a href="{{ url_for('global_views.list_vms')}}"
                   Global administration
+              %li
+                %a href="{{ url_for('list_users')}}"
+                  Users
             -if tenants_with_roles:
               %li class="dropdown{% if tenant %} active{% endif %}"
                 %a.dropdown-toggle  href="#" data-toggle="dropdown"
@@ -36,7 +39,7 @@
                 %a href="{{ url_for('ssh_keys.index') }}" -> SSH Keys
           %ul class="nav pull-right"
             %li
-              %a
+              %a href="{{ url_for('profile') }}"
                 =session['keystone_unscoped']['access']['user']['name']
             %li
               %a href="{{ url_for('logout') }}"

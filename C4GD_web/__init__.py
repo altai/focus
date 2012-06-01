@@ -33,6 +33,7 @@ app.session_interface = Session()
 if not app.debug:
     logging.basicConfig(stream=sys.stderr)
 
+
 # blueprints started
 SHOW_ONES = (
     ('images', '/images/', abstract.Image),

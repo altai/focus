@@ -75,8 +75,10 @@ def keystone_obtain_unscoped(user_name, password):
     return False, ""
     
 
-def keystone_get(path, params={}):
+def keystone_get(path, params={}, is_admin=False):
     url = current_app.config['KEYSTONE_URL'] + path
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -99,8 +101,10 @@ def keystone_get(path, params={}):
     return unjson(response)
 
 
-def keystone_post(path, data={}):
+def keystone_post(path, data={}, is_admin=False):
     url = current_app.config['KEYSTONE_URL'] + path
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -121,6 +125,27 @@ def keystone_post(path, data={}):
                     response.status_code, response)
 
     return unjson(response)
+
+def keystone_delete(path):
+    url = current_app.config['KEYSTONE_URL'] + path
+    url = url.replace('5000', '35357')
+    headers = {
+            'X-Auth-Token': session['keystone_unscoped']['access']\
+                ['token']['id'],
+            'Content-Type': 'application/json'
+            }
+
+    response = requests.delete(
+        url, 
+        headers=headers)
+
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response, {})
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
 
 
 def get_public_url(tenant_id, service_type):
@@ -197,17 +222,23 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
         if  not response_ok(response):
             try:
                 r = unjson(response)
-                raise GentleException(
-                    'API response was: %s' % \
-                        r['cloudServersFault']['message'], response)
+                if 'cloudServersFault' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['cloudServersFault']['message'], response)
+                elif 'itemNotFound' in r:
+                    raise GentleException(
+                        'API response was: %s' % \
+                            r['itemNotFound']['message'], response)
+                else:
+                    raise GentleException(
+                        'API response was: %s' % r, response)
             except Exception:
                 raise
             else:
                 raise GentleException(
                     'Can\'t make API call for %s for tenant "%s"' % (
                         service_type, tenant_id), response)
-
-
     return unjson(response)        
 
 

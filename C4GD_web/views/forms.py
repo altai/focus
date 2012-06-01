@@ -35,7 +35,7 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     KEYPAIR_CHOICES = sorted(map(l4, key_pairs), key=l3)   
 
     class SpawnForm(wtf.Form):
-        image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES)
+        image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES, coerce=int)
         flavor = wtf.SelectField('Flavor', [wtf.Required()], choices=FLAVOR_CHOICES, coerce=int)
         name = wtf.TextField('Name', [wtf.Required()])
         password = wtf.PasswordField('Password')
@@ -74,3 +74,6 @@ class NewImage(wtf.Form):
     upload_type = wtf.SelectField('Upload type', [wtf.Required()], choices=(('', 'Single'), ('separate', 'Composite')))
     
     
+class DeleteUserForm(wtf.Form):
+    user_id = wtf.HiddenField('user id', [wtf.Required()])
+

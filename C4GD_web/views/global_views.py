@@ -6,7 +6,7 @@ from flask import redirect, url_for
 from flask.blueprints import Blueprint
 
 from C4GD_web.exceptions import BillingAPIError, GentleException
-from C4GD_web.models.abstract import AccountBill, VirtualMachine
+from C4GD_web.models.abstract import AccountBill, VirtualMachine, Flavor
 from C4GD_web.models.orm import Tenant
 
 from .dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
@@ -64,15 +64,16 @@ def list_vms():
             tenant = g.store.get(Tenant, tenant_id)
             return tenant.name
     page = int(request.args.get('page', 1))
-    default_columns = ['id', 'name', 'project_name', 'tenant_id']
+    default_columns = ['id', 'name', 'project_name', 'ram']
     #creating and adjusting columns vector, columns ordering
     columns = ColumnKeeper({
         'id': IntColumn('id', 'ID'),
         'name': StrColumn('name', 'Name'),
         'user_id': StrColumn('user_id', 'User'),
         'tenant_id': IntColumn('tenant_id', 'Project ID'),
-        'project_name': ProjectNameColumn('project_name', 'Project Name')
-        
+        'project_name': ProjectNameColumn('project_name', 'Project Name'),
+        'ram': IntColumn('ram', 'RAM'),
+        'vcpus': IntColumn('vcpus', 'Number of CPUs')
         }, default_columns)
     if 'columns' in request.args:
         columns.adjust([x for x in request.args['columns'].split(',') if x])
@@ -80,7 +81,20 @@ def list_vms():
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     if 'groupby' in request.args:
         columns.adjust_groupby(request.args['groupby'])
-    vms = response_data = VirtualMachine.list(6)
+    vms = response_data = VirtualMachine.list(tenant_id='6')
+    # inject flavors info
+    flavors = dict([(int(x['id']), x) for x in Flavor.list()])
+    for row in vms:
+        flavor_id = int(row['flavor']['id'])
+        if flavor_id not in flavors:
+            flavor = Flavor.get(flavor_id)
+            if 'flavor' in flavor:
+                flavors[flavor_id] = flavor['flavor']
+            else:
+                flavors[flavor_id] = flavor
+        row['ram'] = flavors[flavor_id]['ram']
+        row['vcpus'] = flavors[flavor_id]['vcpus']
+
     dataset = DataSet(vms, columns)
     if 'export' in request.args:
         try:

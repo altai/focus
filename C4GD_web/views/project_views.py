@@ -105,27 +105,22 @@ def spawn_vm(tenant_id):
 def remove_vm(tenant_id, vm_id):
     '''
     Delete VM.
-    No checks because currently OpenStack performs authrisation checks.
+    No checks because currently OpenStack performs authorization checks.
     '''
     VirtualMachine.delete(vm_id, tenant_id)
     flash('Virtual machine removed successfully.', 'success')
     return redirect(get_next_url())
 
 
-@bp.route('/users/')
-def list_users(tenant_id):
+@bp.route('/vms/<int:vm_id>/reboot/<type>/', methods=['POST'])
+def reboot_vm(vm_id, tenant_id, type):
     """
-    List users.
+    Reboot VM
     """
-    users = g.tenant.users.find().order_by(User.name).config(distinct=True)
-    page = int(request.args.get('page', 1))
-    pagination = Pagination(page, per_page(), users.count())
-    objects = users.config
-    return {
-        'pagination': pagination,
-        'objects': users.config(offset=(page-1) * per_page(), limit=per_page())
-        }
-
+    VirtualMachine.reboot(tenant_id, vm_id, type)
+    flash('Virtual machine rebooted successfully.', 'success')
+    return redirect(get_next_url())
+    
 
 #@bp.route('/users/new/', methods=['GET', 'POST'])
 @pm_only

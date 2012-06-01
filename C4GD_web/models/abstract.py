@@ -101,7 +101,9 @@ class OpenstackMixinBase(object):
             trophy = api_func(tenant_id, path, **kw)
         except exceptions.GentleException, e:
             if tolerate404:
-                if e.args[1].status_code == 404:
+                if len(e.args) > 1 and e.args[1].status_code == 404:
+                    pass
+                elif e.args[0].startswith('No public URL'):
                     pass
                 else:
                     raise
@@ -260,6 +262,15 @@ def get_status_code(response):
     else:
         return response.status
 
+class NovaImage(NovaAPI):
+    base = '/images'
+    list_any_one_tenant = True
+
+    @staticmethod
+    def list_accessor(obj):
+        return obj['images']
+
+
 class VirtualMachine(NovaAPI):
     base = '/servers'
     list_prefix = '/detail'
@@ -269,14 +280,19 @@ class VirtualMachine(NovaAPI):
         return obj['servers']
 
     @classmethod
-    def create(cls, tenant_id, name, image, flavor, 
+    def create(cls, tenant_id, name, image_id, flavor_id, 
                password=None, keypair=None, security_groups=[]):
-        image = Image.get(int(image))
+        
+        image = NovaImage.get(image_id)
+        try:
+            imageRef = [x['href'] for x in image['image']['links'] if x['rel'] == u'self'][0]
+        except KeyError:
+            raise RuntimeError('API returns image without link "self"', image)
         request_data = {
             'server': {
                 'name': name,
-                'imageRef': image['image']['links'][0]['href'],
-                'flavorRef': int(flavor)
+                'imageRef': imageRef,
+                'flavorRef': flavor_id
                 }
             }
         if password:
@@ -284,10 +300,21 @@ class VirtualMachine(NovaAPI):
         if keypair:
             request_data['server']['key_name'] = keypair
         if len(security_groups):
-            request_data['server']['security_groups'] = utils.select_keys(
-                SecurityGroup.list(),
-                map(int, security_group_keys))
-        utils.openstack_api_call(tenant_id, cls.base, request_data, service_type=cls.service_type, http_method=requests.post)
+            request_data['server']['security_groups'] = [
+                {'name': x['name']} for x in SecurityGroup.list() \
+                    if x['id'] in security_groups]
+        utils.openstack_api_call(
+            cls.service_type, tenant_id, cls.base, request_data, 
+            http_method=requests.post)
+    
+    @classmethod
+    def reboot(cls, tenant_id, vm_id, type):
+        utils.openstack_api_call(
+            cls.service_type, 
+            tenant_id, 
+            "%s/%s/action" % (cls.base, vm_id),  
+            {'reboot': {'type': type}}, 
+            requests.post)
 
 
 class Flavor(NovaAPI):
