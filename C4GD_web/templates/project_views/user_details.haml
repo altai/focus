@@ -12,20 +12,19 @@
       -else
         No
   %div
-    -if user_roles != []
-       %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
-         %thead
+     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+       %thead
+         %tr
+           %th
+             Tenant
+           %th
+             Role
+         -for k, v in user_roles.items()
            %tr
-             %th
-               Tenant
-             %th
-               Role
-           -for k, v in user_roles.items()
-             %tr
-               %td
-                 =k
-               %td
-                 =v
+             %td
+               =k
+             %td
+               =v
     
   %a href="{{ url_for('list_users') }}"
     back
