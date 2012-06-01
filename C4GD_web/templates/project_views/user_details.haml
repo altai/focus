@@ -1,0 +1,32 @@
+-extends "authenticated_base.haml"
+-block content
+  %div
+    Username: {{ user.name }}
+    %br
+    -if 'email' in user:
+      Email: {{ user.email }}
+      %br
+    Enabled: 
+      -if user.enabled
+        Yes
+      -else
+        No
+  %div
+    -if user_roles != []
+       %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+         %thead
+           %tr
+             %th
+               Role
+             %th
+               Tenant
+           -for role in user_roles
+             %tr
+               %td
+                 =role.role
+               %td
+                 =role.tenantName
+    
+  %a href="{{ url_for('list_users') }}"
+    back
+     

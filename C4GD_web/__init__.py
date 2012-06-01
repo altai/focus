@@ -77,6 +77,8 @@ import C4GD_web.context_processors
 import C4GD_web.views.authentication
 import C4GD_web.views.dashboard
 import C4GD_web.views.profile
+import C4GD_web.views.users_management
+
 from C4GD_web.views import ssh_keys
 
 app.register_blueprint(get_one('images'), url_prefix='/images/', model=Image)

@@ -73,8 +73,10 @@ def keystone_obtain_unscoped(user_name, password):
     return False, ""
     
 
-def keystone_get(path, params={}):
+def keystone_get(path, params={}, is_admin=False):
     url = current_app.config['KEYSTONE_URL'] + path
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -97,8 +99,10 @@ def keystone_get(path, params={}):
     return unjson(response)
 
 
-def keystone_post(path, data={}):
+def keystone_post(path, data={}, is_admin=False):
     url = current_app.config['KEYSTONE_URL'] + path
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],

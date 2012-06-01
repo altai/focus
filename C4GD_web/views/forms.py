@@ -67,4 +67,7 @@ class CreateSSHKey(wtf.Form):
     public_key = wtf.TextField(
         'Public Key', [wtf.Optional()],
         description='Can be omitted. New keypair will be generated')
-
+    
+    
+class DeleteUserForm(wtf.Form):
+    user_id = wtf.HiddenField('user id', [wtf.Required()])

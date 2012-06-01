@@ -122,22 +122,6 @@ def reboot_vm(vm_id, tenant_id, type):
     return redirect(get_next_url())
     
 
-
-@bp.route('/users/')
-def list_users(tenant_id):
-    """
-    List users.
-    """
-    users = g.tenant.users.find().order_by(User.name).config(distinct=True)
-    page = int(request.args.get('page', 1))
-    pagination = Pagination(page, per_page(), users.count())
-    objects = users.config
-    return {
-        'pagination': pagination,
-        'objects': users.config(offset=(page-1) * per_page(), limit=per_page())
-        }
-
-
 #@bp.route('/users/new/', methods=['GET', 'POST'])
 @pm_only
 def new_user_to_project(tenant_id):
