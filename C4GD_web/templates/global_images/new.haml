@@ -1,0 +1,15 @@
+-extends "global_admin_base.haml"
+-block subnav
+  =super()
+  -include "images_bp/_subnav.haml"
+-block amdjs
+  %script
+    window.kernel_list = {{ kernel_list }};
+    window.initrd_list = {{ initrd_list }};
+  %script src="{{ url_for('static', filename='amd/main_images.js') }}"
+-block content
+  -from "_formhelpers.haml" import render_h_field
+  %form.form-horizontal method="POST" action="."
+    %legend
+      Add Image    
+    %div.upload-view

@@ -13,7 +13,9 @@
             %a href="{{ url_for('global_views.list_vms') }}" -> Virtual machines      
           %li
             %a href="{{ url_for('global_views.billing') }}" -> Billing     
-      
+          %li
+            %a href="{{ url_for('global_images.index') }}" -> Images
+     
   -if tenants_with_roles|length
     %section
       %div.page-header

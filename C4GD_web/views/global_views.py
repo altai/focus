@@ -14,10 +14,10 @@ from .exporter import Exporter
 from .generic_billing import generic_billing
 from .pagination import Pagination, per_page
 
-bp = Blueprint('global_views', __name__, url_prefix='/g')
+bp = Blueprint('global_views', __name__, url_prefix='/global/')
 
 
-@bp.route('/billing/')
+@bp.route('billing/')
 def billing():
     '''
     Define tenant to show and redirect there.
@@ -34,7 +34,7 @@ def billing():
         raise GentleException('No billing accounts to show')
     
 
-@bp.route('/billing/<tenant_id>/')
+@bp.route('billing/<tenant_id>/')
 def billing_details(tenant_id):
     '''
     Present billing info for tenant.
@@ -53,7 +53,7 @@ def billing_details(tenant_id):
     return generic_billing(tenant_id, tenants=tenants)
 
 
-@bp.route('/')
+@bp.route('')
 def list_vms():
     '''
     List all virtual machines in the cloud.

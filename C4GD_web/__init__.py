@@ -1,89 +1,81 @@
 # coding=utf-8
+import logging
 import sys
-from gevent import monkey
-monkey.patch_all()
+from gevent import monkey; monkey.patch_all()
 
 from flask import Flask
-from flask import flash, render_template, session, redirect, url_for
-from flask import request, jsonify
-
-
-from werkzeug import ImmutableDict
+from flaskext import uploads
 from flask_memcache_session import Session
+from werkzeug import ImmutableDict
 from werkzeug.contrib.cache import MemcachedCache
 
+import application
+from models import abstract
+from views import global_views
+from views import images
+from views import project_views
+from views import show_one
+from views import ssh_keys
 
-from .application import FatFlask
-from .blueprints.show_one import get_one
-from .models.abstract import Image, VirtualMachine, Volume
-from .exceptions import KeystoneExpiresException, GentleException
-from .views.project_views import bp as project_views_bp
-from .views.global_views import bp as global_views_bp
 
-
-
-app = FatFlask(__name__)
-
-app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
-
-app.cache = MemcachedCache(
-    ['127.0.0.1:11211'],
-    default_timeout=300000,
-    key_prefix='focus')
-app.session_interface = Session()
+app = application.FatFlask(__name__)
 
 # config app
 app.config.from_object('C4GD_web.default_settings')
 app.config.from_object('C4GD_web.local_settings')
 
+app.jinja_env.hamlish_mode = 'indented'
+app.cache = MemcachedCache(
+    ['127.0.0.1:11211'],
+    default_timeout=300000,
+    key_prefix='focus')
+app.session_interface = Session()
 if not app.debug:
-    import logging, sys
     logging.basicConfig(stream=sys.stderr)
 
- # TODO: move to blueprint
+# blueprints started
+SHOW_ONES = (
+    ('images', '/images/', abstract.Image),
+    ('virtual_machines', '/virtual-machines/', abstract.VirtualMachine),
+    ('volumes', '/volumes/', abstract.Volume)
+)
+for name, url_prefix, model in SHOW_ONES:
+    app.register_blueprint(
+        show_one.get_one(name), url_prefix=url_prefix, model=model)
 
-@app.errorhandler(KeystoneExpiresException)
-def keystone_expired(error):
-    flash(error.message, 'error')
-    exc_type, exc_value, tb = sys.exc_info()
-    app.log_exception((exc_type, exc_value, tb))
-    return redirect(url_for('logout'))
-
-@app.errorhandler(GentleException)
-def gentle_exception(error):
-    flash(error.args[0], 'error')
-    exc_type, exc_value, tb = sys.exc_info()
-    app.log_exception((exc_type, exc_value, tb))
-    # TODO: separate Exception type for nova
-    app.logger.error(error.args[1].status_code)
-    app.logger.error(error.args[1].content)
-    if request.is_xhr:
-        return jsonify({'status': 'error', 'message': error.args[0]})
-    else:
-        return render_template('blank.haml')
-
-if not app.debug:
-    @app.errorhandler(Exception)
-    def everything_exception(error):
-        flash(error.message, 'error')
-        exc_type, exc_value, tb = sys.exc_info()
-        app.log_exception((exc_type, exc_value, tb))
-        return render_template('blank.haml')
-    
-
-import C4GD_web.callbacks
-import C4GD_web.context_processors
-
-import C4GD_web.views.authentication
-import C4GD_web.views.dashboard
-from C4GD_web.views import ssh_keys
-
-app.register_blueprint(get_one('images'), url_prefix='/images/', model=Image)
-app.register_blueprint(get_one('virtual_machines'), url_prefix='/virtual-machines/', model=VirtualMachine)
-app.register_blueprint(get_one('volumes'), url_prefix='/volumes/', model=Volume)
-
-app.register_blueprint(project_views_bp)
-app.register_blueprint(global_views_bp)
+app.register_blueprint(project_views.bp)
+app.register_blueprint(global_views.bp)
 app.register_blueprint(ssh_keys.bp)
+app.register_blueprint(images.get_bp('global_images'), url_prefix='/global/images/')
+#  it is not clear how to implement public/private images
+#app.register_blueprint(images.get_one('project_images'), url_prefix='/<project_id>/images/')
 
 
+class ResolvingUploadSet(uploads.UploadSet):
+    '''Quick workaround for extensinless filenames.'''
+
+    def resolve_conflict(self, target_folder, basename):
+        try:
+            return super(ResolvingUploadSet, self).resolve_conflict(
+                target_folder, basename)
+        except ValueError:
+            import uuid
+            return str(uuid.uuid4())
+
+
+files_uploads = ResolvingUploadSet('files', uploads.ALL)
+uploads.configure_uploads(app, [files_uploads])
+
+
+# these import app
+import errorhandlers
+import callbacks
+import context_processors
+import views.authentication
+import views.autorization
+import views.dashboard
+
+@app.after_request
+def for_static(response):
+    response.data = response.data.replace('/static/', 'http://static.localhost:3000/static/')
+    return response

@@ -1,0 +1,108 @@
+<fieldset>
+  <div class="control-group name <% if ('name' in error_messages){ %>alert-error<% } %>">
+    <label class="control-label">
+      Name
+    </label>
+    <div class="controls">
+      <input type="text" name="name" id="id_name" value="<%= name %>">
+      <% if ('name' in error_messages){ %>
+      <p class="help-block"><%= error_messages['name'] %></p>
+      <% } %>
+    </div>
+  </div>
+  <div class="control-group upload-type">
+    <label class="control-label">
+      Upload type
+    </label>
+    <div class="controls">
+      <select id="id_upload_type" name="upload_type">
+        <option value="combined"<% if (selected_upload_type == 'combined'){%> selected="selected"<% } %>>Combined Image</option>
+        <option value="rootfs"<% if (selected_upload_type == 'rootfs'){%> selected="selected"<% } %>>Rootfs Image + previously uploaded kernel,rootfs</option>
+        <option value="kernel"<% if (selected_upload_type == 'kernel'){%> selected="selected"<% } %>>Kernel Image only</option>
+        <option value="initrd"<% if (selected_upload_type == 'initrd'){%> selected="selected"<% } %>>Initrd  Image only</option>
+      </select>
+      <p class="help-block">
+      </p>
+    </div>
+  </div>
+  <% if (selected_upload_type == 'rootfs') { %>
+  <div class="control-group kernel <% if ('kernel' in error_messages){ %>alert-error<% } %>">
+    <label class="control-label">Kernel</label>
+    <div class="controls">
+      <select id="id_kernel" name="kernel">
+        <% _.each(kernel_list, function(x){ %>
+        <option value="<%= x.id %>"><%= x.name %></option>
+        <% }); %>
+      </select>
+      <% if ('kernel' in error_messages){ %>
+      <p class="help-block"><%= error_messages['kernel'] %></p>
+      <% } %>
+    </div>
+  </div>
+  <div class="control-group initrd <% if ('initrd' in error_messages){ %>alert-error<% } %>">
+    <label class="control-label">Initrd</label>
+    <div class="controls">
+      <select id="id_initrd" name="initrd">
+        <% _.each(initrd_list, function(x){ %>
+        <option value="<%= x.id %>"><%= x.name %></option>
+        <% }); %>
+      </select>
+      <% if ('initrd' in error_messages){ %>
+      <p class="help-block"><%= error_messages['initrd'] %></p>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+  <div class="control-group container">
+    <label class="control-label">Container format</label>
+    <div class="controls">
+      <select id="id_container" name="container">
+        <% if (selected_upload_type == 'combined'){ %>
+        <option value="ovf">ovf</option>
+        <option value="bare">bare</option>
+        <% } else if(selected_upload_type == 'rootfs') { %>
+        <option value="ami">ami</option>
+        <% } else if(selected_upload_type == 'kernel') { %>
+        <option value="kernel">aki</option>
+        <% } else if(selected_upload_type == 'initrd') { %>
+        <option value="ari">ari</option>
+        <% } %>
+      </select>
+    </div>
+  </div>
+  <div class="control-group disk">
+    <label class="control-label">Disk format</label>
+    <div class="controls">
+      <select id="id_disk" name="disk">
+        <% if (selected_upload_type == 'combined'){ %>
+        <option value="qcow2">qcow2</option>
+        <option value="raw">raw</option>
+        <% } else if(selected_upload_type == 'rootfs') { %>
+        <option value="ami">ami</option>
+        <% } else if(selected_upload_type == 'kernel') { %>
+        <option value="kernel">aki</option>
+        <% } else if(selected_upload_type == 'initrd') { %>
+        <option value="ari">ari</option>
+        <% } %>
+      </select>
+    </div>
+  </div>
+  <div class="control-group uploader <% if ('uploader' in error_messages){ %>alert-error<% } %>">
+    <label class="control-label">File to upload</label>
+    <div class="controls">
+      <div id="container">
+        <div id="filelist">No runtime found.</div>
+        <br />
+        <a id="pickfiles" href="#">[Select files]</a>
+        <a id="uploadfiles" href="#">[Upload files]</a>
+      </div>
+      <% if ('uploader' in error_messages){ %>
+      <p class="help-block"><%= error_messages['uploader'] %></p>
+      <% } %>
+    </div>
+  </div>
+</fieldset>
+<div class="form-actions">
+  <button class="btn btn-primary" type="submit">Add</button>
+  <button class="btn" type="reset">Cancel</button>
+</div>

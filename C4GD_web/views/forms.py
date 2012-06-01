@@ -68,3 +68,9 @@ class CreateSSHKey(wtf.Form):
         'Public Key', [wtf.Optional()],
         description='Can be omitted. New keypair will be generated')
 
+
+class NewImage(wtf.Form):
+    name = wtf.TextField('Image name', [wtf.Required()])
+    upload_type = wtf.SelectField('Upload type', [wtf.Required()], choices=(('', 'Single'), ('separate', 'Composite')))
+    
+    

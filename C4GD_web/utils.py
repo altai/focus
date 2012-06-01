@@ -18,11 +18,6 @@ from C4GD_web.exceptions import KeystoneExpiresException, GentleException, Billi
 from .benchmark import benchmark
 
 
-def unjson(response, attr='content'):
-    value = getattr(response, attr)
-    return json.loads(value) if value != '' else ''
-
-
 def response_ok(response):
     return  200 <= response.status_code < 300
 
@@ -30,8 +25,15 @@ from .benchmark import benchmark
 
 
 def unjson(response, attr='content'):
-    value = getattr(response, attr)
-    if 'json' in response.headers['content-type']:
+    if attr == 'read()':
+        value = response.read()
+    else:
+        value = getattr(response, attr)
+    if hasattr(response, 'getheaders'):
+        ct = response.getheader('content-type')
+    else:
+        ct = response.headers['content-type']
+    if 'json' in ct:
         if '' == value:
             return value
         else:
@@ -135,6 +137,7 @@ def get_public_url(tenant_id, service_type):
     raise GentleException(
         'No public URL for %s for tenant "%s"' % (
             service_type, tenant_id))
+
 
 
 def openstack_api_call(service_type, tenant_id, path, params={}, http_method=False):
