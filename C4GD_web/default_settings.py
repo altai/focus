@@ -10,7 +10,7 @@ KEYSTONE_URL = 'http://172.18.41.1:5000/v2.0'
 BILLING_URL = 'http://172.30.0.3:8787/v2'
 DEV = False
 TEMPLATE_EXTENSION = '.haml'
-ANONYMOUS_ALLOWED = ['login']
+ANONYMOUS_ALLOWED = ['login', 'static']
 TENANT_ID_TO_USE = '6' # Nova required scoped tenant to perform a lot of things
 DEFAULT_APP_PORT = 5000
 
