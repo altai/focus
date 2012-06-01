@@ -1,7 +1,6 @@
 import urlparse 
-from C4GD_web import app
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, current_app
 from flask.blueprints import Blueprint
 
 from C4GD_web.utils import keystone_get, keystone_delete
@@ -110,7 +109,7 @@ def user_details(user_id):
     
 @bp.route('/<user_id>/grant/Admin/', methods=['GET'])
 def grant_global_admin_role(user_id):
-    connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
+    connection_params = urlparse.urlparse(current_app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
         connection_params.hostname,
         connection_params.username,
@@ -128,7 +127,7 @@ def grant_global_admin_role(user_id):
 
 @bp.route('/<user_id>/remove/Admin/', methods=['GET'])
 def remove_global_admin_role(user_id):
-    connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
+    connection_params = urlparse.urlparse(current_app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
         connection_params.hostname,
         connection_params.username,

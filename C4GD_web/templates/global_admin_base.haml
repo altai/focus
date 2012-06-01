@@ -17,3 +17,6 @@
         %li{% if request.blueprint == 'global_images' %} class="active"{% endif %}
           %a href="{{ url_for('global_images.index') }}"
             Images    
+        %li
+          %a href="{{ url_for('global_user_management.list_users')}}"
+            Users

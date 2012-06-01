@@ -16,7 +16,7 @@ from views import images
 from views import project_views
 from views import show_one
 from views import ssh_keys
-from C4GD_web.views import users_management
+from views import users_management
 
 app = application.FatFlask(__name__)
 
@@ -75,3 +75,4 @@ import context_processors
 import views.authentication
 import views.autorization
 import views.dashboard
+import views.profile
