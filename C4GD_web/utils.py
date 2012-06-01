@@ -144,7 +144,7 @@ def keystone_delete(path):
             raise KeystoneExpiresException(
                 'Identity server responded with status %d' % \
                     response.status_code, response)
-
+            
 
 def get_public_url(tenant_id, service_type):
     """
