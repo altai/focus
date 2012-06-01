@@ -10,13 +10,6 @@ from werkzeug import ImmutableDict
 from werkzeug.contrib.cache import MemcachedCache
 
 import application
-from models import abstract
-from views import global_views
-from views import images
-from views import project_views
-from views import show_one
-from views import ssh_keys
-from views import users_management
 
 app = application.FatFlask(__name__)
 
@@ -32,6 +25,14 @@ app.cache = MemcachedCache(
 app.session_interface = Session()
 if not app.debug:
     logging.basicConfig(stream=sys.stderr)
+
+from models import abstract
+from views import global_views
+from views import images
+from views import project_views
+from views import show_one
+from views import ssh_keys
+from views import users_management
 
 # blueprints started
 SHOW_ONES = (
