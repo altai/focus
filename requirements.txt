@@ -3,10 +3,11 @@ Flask-WTF
 Jinja2
 MySQL-python
 WTForms
-Werkzeug
-wsgiref
 Hamlish-Jinja
 requests
 gevent
 storm
 pylibmc
+Flask-Principal
+Flask-Uploads
+Tornado
