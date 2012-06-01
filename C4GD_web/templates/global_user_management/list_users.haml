@@ -1,0 +1,65 @@
+-extends "authenticated_base.haml"
+-block content
+  ;-if g.user.is_project_manager(g.tenant)
+  ;  %a.btn.btn-primary href="{{ url_for("project_views.new_user_to_project", tenant_id=g.tenant.id) }}" style="margin-top: 15px"
+  ;    %b.icon-add
+  ;    Add user
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Userame
+        %th
+          Email
+        -if g.is_global_admin
+          %th
+            Actions
+      -for user in data
+        %tr
+          %td
+            %a href="{{ url_for('global_user_management.user_details', user_id=user.id) }}"
+              =user.name
+          %td
+            -if user.email != 'None'
+              =user.email
+          %td
+            %div.modal.hide id="delete_user_{{ user.id }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ user.name }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('global_user_management.delete_user') }}"
+                  {{ user.delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_user_{{ user.id }}"
+              delete
+            &nbsp;|&nbsp;
+            -if user.is_global_admin:
+              %a href="{{ url_for('global_user_management.remove_global_admin_role', user_id=user.id) }}"
+                remove "Admin" role
+            -else
+              %a href="{{ url_for('global_user_management.grant_global_admin_role', user_id=user.id) }}"
+                grant "Admin" role
+
+  %div.pagination
+    %ul
+      -if pagination.has_prev
+        %li
+          %a href="{{ url_for_other_page(pagination.page - 1) }}" -> Prev
+      -for page in pagination.iter_pages()
+        -if page
+          %li class="{% if page == pagination.page %}active{% endif %}"
+            %a href="{{ url_for_other_page(page) }}" -> {{ page }}
+        -else
+          %li.ellipsis -> …  
+      -if pagination.has_next
+        %li
+          %a href="{{ url_for_other_page(pagination.page + 1) }}" -> Next

@@ -80,6 +80,7 @@ import C4GD_web.views.profile
 import C4GD_web.views.users_management
 
 from C4GD_web.views import ssh_keys
+from C4GD_web.views import users_management
 
 app.register_blueprint(get_one('images'), url_prefix='/images/', model=Image)
 app.register_blueprint(get_one('virtual_machines'), url_prefix='/virtual-machines/', model=VirtualMachine)
@@ -88,5 +89,6 @@ app.register_blueprint(get_one('volumes'), url_prefix='/volumes/', model=Volume)
 app.register_blueprint(project_views_bp)
 app.register_blueprint(global_views_bp)
 app.register_blueprint(ssh_keys.bp)
+app.register_blueprint(users_management.bp)
 
 
