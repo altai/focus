@@ -123,7 +123,26 @@ def grant_global_admin_role(user_id):
     db.commit()
     cursor.close()
     db.close()
+    flash('Admin role granted', 'success')
+    return redirect(url_for('list_users'))
 
+@app.route('/users/<user_id>/remove/Admin/', methods=['GET'])
+def remove_global_admin_role(user_id):
+    db = MySQLdb.connect(
+        "localhost",
+        app.config['RW_DB_USER'],
+        app.config['RW_DB_PASS'],
+        app.config['RW_DB_NAME']
+    )
+    cursor = db.cursor()
+    q = "DELETE FROM user_roles WHERE user_id = %s AND role_id = %d;" % \
+        (user_id, GLOBAL_ADMIN_ROLE_ID)
+                                                                         
+    cursor.execute(q)
+    db.commit()
+    cursor.close()
+    db.close()
+    flash('Admin role removed', 'success')
     return redirect(url_for('list_users'))
 
     
