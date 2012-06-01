@@ -1,7 +1,8 @@
 import urlparse 
 from C4GD_web import app
 
-from flask import render_template, request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash
+from flask.blueprints import Blueprint
 
 from C4GD_web.utils import keystone_get, keystone_delete
 
@@ -11,6 +12,7 @@ from C4GD_web.views.forms import DeleteUserForm
 
 import MySQLdb
 
+bp = Blueprint('global_user_management', __name__, url_prefix='/g/users')
 
 #  Roles available from the DB 'keystone' table 'roles'  
 #+----+----------------------+------+------------+
@@ -45,7 +47,7 @@ USER_ROLES = {
 
 GLOBAL_ADMIN_ROLE_ID = 1
 
-@app.route('/users/', methods=['GET'])
+@bp.route('/', methods=['GET'])
 def list_users():
     """
     List users.
@@ -70,11 +72,9 @@ def list_users():
             if role['roleId'] == u'1':
                 user['is_global_admin'] = True
                 break
-    return render_template('project_views/list_users.haml', 
-                           pagination=pagination,
-                           data=data)
+    return dict(pagination=pagination, data=data)
     
-@app.route('/users/<user_id>/details/', methods=['GET'])
+@bp.route('/<user_id>/details/', methods=['GET'])
 def user_details(user_id):
     user_request = keystone_get('/users/%s/' % user_id, is_admin=True)
     user = user_request['user']
@@ -106,11 +106,9 @@ def user_details(user_id):
             user_roles[' '].append(role['role'])
     for k, v in user_roles.items():
         user_roles[k] = ", ".join(v)
-    return render_template('project_views/user_details.haml', 
-                           user=user,
-                           user_roles=user_roles)
+    return dict(user=user, user_roles=user_roles)
     
-@app.route('/users/<user_id>/grant/Admin/', methods=['GET'])
+@bp.route('/<user_id>/grant/Admin/', methods=['GET'])
 def grant_global_admin_role(user_id):
     connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
@@ -126,9 +124,9 @@ def grant_global_admin_role(user_id):
     cursor.close()
     db.close()
     flash('Admin role granted', 'success')
-    return redirect(url_for('list_users'))
+    return redirect(url_for('.list_users'))
 
-@app.route('/users/<user_id>/remove/Admin/', methods=['GET'])
+@bp.route('/<user_id>/remove/Admin/', methods=['GET'])
 def remove_global_admin_role(user_id):
     connection_params = urlparse.urlparse(app.config['RW_DATABASE_URI'])
     db = MySQLdb.connect(
@@ -146,10 +144,10 @@ def remove_global_admin_role(user_id):
     cursor.close()
     db.close()
     flash('Admin role removed', 'success')
-    return redirect(url_for('list_users'))
+    return redirect(url_for('.list_users'))
 
     
-@app.route('/users/delete/', methods=['POST'])
+@bp.route('/delete/', methods=['POST'])
 def delete_user():
     form = DeleteUserForm()
     if form.validate_on_submit():
@@ -157,4 +155,4 @@ def delete_user():
         flash('User was deleted', 'success')
     else:
         flash('User was not deleted', 'error')
-    return redirect(url_for('list_users'))
+    return redirect(url_for('.list_users'))

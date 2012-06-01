@@ -16,7 +16,7 @@ from views import images
 from views import project_views
 from views import show_one
 from views import ssh_keys
-
+from C4GD_web.views import users_management
 
 app = application.FatFlask(__name__)
 
@@ -33,7 +33,6 @@ app.session_interface = Session()
 if not app.debug:
     logging.basicConfig(stream=sys.stderr)
 
-
 # blueprints started
 SHOW_ONES = (
     ('images', '/images/', abstract.Image),
@@ -48,6 +47,8 @@ app.register_blueprint(project_views.bp)
 app.register_blueprint(global_views.bp)
 app.register_blueprint(ssh_keys.bp)
 app.register_blueprint(images.get_bp('global_images'), url_prefix='/global/images/')
+app.register_blueprint(users_management.bp)
+
 #  it is not clear how to implement public/private images
 #app.register_blueprint(images.get_one('project_images'), url_prefix='/<project_id>/images/')
 
@@ -66,7 +67,6 @@ class ResolvingUploadSet(uploads.UploadSet):
 
 files_uploads = ResolvingUploadSet('files', uploads.ALL)
 uploads.configure_uploads(app, [files_uploads])
-
 
 # these import app
 import errorhandlers
