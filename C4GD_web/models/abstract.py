@@ -224,22 +224,21 @@ class Image(GlanceAPI):
             current_app.logger.info(
                 "Abnormal request result: %s" % response.read())
             if status_code == httplib.UNAUTHORIZED:
-                raise RuntimeError("User not authorized")
+                raise RuntimeError("Glance: User not authorized")
             elif status_code == httplib.FORBIDDEN:
-                raise RuntimeError("User not authorized")
+                raise RuntimeError("Glance: User not authorized")
             elif status_code == httplib.NOT_FOUND:
-                raise RuntimeError("Not found")
+                raise RuntimeError("Glance: Not found")
             elif status_code == httplib.CONFLICT:
-                raise RuntimeError("Bad request. Duplicate data")
+                raise RuntimeError("Glance: Bad request. Duplicate data")
             elif status_code == httplib.BAD_REQUEST:
-                raise RuntimeError("Bad request")
+                raise RuntimeError("Glance: Bad request")
             elif status_code == httplib.MULTIPLE_CHOICES:
-                raise RuntimeError("Multiple choices")
+                raise RuntimeError("Glance: Multiple choices")
             elif status_code == httplib.INTERNAL_SERVER_ERROR:
-                raise RuntimeError("Internal Server error")
+                raise RuntimeError("Glance: Internal Server error")
             else:
-                raise RuntimeError("Unknown error occurred")
-
+                raise RuntimeError("Glance: Unknown error occurred")
         return utils.unjson(response, attr='read()')['image']
 
 

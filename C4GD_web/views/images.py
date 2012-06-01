@@ -56,7 +56,7 @@ def get_bp(name):
             kw = {}
             if flask.request.form['upload_type'] == 'rootfs':
                 kw['kernel_id'] = flask.request.form['kernel']
-                kw['initrd_id'] = flask.request.form['initrd']
+                kw['ramdisk_id'] = flask.request.form['initrd']
             path = C4GD_web.files_uploads.path(
                     flask.request.form['uploaded_filename'])
             try:
@@ -71,11 +71,11 @@ def get_bp(name):
             except RuntimeError, e:
                 flask.flash(e.message, 'error')
             else:
+                if flask.current_app.debug:
+                    flask.current_app.logger.info(response)
                 flask.flash(
                     'Image with ID %s was registered.' % response['id'],
                     'success')
-                if flask.current_app.debug:
-                    flask.current_app.logger.info(response)
                 return flask.redirect(flask.url_for('.new'))
             finally:
                 try:
@@ -83,7 +83,7 @@ def get_bp(name):
                 except OSError:
                     pass
 
-        images = abstract.Image.list()
+        images = abstract.Image.list(limit=1000000)
         kernels = filter(lambda x: x['container_format'] == 'aki', images)
         initrds = filter(lambda x: x['container_format'] == 'ari', images)
         rootfss = filter(
