@@ -24,10 +24,13 @@ class FatFlask(flask.Flask):
         return super(FatFlask, self).make_response(result)
 
     def full_dispatch_request(self):
-        try:
+        if self.debug:
             return super(FatFlask, self).full_dispatch_request()
-        except Exception, error:
-            flask.flash(error.message, 'error')
-            exc_type, exc_value, tb = sys.exc_info()
-            self.log_exception((exc_type, exc_value, tb))
-            return flask.render_template('blank.haml')
+        else:
+            try:
+                return super(FatFlask, self).full_dispatch_request()
+            except Exception, error:
+                flask.flash(error.message, 'error')
+                exc_type, exc_value, tb = sys.exc_info()
+                self.log_exception((exc_type, exc_value, tb))
+                return flask.render_template('blank.haml')

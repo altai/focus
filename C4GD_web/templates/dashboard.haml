@@ -1,6 +1,6 @@
 -extends "authenticated_base.haml"
 -block content
-  -if g.is_global_admin:
+  -if is__admin:
     %section
       %div.page-header
         %h2

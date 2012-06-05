@@ -82,7 +82,7 @@ def user_details(user_id):
                           is_admin=True)['roles']['values']
                           
     tenants_request = keystone_get('/tenants', is_admin=True)
-    tenants = tenants_request['tenants']['values']
+    tenants = tenants_request['tenants']
     tenants_dict = {}
     for t in tenants:
         tenants_dict[t['id']] = t['name']

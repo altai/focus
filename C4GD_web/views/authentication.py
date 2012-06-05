@@ -36,11 +36,12 @@ def login():
             if 'keystone_scoped' not in session:
                 session['keystone_scoped'] = {}
             # this is not obvious but useful here
-            for tenant in tenants['tenants']['values']:
+            for tenant in tenants['tenants']:
                 obtain_scoped(tenant['id'])
             principal.identity_changed.send(
                 app,
-                identity=principal.Identity(form.username.data))
+                identity=principal.Identity(
+                    session["keystone_unscoped"]['access']['user']['id']))
             return redirect(form.next.data)
         else:
             flash('Wrong username/password', 'error')

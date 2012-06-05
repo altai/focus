@@ -1,6 +1,8 @@
 # coding=utf-8
 from flask import g, current_app
 
+from flaskext import principal
+
 from C4GD_web import app
 from C4GD_web.utils import obtain_scoped
 from C4GD_web.models.abstract import VirtualMachine
@@ -17,7 +19,7 @@ def dashboard():
 
     """
     context = {}
-    if g.is_global_admin:
+    if principal.Permission(('role', 'amin')):
         # obtain scoped in advance
         obtain_scoped(current_app.config['DEFAULT_TENANT_ID']) 
         # all servers are returned on this api call

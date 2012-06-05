@@ -119,19 +119,19 @@ class OpenstackMixinBase(object):
     def _tenants(**kwargs):
         """
         Utility to list tenants for user.
+
+        If kwargs contain explicit tenant dict return it as a signle-item list.
+        If session contains tenants return list of tenant ids from session.
+        Return default tenant id from session.
         """
         if 'tenants' in kwargs:
             return [x['id'] for x in kwargs['tenants']]
         else:
-            try:
-                tenants = [x['id'] for x in session['tenants']['tenants']['values']]
-            except KeyError:
-                pass
-            else:
-                if len(tenants):
-                    return tenants
-            return current_app.config['DEFAULT_TENANT_ID']
-        
+            tenants = [x['id'] for x in session['tenants']['tenants']]
+            if len(tenants):
+                return tenants
+        return [current_app.config['DEFAULT_TENANT_ID']]
+
 
 class OpenstackDeleteMixin(object):
     @classmethod

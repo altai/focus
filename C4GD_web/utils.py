@@ -67,7 +67,7 @@ def keystone_obtain_unscoped(user_name, password):
                     }
                 })
         response = requests.post(
-            '%s/tokens' % current_app.config['KEYSTONE_URL'],
+            '%s/tokens' % current_app.config['KEYSTONE_CONF']['auth_uri'],
             data=request_data,
             headers = {'content-type': 'application/json'})
     if response_ok(response):
@@ -76,7 +76,7 @@ def keystone_obtain_unscoped(user_name, password):
     
 
 def keystone_get(path, params={}, is_admin=False):
-    url = current_app.config['KEYSTONE_URL'] + path
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
     if is_admin:
         url = url.replace('5000', '35357')
     headers = {
@@ -102,7 +102,7 @@ def keystone_get(path, params={}, is_admin=False):
 
 
 def keystone_post(path, data={}, is_admin=False):
-    url = current_app.config['KEYSTONE_URL'] + path
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
     print url, data
     if is_admin:
         url = url.replace('5000', '35357')
@@ -127,7 +127,7 @@ def keystone_post(path, data={}, is_admin=False):
     return unjson(response)
 
 def keystone_delete(path):
-    url = current_app.config['KEYSTONE_URL'] + path
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
     url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
