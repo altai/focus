@@ -61,7 +61,7 @@ def get_bp(name):
                     flask.request.form['uploaded_filename'])
             try:
                 response = abstract.Image.create(
-                    flask.current_app.config['TENANT_ID_TO_USE'],
+                    flask.current_app.config['DEFAULT_TENANT_ID'],
                     flask.request.form['name'],
                     flask.request.form['container'],
                     flask.request.form['disk'],
