@@ -65,6 +65,7 @@ def gentle_exception(error):
 if not app.debug:
     @app.errorhandler(Exception)
     def everything_exception(error):
+        print "seen"
         flash(error.message, 'error')
         exc_type, exc_value, tb = sys.exc_info()
         app.log_exception((exc_type, exc_value, tb))

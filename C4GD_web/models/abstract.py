@@ -60,8 +60,8 @@ class OpenstackListMixin(object):
         if tenant_id is not None:
             snap(tenant_id)
         else:
-            for tenant in cls._tenants(**kwargs):
-                snap(tenant['id'])
+            for tenant_id in cls._tenants(**kwargs):
+                snap(tenant_id)
                 if getattr(cls, 'list_any_one_tenant', False):
                     break
         return acc
@@ -84,9 +84,9 @@ class OpenstackMixinBase(object):
         if tenant_id is not None:
             return snap(tenant_id)
         else:
-            for tenant in cls._tenants(**kwargs):
-                return snap(tenant['id'])
-        raise cls.NotFound
+            for tenant_id in cls._tenants(**kwargs):
+                return snap(tenant_id)
+        raise cls.NotFound, "%s with ID %s not found." % (cls.__name__, obj_id)
 
     @staticmethod
     def _snap(tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
@@ -118,10 +118,17 @@ class OpenstackMixinBase(object):
         Utility to list tenants for user.
         """
         if 'tenants' in kwargs:
-            return kwargs['tenants']
+            return [x['id'] for x in kwargs['tenants']]
         else:
-            return session['tenants']['tenants']['values']
-
+            try:
+                tenants = [x['id'] for x in session['tenants']['tenants']['values']]
+            except KeyError:
+                pass
+            else:
+                if len(tenants):
+                    return tenants
+            return current_app.config['DEFAULT_TENANT_ID']
+        
 
 class OpenstackDeleteMixin(object):
     @classmethod
@@ -307,9 +314,9 @@ class SSHKey(NovaAPI):
                 "public_key": public_key
             }
         }
-        for tenant in cls._tenants():
+        for tenant_id in cls._tenants():
             result = cls._snap(
-                tenant['id'],
+                tenant_id,
                 cls.base,
                 api_func=functools.partial(
                     utils.openstack_api_call,
@@ -327,9 +334,9 @@ class SSHKey(NovaAPI):
                 "name": name
             }
         }
-        for tenant in cls._tenants():
+        for tenant_id in cls._tenants():
             result = cls._snap(
-                tenant['id'],
+                tenant_id,
                 cls.base,
                 api_func=functools.partial(
                     utils.openstack_api_call,

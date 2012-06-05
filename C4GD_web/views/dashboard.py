@@ -1,5 +1,5 @@
 # coding=utf-8
-from flask import g
+from flask import g, current_app
 
 from C4GD_web import app
 from C4GD_web.utils import obtain_scoped
@@ -19,10 +19,11 @@ def dashboard():
     context = {}
     if g.is_global_admin:
         # obtain scoped in advance
-        obtain_scoped('6') 
+        obtain_scoped(current_app.config['DEFAULT_TENANT_ID']) 
         # all servers are returned on this api call
         context.update(dict(
                 total_users=g.store.find(User).count(),
                 total_projects=g.store.execute('select count(distinct(tenant_id)) from user_roles').get_one()[0],
-                total_vms=len(VirtualMachine.list(tenant_id='6'))))
+                total_vms=len(VirtualMachine.list(
+                        tenant_id=current_app.config['DEFAULT_TENANT_ID']))))
     return context
