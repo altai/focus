@@ -3,7 +3,7 @@
   %div
     Username: {{ user.name }}
     %br
-    -if 'email' in user:
+    -if user.email:
       Email: {{ user.email }}
       %br
     Enabled: 
@@ -19,13 +19,13 @@
              Tenant
            %th
              Role
-         -for k, v in user_roles.items()
+         -for tenant, roles in user_roles:
            %tr
              %td
-               =k
+               =tenant.name
              %td
-               =v
+               =roles|join(', ', attribute='name')
     
-  %a href="{{ url_for('global_user_management.list_users') }}"
+  %a href="{{ url_for('global_user_management.index') }}"
     back
      

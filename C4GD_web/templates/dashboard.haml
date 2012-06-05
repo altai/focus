@@ -1,6 +1,6 @@
 -extends "authenticated_base.haml"
 -block content
-  -if is__admin:
+  -if ('role', 'admin') is allowed:
     %section
       %div.page-header
         %h2
@@ -16,7 +16,7 @@
           %li
             %a href="{{ url_for('global_images.index') }}" -> Images
           %li
-            %a href="{{ url_for('global_user_management.list_users')}}" -> Users
+            %a href="{{ url_for('global_user_management.index')}}" -> Users
                 
   -if tenants_with_roles|length
     %section
