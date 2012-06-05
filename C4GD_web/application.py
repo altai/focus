@@ -1,13 +1,11 @@
 import sys
 
-from flask import Flask, flash, redirect, url_for, render_template, request
-from werkzeug import ImmutableDict
-
-from .exceptions import  KeystoneExpiresException, GentleException
+import flask
+import werkzeug
 
 
-class FatFlask(Flask):
-    jinja_options = ImmutableDict(
+class FatFlask(flask.Flask):
+    jinja_options = werkzeug.ImmutableDict(
         extensions=[
             'jinja2.ext.autoescape',
             'jinja2.ext.with_',
@@ -16,11 +14,20 @@ class FatFlask(Flask):
 
     def make_response(self, rv):
         if type(rv) is dict:
-            template_name = "/".join(request.endpoint.split('.'))
-            result = render_template(
+            template_name = "/".join(flask.request.endpoint.split('.'))
+            result = flask.render_template(
                 template_name + self.config['TEMPLATE_EXTENSION'], **rv)
         elif type(rv) in (list, tuple) and len(rv) == 2:
-            result = render_template(rv[0], **rv[1])
+            result = flask.render_template(rv[0], **rv[1])
         else:
             result = rv
         return super(FatFlask, self).make_response(result)
+
+    def full_dispatch_request(self):
+        try:
+            return super(FatFlask, self).full_dispatch_request()
+        except Exception, error:
+            flask.flash(error.message, 'error')
+            exc_type, exc_value, tb = sys.exc_info()
+            self.log_exception((exc_type, exc_value, tb))
+            return flask.render_template('blank.haml')

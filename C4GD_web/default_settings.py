@@ -11,6 +11,7 @@ BILLING_URL = 'http://172.30.0.3:8787/v2'
 DEV = False
 TEMPLATE_EXTENSION = '.haml'
 ANONYMOUS_ALLOWED = ['login', 'static']
-TENANT_ID_TO_USE = '6' # Nova required scoped tenant to perform a lot of things
 DEFAULT_APP_PORT = 5000
 COMPAT = 'DIABLO'
+DEFAULT_TENANT_ID = '6'
+
