@@ -72,14 +72,14 @@ def _compact_bill(resources):
     for res in resources:
         res_by_id[res['id']] = res
     # iterate through non-orphans
-    for res in filter(lambda x: x['parent_id'] is not None, resources):
+    for res in filter(lambda x: x['parent_id'] not in [None, 0], resources):
         #  add non-orphan to 'children' of it's parent in dict of resources
         parent = res_by_id[res['parent_id']]
         if not 'children' in parent:
             parent['children'] = []
         parent['children'].append(res)
     # iterate through orphans
-    for res in filter(lambda x: x['parent_id'] is None, resources):
+    for res in filter(lambda x: x['parent_id'] in [None, 0], resources):
         orphan = res_by_id[res['id']]
         #  calculate cost based on children recorded in dict of resources
         #  change cost in resource in the dict
@@ -87,7 +87,7 @@ def _compact_bill(resources):
     # return orphans sorted chronologically
     return [res_by_id[res['id']] for res in sorted(
         filter(
-                lambda x: x['parent_id'] is None,
+                lambda x: x['parent_id'] in [None, 0],
                 resources),
         key=lambda x: x['created_at'],
         reverse=True)]

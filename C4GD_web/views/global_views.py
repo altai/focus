@@ -5,6 +5,7 @@ from flask import g, request, session, current_app
 from flask import redirect, url_for
 from flask.blueprints import Blueprint
 
+from C4GD_web.clients import clients
 from C4GD_web.exceptions import BillingAPIError, GentleException
 from C4GD_web.models.abstract import AccountBill, VirtualMachine, Flavor
 from C4GD_web.models.orm import Tenant
@@ -13,6 +14,8 @@ from .dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
 from .exporter import Exporter
 from .generic_billing import generic_billing
 from .pagination import Pagination, per_page
+from keystoneclient import exceptions as keystoneclient_exceptions
+
 
 bp = Blueprint('global_views', __name__, url_prefix='/global/')
 
@@ -39,18 +42,19 @@ def billing_details(tenant_id):
     '''
     Present billing info for tenant.
     '''
-    def get_tenant(x_id):
+    tenants_in_billing = []
+    for x in AccountBill.list():
         try:
-            try:
-                tenant = g.store.get(Tenant, x_id)
-            except TypeError:
-                tenant = g.store.get(Tenant, int(x_id))
-        except ValueError:
-            tenant = None
-        return tenant
-    billing_accounts = AccountBill.list()
-    tenants = [x for x in [get_tenant(x['name']) for x in billing_accounts] if x is not None]
-    return generic_billing(tenant_id, tenants=tenants)
+            # Billing API calls "ID" - "name"
+            t = clients.keystone.tenants.get(x['name'])
+        except keystoneclient_exceptions.NotFound:
+            # sometimes Billing API returns non-existing tenant IDs
+            # there is nothing in particular we can do about it
+            pass
+        else:
+            tenants_in_billing.append(t)
+    tenant = clients.keystone.tenants.get(tenant_id)
+    return generic_billing(tenant, g.user, tenants=tenants_in_billing)
 
 
 @bp.route('')

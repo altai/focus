@@ -76,7 +76,8 @@ def grant_admin(user_id):
     """Grant admin permission.
 
     Adds role with name 'Admin' in admin tenant (aka systenant).
-    # TODO(apugachev): convert to POST
+    TODO(apugachev): convert to POST
+    TODO(apugachev): add form to plug in the CSRF protection
     """
     clients.keystone.roles.add_user_role(
         user_id,
@@ -91,7 +92,8 @@ def revoke_admin(user_id):
     """Revoke admin permission.
 
     Remove role with name 'Admin' in admin tenant (aka systenant).
-    # TODO(apugachev): convert to POST
+    TODO(apugachev): convert to POST
+    TODO(apugachev): add form to plug in the CSRF protection
     """
     clients.keystone.roles.remove_user_role(
         user_id,
@@ -106,6 +108,8 @@ def delete():
     """Delete user.
 
     Removes user from Keystone database.
+    TODO(apugachev): pass user_id in path, make form empty just for CSRF sake.
+    This provides better tracking via HTTPD logs.
     """
     form = DeleteUserForm()
     if form.validate_on_submit():
