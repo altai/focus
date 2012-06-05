@@ -8,7 +8,6 @@ LDAP_URI = 'ldap://ns/'
 LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
 
 BILLING_URL = 'http://172.30.0.3:8787/v2'
-DEV = False
 TEMPLATE_EXTENSION = '.haml'
 # endpoints allowed for anonymous to visit
 ANONYMOUS_ALLOWED = ['login', 'static']

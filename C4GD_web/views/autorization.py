@@ -16,8 +16,9 @@ def on_identity_loaded(sender, identity):
 
     If user is authenticated and user has role Admin in default admin tenant he has role admin permission.
     If user is authenticated and user participates in a tenant he has project member permission.
+    Exclude static endpoint from this.
     '''
-    if identity.name != 'anon':
+    if flask.request.endpoint != 'static' and identity.name != 'anon':
         user = clients.keystone.users.get(identity.name)
         if any([x.name == 'Admin' \
                     for x in clients.keystone.roles.roles_for_user(
@@ -41,12 +42,6 @@ if not app.debug:
         return '_forbidden.haml', {}
 
 
-def is_admin():
-    import pdb; pdb.set_trace()
-    return principal.Permission(('role', 'admin')).can()
-app.jinja_env.tests['is_admin'] = is_admin
-
-
-def is_member_of(project_id):
-    return principal.Permission(('role', 'member', project_id)).can()
-app.jinja_env.tests['is_member_of'] = is_member_of
+def allowed(*needs):
+    return principal.Permission(*needs).can()
+app.jinja_env.tests['allowed'] = allowed

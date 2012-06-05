@@ -1,22 +1,13 @@
 # coding=utf-8
 import sys
+import urllib
+import urlparse
+
 from flask import g, session, request
 from storm.locals import *
 from C4GD_web import app
 
 import requests
-import urllib, urlparse
-
-@app.context_processor
-def debug_processor():
-    try:
-        return {
-            'DEBUG': app.config['DEBUG'],
-            'DEV': app.config['DEV']}
-    except Exception:
-        exc_type, exc_value, tb = sys.exc_info()
-        app.log_exception((exc_type, exc_value, tb))
-    return {}
 
 
 @app.context_processor
@@ -32,6 +23,7 @@ def frequent_data():
         exc_type, exc_value, tb = sys.exc_info()
         app.log_exception((exc_type, exc_value, tb))
     return {}
+
 
 def url_for_other_page(page):
     try:
