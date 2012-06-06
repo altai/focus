@@ -1,9 +1,7 @@
 -extends "authenticated_base.haml"
 -block content
-  ;-if g.user.is_project_manager(g.tenant)
-  ;  %a.btn.btn-primary href="{{ url_for("project_views.new_user_to_project", tenant_id=g.tenant.id) }}" style="margin-top: 15px"
-  ;    %b.icon-add
-  ;    Add user
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr

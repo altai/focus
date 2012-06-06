@@ -6,6 +6,8 @@
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
   %section
     %div.btn-toolbar
       %div.btn-group#columns-controller
