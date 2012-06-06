@@ -25,6 +25,23 @@
                =tenant.name
              %td
                =roles|join(', ', attribute='name')
+  
+  %div
+    %form.well.form-inline method="POST" action="{{ url_for('global_user_management.add_user_to_project') }}"
+      %p
+        Add {{ user.name }} to a project:
+      {{ add_user_to_project_form.hidden_tag() }}
+      {{ add_user_to_project_form.project }}
+      %button.btn type="submit"
+        Add
+        
+    %form.well.form-inline method="POST" action="{{ url_for('global_user_management.remove_user_from_project') }}"
+      %p
+        Remove {{ user.name }} to a project:
+      {{ remove_user_from_project_form.hidden_tag() }}
+      {{ remove_user_from_project_form.project }}
+      %button.btn type="submit"
+        Remove
     
   %a href="{{ url_for('global_user_management.index') }}"
     back

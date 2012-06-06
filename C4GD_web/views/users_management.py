@@ -13,7 +13,8 @@ from flask import request, redirect, url_for, flash, current_app
 from flask import blueprints
 
 from C4GD_web.clients import clients
-from C4GD_web.views.forms import DeleteUserForm 
+from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
+    RemoveUserFromProject 
 from C4GD_web.views.pagination import Pagination, per_page
 
 
@@ -31,6 +32,17 @@ def get_admin_role_id():
             return role.id
     else:
         raise RuntimeError, 'Admin role does not exist'
+    
+def get_member_role_id():
+    """Return ID of Member role.
+
+    :raises: RuntimeError if Member roles does not exist
+    """
+    for role in clients.keystone.roles.list():
+        if role.name == 'Member':
+            return role.id
+    else:
+        raise RuntimeError, 'Member role does not exist'
 
 
 @bp.route('/', methods=['GET'])
@@ -64,11 +76,60 @@ def show(user_id):
     '''
     user = clients.keystone.users.get(user_id)
     user_roles = []
-    for tenant in clients.keystone.tenants.list(limit=1000000):
+    all_tenants = clients.keystone.tenants.list(limit=1000000)
+    for tenant in all_tenants:
         roles = user.list_roles(tenant)
         if len(roles):
             user_roles.append((tenant, roles))
-    return dict(user=user, user_roles=user_roles)
+    add_user_to_project = AddUserToProject()
+    add_user_to_project.user.data = user_id
+    remove_user_from_project = RemoveUserFromProject()
+    remove_user_from_project.user.data = user_id
+    user_projects = []
+    users_projects_choices = []
+    not_user_projects_choices = []
+    for tenant, role in user_roles:
+        users_projects_choices.append((tenant.id, tenant.name))
+        user_projects.append(tenant.id)
+    remove_user_from_project.project.choices = users_projects_choices
+    for tenant in all_tenants:
+        if not tenant.id in user_projects:
+            not_user_projects_choices.append((tenant.id, tenant.name))
+    add_user_to_project.project.choices = not_user_projects_choices
+    return dict(user=user, 
+                user_roles=user_roles,
+                add_user_to_project_form=add_user_to_project,
+                remove_user_from_project_form=remove_user_from_project)
+    
+
+@bp.route('/add_user_to_project/', methods=['POST'])
+def add_user_to_project():
+    """
+    Giving a 'Member' role in given tenant
+    """
+    form = AddUserToProject()
+    tenant = clients.keystone.tenants.get(form.project.data) 
+    tenant.add_user(form.user.data, get_member_role_id())
+    flash('User was added to project', 'success')
+    return redirect(url_for('.show', user_id=form.user.data))
+
+
+@bp.route('/remove_user_from_project/', methods=['POST'])
+def remove_user_from_project():
+    form = RemoveUserFromProject()
+    project = clients.keystone.tenants.get(form.project.data) 
+    user = clients.keystone.users.get(form.user.data)
+    user_roles_in_project = []
+    all_tenants = clients.keystone.tenants.list(limit=1000000)
+    for tenant in all_tenants:
+        if tenant.id == project.id:
+            roles = user.list_roles(tenant)
+            if len(roles):
+                [user_roles_in_project.append(r) for r in roles]
+    for role in user_roles_in_project:
+        project.remove_user(form.user.data, role.id)
+    flash('User was removed from project', 'success')
+    return redirect(url_for('.show', user_id=form.user.data))
 
 
 @bp.route('/<user_id>/grant/Admin/', methods=['GET'])

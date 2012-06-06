@@ -76,4 +76,13 @@ class NewImage(wtf.Form):
     
 class DeleteUserForm(wtf.Form):
     user_id = wtf.HiddenField('user id', [wtf.Required()])
+    
+
+class AddUserToProject(wtf.Form):
+    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    user = wtf.HiddenField('User', [wtf.Required()])
+    
+class RemoveUserFromProject(wtf.Form):
+    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    user = wtf.HiddenField('User', [wtf.Required()])
 
