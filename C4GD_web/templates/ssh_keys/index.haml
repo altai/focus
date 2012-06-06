@@ -21,11 +21,18 @@
       -for key in keys:
         %tr
           %td
-            "{{key['name']}}"
+            "{{ key['name'] }}"
           %td
-            "{{key['fingerprint']}}"
+            "{{ key['fingerprint'] }}"
           %td
-            %a.btn href="javascript:alert('{{ key['public_key'] }}'); return 0;"
+            %div.modal.hide id="show_ssh_{{ key['name'] }}"
+              %div.modal-body
+                %p
+                  {{ key['public_key'] }}
+              %div.modal-footer
+                %a.btn data-dismiss="modal" href="#"
+                  Close
+            %a.btn data-toggle="modal" href="#show_ssh_{{ key['name'] }}"
               show
           %td
             %form method="POST" action="{{ url_for('.delete', name=key['name']) }}" onsubmit="return confirm('Sure to delete keypair {{key['name']}}?');"
