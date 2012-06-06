@@ -15,6 +15,7 @@ app = application.FatFlask(__name__)
 
 # config app
 app.config.from_object('C4GD_web.default_settings')
+
 try:
     app.config.from_object('C4GD_web.local_settings')
 except ImportError:

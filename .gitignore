@@ -1,6 +1,6 @@
 syntax: glob
 
-*.pyc
+*.py[co]
 local_settings.py
 test_settings.py
 pip-log.txt

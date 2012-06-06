@@ -71,7 +71,7 @@ def keystone_obtain_unscoped(user_name, password):
             data=request_data,
             headers = {'content-type': 'application/json'})
     if response_ok(response):
-        return True, unjson(response, attr='text')
+        return True, unjson(response)
     return False, ""
     
 
