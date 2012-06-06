@@ -1,6 +1,12 @@
 -extends "authenticated_base.haml"
 -block amdjs
   %script  type="text/javascript"  src="{{ url_for('static', filename='amd/main_list_keys.js') }}"
+  <script>
+    function showKey(key){
+        alert(key);
+        return false;
+    }    
+  </script>
 -block content
   %a.btn.btn-primary href="{{ url_for('.new') }}"
     Add key
@@ -25,14 +31,7 @@
           %td
             "{{ key['fingerprint'] }}"
           %td
-            %div.modal.hide id="show_ssh_{{ key['name'] }}"
-              %div.modal-body
-                %p
-                  {{ key['public_key'] }}
-              %div.modal-footer
-                %a.btn data-dismiss="modal" href="#"
-                  Close
-            %a.btn data-toggle="modal" href="#show_ssh_{{ key['name'] }}"
+            %a.btn href="#" onclick="javascript:alert('{{ key['public_key'].replace('\n', '') }}'); return false;"
               show
           %td
             %form method="POST" action="{{ url_for('.delete', name=key['name']) }}" onsubmit="return confirm('Sure to delete keypair {{key['name']}}?');"
