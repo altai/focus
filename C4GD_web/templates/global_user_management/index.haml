@@ -18,8 +18,8 @@
             %a href="{{ url_for('global_user_management.show', user_id=user.id) }}"
               =user.name
           %td
-            -if user.email != 'None'
-              =user.email
+            -if user.email != None
+              {{ user.email }}
           %td
             %div.modal.hide id="delete_user_{{ user.id }}"
               %div.modal-header

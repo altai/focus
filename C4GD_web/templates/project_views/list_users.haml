@@ -15,7 +15,8 @@
             ;%a href="{{ url_for('project_views.show_user_in_project', tenant_id=g.tenant.id, user_id=user.id) }}"
             =user.name
           %td
-            =user.email
+            -if user.email != None
+              =user.email
           %td
             -for role in user.list_roles(g.tenant_id):
               {{ role.name }}{% if not loop.last %},{% endif %}    
