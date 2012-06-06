@@ -15,7 +15,7 @@ app = application.FatFlask(__name__)
 
 # config app
 app.config.from_object('C4GD_web.default_settings')
-app.config.from_object('C4GD_web.local_settings')
+app.config.from_pyfile("/etc/focus/local_settings.py")
 
 app.jinja_env.hamlish_mode = 'indented'
 app.cache = MemcachedCache(

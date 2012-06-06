@@ -5,7 +5,7 @@ Focus
 
 
 """
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, findall
 
 
 setup(
@@ -19,6 +19,15 @@ setup(
     packages=find_packages(exclude=['bin', 'tests']),
     zip_safe=False,
     platforms='any',
+    scripts=findall("bin"),
+    package_data = {
+        "C4GD_web": [
+            "../" + s
+            for s in
+            findall("C4GD_web/static") +
+            findall("C4GD_web/templates")
+        ],
+    },
     install_requires=[
         'Flask',
         'Flask-WTF',
