@@ -12,7 +12,7 @@ class Column(object):
         self.verbose_name = verbose_name or attr_name
 
     def __call__(self, obj):
-        return self.adapt(obj[self.attr_name])
+        return self.adapt(getattr(obj, self.attr_name))
 
     def adapt(self, value):
         raise NotImplementedError

@@ -62,19 +62,23 @@ def list_vms():
     '''
     List all virtual machines in the cloud.
     '''
+    tenants = dict([(x.id, x) for x in clients.keystone.tenants.list()])
     class ProjectNameColumn(StrColumn):
         def __call__(self, x):
-            tenant_id = int(x['tenant_id'])
-            tenant = g.store.get(Tenant, tenant_id)
-            return tenant.name
+            try:
+                tenant = tenants[x.tenant_id]
+            except KeyError:
+                return '[deleted] %s' % x.tenant_id
+            else:
+                return tenant.name
     page = int(request.args.get('page', 1))
     default_columns = ['id', 'name', 'project_name', 'ram']
     #creating and adjusting columns vector, columns ordering
     columns = ColumnKeeper({
-        'id': IntColumn('id', 'ID'),
+        'id': StrColumn('id', 'ID'),
         'name': StrColumn('name', 'Name'),
         'user_id': StrColumn('user_id', 'User'),
-        'tenant_id': IntColumn('tenant_id', 'Project ID'),
+        'tenant_id': StrColumn('tenant_id', 'Project ID'),
         'project_name': ProjectNameColumn('project_name', 'Project Name'),
         'ram': IntColumn('ram', 'RAM'),
         'vcpus': IntColumn('vcpus', 'Number of CPUs')
@@ -85,20 +89,16 @@ def list_vms():
         columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
     if 'groupby' in request.args:
         columns.adjust_groupby(request.args['groupby'])
-    vms = response_data = VirtualMachine.list(
-        tenant_id=current_app.config['DEFAULT_TENANT_ID'])
-    # inject flavors info
-    flavors = dict([(int(x['id']), x) for x in Flavor.list()])
-    for row in vms:
-        flavor_id = int(row['flavor']['id'])
-        if flavor_id not in flavors:
-            flavor = Flavor.get(flavor_id)
-            if 'flavor' in flavor:
-                flavors[flavor_id] = flavor['flavor']
-            else:
-                flavors[flavor_id] = flavor
-        row['ram'] = flavors[flavor_id]['ram']
-        row['vcpus'] = flavors[flavor_id]['vcpus']
+    vms = clients.nova.servers.list(search_opts={'all_tenants': 1})
+    flavors = dict([(x.id, x) for x in clients.nova.flavors.list()])
+    for server in vms:
+        try:
+            flavor = flavors[server.flavor['id']]
+        except KeyError:
+            flavor = clients.nova.flavors.get(server.flavor['id'])
+            flavors[server.flavor['id']] = flavor
+        server.ram = flavor.ram
+        server.vcpus = flavor.vcpus
 
     dataset = DataSet(vms, columns)
     if 'export' in request.args:
