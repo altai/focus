@@ -15,7 +15,7 @@ from flask import blueprints
 from C4GD_web.clients import clients
 from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
     RemoveUserFromProject 
-from C4GD_web.views.pagination import Pagination, per_page
+from C4GD_web.views import pagination
 
 
 bp = blueprints.Blueprint(
@@ -54,8 +54,8 @@ def index():
     """
     page = int(request.args.get('page', 1))
     users = clients.keystone.users.list(limit=1000000)
-    pagination = Pagination(page, per_page(), len(users))
-    data = users[(page-1)*per_page():page*per_page()]
+    p = pagination.Pagination(users)
+    data = p.slice(users)
     tenants = clients.keystone.tenants.list(limit=1000000)
     for user in data:
         form = DeleteUserForm()
@@ -65,7 +65,7 @@ def index():
             user.is_global_admin = any(
                 [x.name == 'Admin' for x in user.list_roles(tenant)])
             break
-    return dict(pagination=pagination, data=data)
+    return dict(pagination=p, data=data)
 
 
 @bp.route('/<user_id>/', methods=['GET'])

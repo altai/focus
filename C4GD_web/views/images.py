@@ -1,19 +1,25 @@
+"""Provides factory of blueprints for image management.
+
+Currently we have only one blueprint for image management - for admins.
+Later on we'll need image management for members of tenants, Essex allows it.
+"""
+
 import json
 import os
 
 import flask
 from flask import blueprints
 from flaskext import principal
+
+import C4GD_web
 from C4GD_web.models import abstract
 from C4GD_web.clients import clients
-
-import forms
-import C4GD_web
+from C4GD_web.views import forms
+from C4GD_web.views import pagination
 
 
 def get_bp(name):
-    '''
-    Return blueprint for Image management.
+    '''Return blueprint for Image management.
 
     index (list images), create image(upload), delete image.
     Each view function of the blueprint gets protected by Principal.
@@ -47,7 +53,12 @@ def get_bp(name):
         
         '''
         images = abstract.Image.list()
-        return {'images': images}
+        p = pagination.Pagination(images)
+        data = p.slice(images)
+        return {
+            'images': data,
+            'pagination': p
+            }
 
     @bp.route('new/', methods=['GET', 'POST'])
     def new():
@@ -116,4 +127,3 @@ def get_bp(name):
         return filename
 
     return bp
-

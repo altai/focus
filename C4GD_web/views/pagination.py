@@ -1,18 +1,21 @@
 # coding=utf-8
-from math import ceil
-from flask import request, url_for
+import math
+import flask
 
 
 class Pagination(object):
 
-    def __init__(self, page, per_page, total_count):
-        self.page = page
-        self.per_page = per_page
-        self.total_count = total_count
+    def __init__(self, total_count, page=False, per_page=False):
+        self.page = page or int(flask.request.args.get('page', 1))
+        self.per_page = per_page or per_page_value()
+        if hasattr(total_count, '__len__'):
+            self.total_count = len(total_count)
+        else:
+            self.total_count = total_count
 
     @property
     def pages(self):
-        return int(ceil(self.total_count / float(self.per_page)))
+        return int(math.ceil(self.total_count / float(self.per_page)))
 
     @property
     def has_prev(self):
@@ -35,6 +38,11 @@ class Pagination(object):
             yield num
             last = num
 
+    def slice(self, data):
+        base = (self.page-1) * self.per_page
+        offset = self.per_page
+        return data[base:base+offset]
 
-def per_page():
+
+def per_page_value():
     return 20

@@ -9,11 +9,12 @@ from C4GD_web.clients import clients
 from C4GD_web.exceptions import BillingAPIError, GentleException
 from C4GD_web.models.abstract import AccountBill, VirtualMachine, Flavor
 from C4GD_web.models.orm import Tenant
+from C4GD_web.views import pagination
+
 
 from .dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
 from .exporter import Exporter
 from .generic_billing import generic_billing
-from .pagination import Pagination, per_page
 from keystoneclient import exceptions as keystoneclient_exceptions
 
 
@@ -112,10 +113,8 @@ def list_vms():
             return redirect(request.path + '?' + '&'.join((['%s=%s' % (k, v) for k, v in iter_multi_items(d)])))
         response = export()
     else:
-        p = Pagination(page, per_page(), len(dataset.data))
-        visible_data_base = (page - 1) * per_page()
-        visible_data = dataset.data[
-            visible_data_base:visible_data_base + per_page()]
+        p = pagination.Pagination(dataset.data)
+        visible_data = p.slice(dataset.data)
         response = dict(
             pagination=p,
             columns=columns,

@@ -4,22 +4,17 @@ import functools
 import flask
 from flask import blueprints
 
-from C4GD_web import exceptions
-from C4GD_web import utils
-import forms
-
 from storm.locals import *
 
 from C4GD_web import benchmark
+from C4GD_web import exceptions
+from C4GD_web import utils
 from C4GD_web.clients import clients
 from C4GD_web.models.abstract import VirtualMachine, Image, Flavor, KeyPair, SecurityGroup, SSHKey
-
-
-from .generic_billing import generic_billing
-from .pagination import Pagination, per_page
-
-
-from .utils import get_next_url
+from C4GD_web.views.utils import get_next_url
+from C4GD_web.views.generic_billing import generic_billing
+from C4GD_web.views import pagination
+from C4GD_web.views import forms
 
 
 bp = blueprints.Blueprint(
@@ -121,9 +116,8 @@ def list_users():
     List users.
     """
     users = flask.g.tenant.list_users()
-    page = int(flask.request.args.get('page', 1))
-    pagination = Pagination(page, per_page(), len(users))
+    p = pagination.Pagination(users)
     return {
-        'pagination': pagination,
-        'objects': users[(page-1) * per_page():per_page()]
+        'pagination': p,
+        'objects': p.slice(users)
         }
