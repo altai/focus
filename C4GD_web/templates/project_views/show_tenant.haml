@@ -10,8 +10,6 @@
       %thead
         %tr
           %th
-            #
-          %th
             Name
           %th
             Status
@@ -20,12 +18,11 @@
           %th
             Actions
       %tbody
-        -for n, vm in vms
+        -for vm in vms
           %tr
             %td
-              =n
-            %td
-              =vm['name']
+              %a href="{{ url_for('.show_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+                =vm['name']
             %td
               =vm['status']
             %td
@@ -90,4 +87,4 @@
               %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-hard" 
                 hard
             
-              
+  -include "pagination.haml"

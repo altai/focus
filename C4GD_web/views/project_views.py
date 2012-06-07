@@ -54,8 +54,9 @@ def show_tenant():
     vms_data = [x for x in VirtualMachine.list(tenant_id=flask.g.tenant_id) if \
                     x['tenant_id'] == flask.g.tenant_id]
     vms = enumerate(sorted(vms_data, key=lambda x: x['name']))
-    return dict(vms=vms)
- 
+    p = pagination.Pagination(vms_data)
+    return dict(vms=p.slice(vms_data), pagination=p)
+
 
 @bp.route('/vms/spawn/', methods=['GET', 'POST'])
 def spawn_vm():
@@ -82,6 +83,25 @@ def spawn_vm():
         return flask.redirect(flask.url_for(
                 '.show_tenant', tenant_id=flask.g.tenant_id))
     return dict(form=form, tenant=flask.g.tenant)
+
+
+@bp.route('/vms/<vm_id>/')
+def show_vm(vm_id):
+    server = clients.nova.servers.get(vm_id)
+    try:
+        flavor = clients.nova.flavors.get(server.flavor['id'])
+    except Exception, e:
+        # TODO(apugachev) look for NotFound exception from nova
+        flavor = None
+    try:
+        image = clients.nova.images.get(server.image['id'])
+    except Exception, e:
+        # TODO(apugachev) look for NotFound exception from nova
+        image = None
+    return {
+        'server': server,
+        'flavor': flavor,
+        'image': image}
 
 
 @bp.route('/vms/<vm_id>/remove/', methods=['POST'])

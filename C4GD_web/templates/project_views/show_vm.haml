@@ -1,0 +1,19 @@
+-extends "project_views/base.haml"
+-block content
+  %h2
+    Server
+    =server.name
+    -if flavor:
+      %p
+        Flavor
+        =flavor.name
+        %br
+        RAM:
+        =flavor.ram|size
+        %br
+        CPUs:
+        =flavor.vcpus
+    -if image:
+      %p
+        Image
+        =image.name
