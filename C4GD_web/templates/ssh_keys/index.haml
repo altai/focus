@@ -2,8 +2,6 @@
 -block subnav
   =super()
   -include "ssh_keys/_subnav.haml"
--block amdjs
-  %script  type="text/javascript"  src="{{ url_for('static', filename='amd/main_list_keys.js') }}"
 -block content
   %span class="label label-important"
     Important: 'delete' actions cannot be reverted 
@@ -29,7 +27,21 @@
             %a.btn href="#" onclick="javascript:alert('{{ key['public_key'].replace('\n', '') }}'); return false;"
               show
           %td
-            %form method="POST" action="{{ url_for('.delete', name=key['name']) }}" onsubmit="return confirm('Sure to delete keypair {{key['name']}}?');"
-              =delete_form.hidden_tag()
-              %button
-                Remove
+            %div.modal.hide id="delete_key_{{ key['name'] }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ key['name'] }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('.delete', name=key['name']) }}"
+                  {{ delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_key_{{ key['name'] }}"
+              delete

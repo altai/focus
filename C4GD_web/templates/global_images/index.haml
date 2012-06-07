@@ -3,6 +3,8 @@
   =super()
   -include "images_bp/_subnav.haml"
 -block content
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr
@@ -11,6 +13,7 @@
         %th -> Disk Format
         %th -> Checksum
         %th -> Size
+        %th -> Actions
     %tbody
       -for image in images
         %tr
@@ -21,4 +24,24 @@
           %td -> =image['disk_format']
           %td -> =image['checksum']
           %td -> =image['size']|size
+          %td
+            %div.modal.hide id="delete_image_{{ image['id'] }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ image['name'] }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('.delete', image_id=image['id']) }}"
+                  {{ delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_image_{{ image['id'] }}"
+              delete
+
   -include "pagination.haml"

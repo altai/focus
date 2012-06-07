@@ -56,11 +56,6 @@ def get_new_user_to_project_form(users, roles):
     return NewUserToProjectForm
 
 
-class DeleteSSHKey(wtf.Form):
-    '''
-    Just an empty form to easily bypass CSRF checks.
-    '''
-
 class CreateSSHKey(wtf.Form):
     # TODO(apugachev) look in nova for boundaries
     name = wtf.TextField('Name of keypair', [wtf.Required()])
@@ -86,3 +81,6 @@ class RemoveUserFromProject(wtf.Form):
     project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
     user = wtf.HiddenField('User', [wtf.Required()])
 
+
+class DeleteForm(wtf.Form):
+    """Just an empty form to easily bypass CSRF checks."""

@@ -57,7 +57,8 @@ def get_bp(name):
         data = p.slice(images)
         return {
             'images': data,
-            'pagination': p
+            'pagination': p,
+            'delete_form': forms.DeleteForm()
             }
 
     @bp.route('new/', methods=['GET', 'POST'])
@@ -126,4 +127,19 @@ def get_bp(name):
         filename = C4GD_web.files_uploads.save(storage)
         return filename
 
+    @bp.route('<image_id>/delete/', methods=['POST'])
+    def delete(image_id):
+        form = forms.DeleteForm()
+        if form.validate_on_submit():
+            try:
+                clients.glance.images.get(image_id).delete()
+            except Exception, e:
+                flask.flash('API error: %s' % e.message, 'error')
+            else:
+                flask.flash('Image successfully deleted', 'success')
+        else:
+            flask.flash('Invalid form', 'error')
+        return flask.redirect(flask.url_for('.index'))
+            
     return bp
+

@@ -14,7 +14,7 @@ bp = blueprints.Blueprint('ssh_keys', __name__, url_prefix='/ssh-keys')
 def index():
     context = {
         'keys': abstract.SSHKey.list(),
-        'delete_form': forms.DeleteSSHKey()
+        'delete_form': forms.DeleteForm()
         }
     return context
 
@@ -54,7 +54,7 @@ def delete(name):
     if keydata is None:
         abort(404)
     else:
-        form = forms.DeleteSSHKey()
+        form = forms.DeleteForm()
         if form.validate_on_submit():
             abstract.SSHKey.delete(name)
             flash('Keypair removed.', 'success')
