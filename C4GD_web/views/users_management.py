@@ -116,6 +116,9 @@ def add_user_to_project():
 
 @bp.route('/remove_user_from_project/', methods=['POST'])
 def remove_user_from_project():
+    """
+    Removes all user's roles for given tenant
+    """
     form = RemoveUserFromProject()
     project = clients.keystone.tenants.get(form.project.data) 
     user = clients.keystone.users.get(form.user.data)
