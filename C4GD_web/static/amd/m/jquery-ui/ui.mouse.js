@@ -1,1 +1,0 @@
-define(['order!m/jquery-ui/ui.widget', 'order!/static/vendors/jquery-ui-1.8.19.custom/development-bundle/ui/minified/jquery.ui.mouse.min.js'], function(){console.log('LOADED')});

@@ -1,1 +1,0 @@
-define(['order!m/jquery-ui/ui.core', 'order!/static/vendors/jquery-ui-1.8.19.custom/development-bundle/ui/minified/jquery.ui.widget.min.js'], function(){});
