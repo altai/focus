@@ -29,7 +29,7 @@
   %div
     %form.well.form-inline method="POST" action="{{ url_for('global_user_management.add_user_to_project') }}"
       %p
-        Add {{ user.name }} to a project:
+        Add user to a project:
       {{ add_user_to_project_form.hidden_tag() }}
       {{ add_user_to_project_form.project }}
       %button.btn type="submit"
@@ -37,7 +37,7 @@
         
     %form.well.form-inline method="POST" action="{{ url_for('global_user_management.remove_user_from_project') }}"
       %p
-        Remove {{ user.name }} to a project:
+        Remove user from a project:
       {{ remove_user_from_project_form.hidden_tag() }}
       {{ remove_user_from_project_form.project }}
       %button.btn type="submit"
