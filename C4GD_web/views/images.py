@@ -35,8 +35,10 @@ def get_bp(name):
         """
         Present details page for single image object
         """
-        image = clients.nova.images.get(image_id)
-        return {'image': image}
+        glance_image = clients.glance.images.get(image_id)
+        nova_image = clients.nova.images.get(image_id)
+        return {'glance_image': glance_image,
+                'nova_image': nova_image}
 
     @bp.route('')
     def index():

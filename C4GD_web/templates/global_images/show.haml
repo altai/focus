@@ -2,7 +2,7 @@
 -block content
   %div
     %h2
-      {{ image.name }}  
+      {{ nova_image.name }}  
     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
        %thead
          %tr
@@ -17,24 +17,36 @@
            %th
              Progress
            %th
+             Container Format
+           %th
+             Disk Format
+           %th
              Links
+           %th
+             Size
          %tr
            %td
-             =image.id
+             =nova_image.id
            %td
-             =image.status
+             =nova_image.status
            %td
-             =image.created
+             =nova_image.created
            %td
-             =image.updated
+             =nova_image.updated
            %td
-             =image.progress
+             =nova_image.progress
+           %td 
+             =glance_image.container_format
            %td
-             -if image.links
-               -for link in image.links:
+             =glance_image.disk_format
+           %td
+             -if nova_image.links
+               -for link in nova_image.links:
                  =link.href
                  -if not loop.last
                    %br
+           %td
+             =glance_image.size
     
   %a href="{{ url_for('global_images.index') }}"
     back to images list
