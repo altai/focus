@@ -1,0 +1,48 @@
+-extends "global_admin_base.haml"
+-block content
+  %div
+    %h2
+      {{ user.name }}
+    -if user.email:
+      Email: {{ user.email }}
+      %br
+    Enabled: 
+      -if user.enabled
+        Yes
+      -else
+        No
+  %div
+     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+       %thead
+         %tr
+           %th
+             Tenant
+           %th
+             Role
+         -for tenant, roles in user_roles:
+           %tr
+             %td
+               =tenant.name
+             %td
+               =roles|join(', ', attribute='name')
+  
+  %div
+    %form.well.form-inline method="POST" action="{{ url_for('global_user_management.add_user_to_project') }}"
+      %p
+        Add user to a project:
+      {{ add_user_to_project_form.hidden_tag() }}
+      {{ add_user_to_project_form.project }}
+      %button.btn type="submit"
+        Add
+        
+    %form.well.form-inline method="POST" action="{{ url_for('global_user_management.remove_user_from_project') }}"
+      %p
+        Remove user from a project:
+      {{ remove_user_from_project_form.hidden_tag() }}
+      {{ remove_user_from_project_form.project }}
+      %button.btn type="submit"
+        Remove
+    
+  %a href="{{ url_for('global_user_management.index') }}"
+    back to users list
+     

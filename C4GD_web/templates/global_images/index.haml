@@ -1,0 +1,23 @@
+-extends "global_admin_base.haml"
+-block subnav
+  =super()
+  -include "images_bp/_subnav.haml"
+-block content
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th -> Name
+        %th -> Container Format
+        %th -> Disk Format
+        %th -> Checksum
+        %th -> Size
+    %tbody
+      -for image in images
+        %tr
+          %td
+            %a href="{{ url_for('.show', image_id=image['id']) }}"
+              =image['name']
+          %td -> =image['container_format']
+          %td -> =image['disk_format']
+          %td -> =image['checksum']
+          %td -> =image['size']

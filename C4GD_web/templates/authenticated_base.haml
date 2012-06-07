@@ -15,7 +15,7 @@
             %li{% if request.path == url_for('dashboard') %} class="active"{% endif %}
               %a href="{{ url_for('dashboard') }}"
                 Dashboard
-            -if g.is_global_admin:
+            -if ('role', 'admin') is allowed:
               %li
                 %a href="{{ url_for('global_views.list_vms')}}"
                   Global administration

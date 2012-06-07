@@ -4,12 +4,13 @@
     %header.jumbotron.subhead#overview
       %h1
         =g.tenant_dict['name']
-      %p.lead
-        Project management:
-        -for name in project_managers
-          =name
-          -if not loop.last
-            ,          
+      -if project_managers:
+        %p.lead
+          Project management:
+          -for name in project_managers
+            =name
+            -if not loop.last
+              ,          
     %div.subnav
       %ul.nav.nav-pills
         %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=g.tenant_id) %}active{% endif %}"

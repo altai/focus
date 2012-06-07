@@ -1,10 +1,13 @@
 -extends "authenticated_base.haml"
+-block subnav
+  =super()
+  -include "ssh_keys/_subnav.haml"
 -block amdjs
   %script  type="text/javascript"  src="{{ url_for('static', filename='amd/main_list_keys.js') }}"
 -block content
-  %a.btn.btn-primary href="{{ url_for('.new') }}"
-    Add key
-  %table.table.table-striped.table-bordered.table-condensed
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr
         %th
@@ -19,11 +22,11 @@
       -for key in keys:
         %tr
           %td
-            "{{key['name']}}"
+            "{{ key['name'] }}"
           %td
-            "{{key['fingerprint']}}"
+            "{{ key['fingerprint'] }}"
           %td
-            %a.btn href="javascript:alert('{{ key['public_key'] }}'); return 0;"
+            %a.btn href="#" onclick="javascript:alert('{{ key['public_key'].replace('\n', '') }}'); return false;"
               show
           %td
             %form method="POST" action="{{ url_for('.delete', name=key['name']) }}" onsubmit="return confirm('Sure to delete keypair {{key['name']}}?');"

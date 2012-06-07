@@ -37,4 +37,4 @@ class Pagination(object):
 
 
 def per_page():
-    return 10
+    return 20

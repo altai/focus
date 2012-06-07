@@ -1,0 +1,49 @@
+-extends "global_admin_base.haml"
+-block content
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Userame
+        %th
+          Email
+        -if ('role', 'admin') is allowed:
+          %th
+            Actions
+      -for user in data
+        %tr
+          %td
+            %a href="{{ url_for('global_user_management.show', user_id=user.id) }}"
+              =user.name
+          %td
+            -if user.email != None
+              {{ user.email }}
+          %td
+            %div.modal.hide id="delete_user_{{ user.id }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ user.name }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('global_user_management.delete') }}"
+                  {{ user.delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_user_{{ user.id }}"
+              delete
+            &nbsp;|&nbsp;
+            -if user.is_global_admin:
+              %a href="{{ url_for('global_user_management.revoke_admin', user_id=user.id) }}"
+                revoke admin
+            -else
+              %a href="{{ url_for('global_user_management.grant_admin', user_id=user.id) }}"
+                grant admin
+  -include "pagination.haml"

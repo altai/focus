@@ -1,0 +1,26 @@
+    <% if (typeof(runtime) != "undefined"){ %>
+    <%= runtime %>
+    <% } %>
+    <% if (typeof(error) != "undefined"){ %>
+      <div class="alert-error">
+        Error: <%= error.code %>
+        <br>Message: <%= error.message %>
+        <% if (error.file){ %>
+        <br>File: <%= error.file.name %>
+        <% } %>
+      </div>
+    <% } else if (typeof(file_id) != "undefined"){ %>
+    <div id="file_id" class="hide"><%= file_id %></div>
+    <div id="file_name" class="hide"><%= file_name %></div>
+    <div id="file_size" class="hide"><%= file_size %></div>
+    <div id="<%= file_id %>">
+      <%= file_name %>
+      (<span class="filesize"><%= file_size %></span>) 
+      <% if (typeof(file_percent) != 'undefined'){ %>      
+      <div class="progress">
+        <div class="bar"
+             style="width: <%= file_percent %>%;"></div>
+      </div>
+      <% } %>
+      <b><%= file_percent %>%</b></div>
+    <% } %>

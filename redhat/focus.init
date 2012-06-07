@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# focus        Focus Server
+#
+# chkconfig: 2345 96 04
+#
+# config: /etc/focus/local_settings.py
+# pidfile: /var/run/focus/focus.pid
+
+### BEGIN INIT INFO
+# Provides: focus
+# Required-Start: $local_fs $network $syslog
+# Required-Stop: $local_fs $syslog
+# Should-Start: $syslog
+# Should-Stop: $network $syslog
+# Default-Start: 3 4 5
+# Default-Stop: 0 2 1 6
+# Short-Description: Nova Billing Server
+# Description: The Billing Server listens to AMQP server,
+#              stores instance start/stop information,
+#              and allows to get it by REST API
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+prog="focus"
+pidfile=/var/run/focus/$prog.pid
+binfile=/usr/bin/$prog
+lockfile=/var/lock/subsys/$prog
+daemonuser=focus
+
+
+start() {
+    echo -n "Starting $prog: "
+    start-stop-daemon --start --oknodo --background --chuid $daemonuser --make-pidfile --pidfile $pidfile --startas $binfile --
+    retval=$?
+    [ $retval -eq 0 ] && success || failure
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n "Stopping $prog: "
+    start-stop-daemon --stop --oknodo --pidfile $pidfile
+    retval=$?
+    [ $retval -eq 0 ] && success || failure
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile $pidfile
+    return $?
+}
+
+rh_status() {
+    status -p $pidfile $binfile
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        rh_status
+        ;;
+    restart)
+        restart
+        ;;
+    condrestart|try-restart)
+        [ -f $lockfile ] && restart
+        ;;
+    *)
+        echo "Usage: service $(basename $0) {start|stop|status|restart|condrestart|try-restart}"
+        exit 1
+        ;;
+esac
+
+exit $?

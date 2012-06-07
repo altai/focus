@@ -35,13 +35,13 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     KEYPAIR_CHOICES = sorted(map(l4, key_pairs), key=l3)   
 
     class SpawnForm(wtf.Form):
-        image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES, coerce=int)
-        flavor = wtf.SelectField('Flavor', [wtf.Required()], choices=FLAVOR_CHOICES, coerce=int)
+        image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES)
+        flavor = wtf.SelectField('Flavor', [wtf.Required()], choices=FLAVOR_CHOICES)
         name = wtf.TextField('Name', [wtf.Required()])
         password = wtf.PasswordField('Password')
         confirm_password = wtf.PasswordField('Confirm Password', [wtf.EqualTo('password')])
         keypair = wtf.SelectField('Key Pair', choices=KEYPAIR_CHOICES)
-        security_groups = wtf.SelectMultipleField('Security Groups', choices=SECURITY_GROUP, coerce=int)
+        security_groups = wtf.SelectMultipleField('Security Groups', choices=SECURITY_GROUP)
 
     return SpawnForm
 
@@ -67,4 +67,22 @@ class CreateSSHKey(wtf.Form):
     public_key = wtf.TextField(
         'Public Key', [wtf.Optional()],
         description='Can be omitted. New keypair will be generated')
+
+
+class NewImage(wtf.Form):
+    name = wtf.TextField('Image name', [wtf.Required()])
+    upload_type = wtf.SelectField('Upload type', [wtf.Required()], choices=(('', 'Single'), ('separate', 'Composite')))
+    
+    
+class DeleteUserForm(wtf.Form):
+    user_id = wtf.HiddenField('user id', [wtf.Required()])
+    
+
+class AddUserToProject(wtf.Form):
+    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    user = wtf.HiddenField('User', [wtf.Required()])
+    
+class RemoveUserFromProject(wtf.Form):
+    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    user = wtf.HiddenField('User', [wtf.Required()])
 

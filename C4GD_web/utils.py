@@ -19,11 +19,6 @@ from C4GD_web.exceptions import KeystoneExpiresException, GentleException, Billi
 from .benchmark import benchmark
 
 
-def unjson(response, attr='content'):
-    value = getattr(response, attr)
-    return json.loads(value) if value != '' else ''
-
-
 def response_ok(response):
     return  200 <= response.status_code < 300
 
@@ -31,8 +26,15 @@ from .benchmark import benchmark
 
 
 def unjson(response, attr='content'):
-    value = getattr(response, attr)
-    if 'json' in response.headers['content-type']:
+    if attr == 'read()':
+        value = response.read()
+    else:
+        value = getattr(response, attr)
+    if hasattr(response, 'getheaders'):
+        ct = response.getheader('content-type')
+    else:
+        ct = response.headers['content-type']
+    if 'json' in ct:
         if '' == value:
             return value
         else:
@@ -66,16 +68,18 @@ def keystone_obtain_unscoped(user_name, password):
                     }
                 })
         response = requests.post(
-            '%s/tokens' % current_app.config['KEYSTONE_URL'],
+            '%s/tokens' % current_app.config['KEYSTONE_CONF']['auth_uri'],
             data=request_data,
             headers = {'content-type': 'application/json'})
     if response_ok(response):
-        return True, unjson(response, attr='text')
+        return True, unjson(response)
     return False, ""
     
 
-def keystone_get(path, params={}):
-    url = current_app.config['KEYSTONE_URL'] + path
+def keystone_get(path, params={}, is_admin=False):
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -98,8 +102,11 @@ def keystone_get(path, params={}):
     return unjson(response)
 
 
-def keystone_post(path, data={}):
-    url = current_app.config['KEYSTONE_URL'] + path
+def keystone_post(path, data={}, is_admin=False):
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
+    print url, data
+    if is_admin:
+        url = url.replace('5000', '35357')
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -110,7 +117,6 @@ def keystone_post(path, data={}):
         url, 
         data=json.dumps(data), 
         headers=headers)
-
     if not response_ok(response):
         if response.status_code == 401:
             raise GentleException('Access denied', response, data)
@@ -121,6 +127,27 @@ def keystone_post(path, data={}):
 
     return unjson(response)
 
+def keystone_delete(path):
+    url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
+    url = url.replace('5000', '35357')
+    headers = {
+            'X-Auth-Token': session['keystone_unscoped']['access']\
+                ['token']['id'],
+            'Content-Type': 'application/json'
+            }
+
+    response = requests.delete(
+        url, 
+        headers=headers)
+
+    if not response_ok(response):
+        if response.status_code == 401:
+            raise GentleException('Access denied', response, {})
+        else:
+            raise KeystoneExpiresException(
+                'Identity server responded with status %d' % \
+                    response.status_code, response)
+            
 
 def get_public_url(tenant_id, service_type):
     """
@@ -136,6 +163,7 @@ def get_public_url(tenant_id, service_type):
     raise GentleException(
         'No public URL for %s for tenant "%s"' % (
             service_type, tenant_id))
+
 
 
 def openstack_api_call(service_type, tenant_id, path, params={}, http_method=False):
@@ -215,7 +243,7 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
     return unjson(response)        
 
 
-def obtain_scoped(tenant_id):
+def obtain_scoped(tenant_id, is_admin=True):
     session['keystone_scoped'][tenant_id] = keystone_post(
         '/tokens',
         data={

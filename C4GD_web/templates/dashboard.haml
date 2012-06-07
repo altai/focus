@@ -1,6 +1,6 @@
 -extends "authenticated_base.haml"
 -block content
-  -if g.is_global_admin:
+  -if ('role', 'admin') is allowed:
     %section
       %div.page-header
         %h2
@@ -13,12 +13,16 @@
             %a href="{{ url_for('global_views.list_vms') }}" -> Virtual machines      
           %li
             %a href="{{ url_for('global_views.billing') }}" -> Billing     
-      
+          %li
+            %a href="{{ url_for('global_images.index') }}" -> Images
+          %li
+            %a href="{{ url_for('global_user_management.index')}}" -> Users
+                
   -if tenants_with_roles|length
     %section
       %div.page-header
         %h2
-        Projects related to you
+          Projects
       %table.table.table-striped.table-bordered.table-condensed
         %thead
           %tr

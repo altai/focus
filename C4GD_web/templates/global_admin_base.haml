@@ -1,0 +1,22 @@
+-extends "authenticated_base.haml"
+-block subnav
+  %div.container
+    %header.jumbotron.subhead#overview
+      %h1
+        Global administration
+      %p.lead
+        Cloud-wide information and actions
+    %div.subnav
+      %ul.nav.nav-pills
+        %li{% if request.path == url_for('global_views.list_vms') %} class="active"{% endif %}
+          %a href="{{ url_for('global_views.list_vms') }}"
+            Virtual machines
+        %li{% if request.path == url_for('global_views.billing') %} class="active"{% endif %}
+          %a href="{{ url_for('global_views.billing') }}"
+            Billing
+        %li{% if request.blueprint == 'global_images' %} class="active"{% endif %}
+          %a href="{{ url_for('global_images.index') }}"
+            Images    
+        %li{% if request.blueprint == 'global_user_management' %} class="active"{% endif %}
+          %a href="{{ url_for('global_user_management.index')}}"
+            Users

@@ -1,7 +1,7 @@
 # coding=utf-8
 from storm.locals import *
 from flask import g, current_app
-
+from C4GD_web import app
 
 
 __all__ = ['User', 'Tenant', 'Credential', 'UserRole', 'Role', 'Service', 

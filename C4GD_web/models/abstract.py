@@ -1,4 +1,7 @@
 import functools
+import httplib
+import os
+import urlparse
 
 from flask import session, current_app
 
@@ -60,8 +63,8 @@ class OpenstackListMixin(object):
         if tenant_id is not None:
             snap(tenant_id)
         else:
-            for tenant in cls._tenants(**kwargs):
-                snap(tenant['id'])
+            for tenant_id in cls._tenants(**kwargs):
+                snap(tenant_id)
                 if getattr(cls, 'list_any_one_tenant', False):
                     break
         return acc
@@ -84,9 +87,9 @@ class OpenstackMixinBase(object):
         if tenant_id is not None:
             return snap(tenant_id)
         else:
-            for tenant in cls._tenants(**kwargs):
-                return snap(tenant['id'])
-        raise cls.NotFound
+            for tenant_id in cls._tenants(**kwargs):
+                return snap(tenant_id)
+        raise cls.NotFound, "%s with ID %s not found." % (cls.__name__, obj_id)
 
     @staticmethod
     def _snap(tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
@@ -116,11 +119,18 @@ class OpenstackMixinBase(object):
     def _tenants(**kwargs):
         """
         Utility to list tenants for user.
+
+        If kwargs contain explicit tenant dict return it as a signle-item list.
+        If session contains tenants return list of tenant ids from session.
+        Return default tenant id from session.
         """
         if 'tenants' in kwargs:
-            return kwargs['tenants']
+            return [x['id'] for x in kwargs['tenants']]
         else:
-            return session['tenants']['tenants']['values']
+            tenants = [x['id'] for x in session['tenants']['tenants']]
+            if len(tenants):
+                return tenants
+        return [current_app.config['DEFAULT_TENANT_ID']]
 
 
 class OpenstackDeleteMixin(object):
@@ -165,6 +175,98 @@ class Image(GlanceAPI):
     def list_accessor(obj):
         return obj['images']
 
+    @classmethod
+    def create(
+        cls, tenant_id, name, container_format, disk_format, path, 
+        public=True, architecture='x86_64', kernel_id=None, ramdisk_id=None):
+        '''Upload image to Glance API.
+        
+        Prepare headers.
+        - content type application/octet-stream
+        - image size
+        Post request with file content as body.
+        Return key 'image' from unjsoned response.
+        '''
+        size_in_bytes = os.path.getsize(path)
+        headers = {
+            'X-Auth-Token': session['keystone_scoped'][tenant_id]['access']\
+                ['token']['id'],
+            'content-type': 'application/octet-stream',
+            'x-image-meta-size': unicode(size_in_bytes),
+            'content-length': unicode(size_in_bytes),
+            'x-image-meta-is_public': unicode(public),
+            'x-image-meta-name': name,
+            'x-image-meta-container_format': container_format,
+            'x-image-meta-disk_format': disk_format,
+            'x-image-meta-property-image_state': 'available',
+            'x-image-meta-property-project_id': tenant_id,
+            'x-image-meta-property-architecture': architecture,
+            'x-image-meta-property-image_location': 'local'
+            }
+        if kernel_id:
+            headers['x-image-meta-property-kernel_id'] = int(kernel_id)
+        if ramdisk_id:
+            headers['x-image-meta-property-ramdisk_id'] = int(ramdisk_id)
+        url = utils.get_public_url(tenant_id, cls.service_type) + cls.base
+        t = urlparse.urlparse(url)
+        connection_type = get_connection_type(t.scheme)
+        connection = connection_type(t.hostname, t.port or 80)
+        connection.putrequest('POST', t.path)
+        for header, value in headers.items():
+            connection.putheader(header, value)
+        connection.endheaders()
+        CHUNKSIZE = 65536
+        with open(path) as fp:
+            chunk = fp.read(CHUNKSIZE)
+            while chunk:
+                connection.send('%x\r\n%s\r\n' % (len(chunk), chunk))
+                chunk = fp.read(CHUNKSIZE)
+        connection.send('0\r\n\r\n')
+        response = connection.getresponse()
+        status_code = get_status_code(response)
+        if status_code not in (httplib.OK,
+                           httplib.CREATED,
+                           httplib.ACCEPTED,
+                           httplib.NO_CONTENT):
+            current_app.logger.info(
+                "Abnormal request result: %s" % response.read())
+            if status_code == httplib.UNAUTHORIZED:
+                raise RuntimeError("Glance: User not authorized")
+            elif status_code == httplib.FORBIDDEN:
+                raise RuntimeError("Glance: User not authorized")
+            elif status_code == httplib.NOT_FOUND:
+                raise RuntimeError("Glance: Not found")
+            elif status_code == httplib.CONFLICT:
+                raise RuntimeError("Glance: Bad request. Duplicate data")
+            elif status_code == httplib.BAD_REQUEST:
+                raise RuntimeError("Glance: Bad request")
+            elif status_code == httplib.MULTIPLE_CHOICES:
+                raise RuntimeError("Glance: Multiple choices")
+            elif status_code == httplib.INTERNAL_SERVER_ERROR:
+                raise RuntimeError("Glance: Internal Server error")
+            else:
+                raise RuntimeError("Glance: Unknown error occurred")
+        return utils.unjson(response, attr='read()')['image']
+
+
+def get_connection_type(scheme):
+    """
+    Returns the proper connection type
+    """
+    if scheme == 'https':
+        return httplib.HTTPSConnection
+    else:
+        return httplib.HTTPConnection
+
+def get_status_code(response):
+    """
+    Returns the integer status code from the response, which
+    can be either a Webob.Response (used in testing) or httplib.Response
+    """
+    if hasattr(response, 'status_int'):
+        return response.status_int
+    else:
+        return response.status
 
 class NovaImage(NovaAPI):
     base = '/images'
@@ -307,9 +409,9 @@ class SSHKey(NovaAPI):
                 "public_key": public_key
             }
         }
-        for tenant in cls._tenants():
+        for tenant_id in cls._tenants():
             result = cls._snap(
-                tenant['id'],
+                tenant_id,
                 cls.base,
                 api_func=functools.partial(
                     utils.openstack_api_call,
@@ -327,9 +429,9 @@ class SSHKey(NovaAPI):
                 "name": name
             }
         }
-        for tenant in cls._tenants():
+        for tenant_id in cls._tenants():
             result = cls._snap(
-                tenant['id'],
+                tenant_id,
                 cls.base,
                 api_func=functools.partial(
                     utils.openstack_api_call,

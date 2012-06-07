@@ -4,6 +4,8 @@
     %a.btn.btn-primary href="{{ url_for('project_views.spawn_vm', tenant_id=g.tenant_id) }}"
       %b.icon-add
       Spawn new
+    %span class="label label-important"
+      Important: 'delete' actions cannot be reverted
     %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
       %thead
         %tr

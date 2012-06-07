@@ -3,7 +3,8 @@ import json
 import requests
 
 from flask import g, session, request, current_app
-from flask import flash, redirect, url_for, jsonify
+from flask import flash, redirect, url_for
+from flaskext import principal
 
 from C4GD_web import app
 from C4GD_web.utils import keystone_get, obtain_scoped, keystone_obtain_unscoped,\
@@ -28,6 +29,10 @@ def authenticate_user(user, password):
         # this is not obvious but useful here
         for tenant in tenants['tenants']['values']:
             obtain_scoped(tenant['id'])
+        principal.identity_changed.send(
+            app,
+            identity=principal.Identity(
+                session["keystone_unscoped"]['access']['user']['id']))
     return success
 
 
