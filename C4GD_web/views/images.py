@@ -5,6 +5,7 @@ import flask
 from flask import blueprints
 from flaskext import principal
 from C4GD_web.models import abstract
+from C4GD_web.clients import clients
 
 import forms
 import C4GD_web
@@ -29,6 +30,13 @@ def get_bp(name):
     def global_or_project(endpoint, values):
         flask.g.project_id = values.pop('project_id', None)
 
+    @bp.route('<image_id>/', methods=['GET'])
+    def show(image_id):
+        """
+        Present details page for single image object
+        """
+        image = clients.nova.images.get(image_id)
+        return {'image': image}
 
     @bp.route('')
     def index():

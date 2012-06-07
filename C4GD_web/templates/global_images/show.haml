@@ -1,0 +1,41 @@
+-extends "global_admin_base.haml"
+-block content
+  %div
+    %h2
+      {{ image.name }}  
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+       %thead
+         %tr
+           %th
+             ID
+           %th
+             Status
+           %th
+             Created
+           %th
+             Updated
+           %th
+             Progress
+           %th
+             Links
+         %tr
+           %td
+             =image.id
+           %td
+             =image.status
+           %td
+             =image.created
+           %td
+             =image.updated
+           %td
+             =image.progress
+           %td
+             -if image.links
+               -for link in image.links:
+                 =link.href
+                 -if not loop.last
+                   %br
+    
+  %a href="{{ url_for('global_images.index') }}"
+    back to images list
+     

@@ -6,7 +6,6 @@
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr
-        %th -> ID
         %th -> Name
         %th -> Container Format
         %th -> Disk Format
@@ -15,8 +14,9 @@
     %tbody
       -for image in images
         %tr
-          %td -> =image['id']
-          %td -> =image['name']
+          %td
+            %a href="{{ url_for('.show', image_id=image['id']) }}"
+              =image['name']
           %td -> =image['container_format']
           %td -> =image['disk_format']
           %td -> =image['checksum']
