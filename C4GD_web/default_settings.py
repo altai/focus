@@ -5,7 +5,6 @@ NEXT_TO_LOGIN_ARG = 'next' # GET/POST field name to store next after login URL
 DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard' # no next? redirect to this view
 DEFAULT_NEXT_TO_LOGOUT_VIEW = 'dashboard'
 
-BILLING_URL = 'http://172.30.0.3:8787/v2'
 TEMPLATE_EXTENSION = '.haml'
 # endpoints allowed for anonymous to visit
 ANONYMOUS_ALLOWED = ['login', 'static']
