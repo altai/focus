@@ -85,3 +85,4 @@ import views.authentication
 import views.autorization
 import views.dashboard
 import views.profile
+import views.template_filters
