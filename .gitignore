@@ -1,7 +1,7 @@
 syntax: glob
 
 *.py[co]
-local_settings.py
+C4GD_web/local_settings.py
 test_settings.py
 pip-log.txt
 Ignored
