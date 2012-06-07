@@ -6,8 +6,6 @@
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
-  %span class="label label-important"
-    Important: 'delete' actions cannot be reverted 
   %section
     %div.btn-toolbar
       %div.btn-group#columns-controller
@@ -116,19 +114,6 @@
               -for cell in row:
                 %td -> =cell
 
-  %div.pagination
-    %ul
-      -if pagination.has_prev
-        %li
-          %a href="{{ url_for_other_page(pagination.page - 1) }}" -> Prev
-      -for page in pagination.iter_pages()
-        -if page
-          %li class="{% if page == pagination.page %}active{% endif %}"
-            %a href="{{ url_for_other_page(page) }}" -> {{ page }}
-        -else
-          %li.ellipsis -> …  
-      -if pagination.has_next
-        %li
-          %a href="{{ url_for_other_page(pagination.page + 1) }}" -> Next
+  -include "pagination.haml"
 
           

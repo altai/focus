@@ -1,15 +1,10 @@
 -extends "authenticated_base.haml"
+-block subnav
+  =super()
+  -include "ssh_keys/_subnav.haml"
 -block amdjs
   %script  type="text/javascript"  src="{{ url_for('static', filename='amd/main_list_keys.js') }}"
-  <script>
-    function showKey(key){
-        alert(key);
-        return false;
-    }    
-  </script>
 -block content
-  %a.btn.btn-primary href="{{ url_for('.new') }}"
-    Add key
   %span class="label label-important"
     Important: 'delete' actions cannot be reverted 
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"

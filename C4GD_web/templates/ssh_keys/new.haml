@@ -1,7 +1,10 @@
 -extends "authenticated_base.haml"
+-block subnav
+  =super()
+  -include "ssh_keys/_subnav.haml"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_h_field
-  %form.form-horizontal method="POST" action="."
+  %form.form-horizontal.well method="POST" action="."
     =render_form_errors(form.csrf_token)
     =form.hidden_tag()  
     %fieldset
