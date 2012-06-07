@@ -46,18 +46,4 @@
             -else
               %a href="{{ url_for('global_user_management.grant_admin', user_id=user.id) }}"
                 grant admin
-
-  %div.pagination
-    %ul
-      -if pagination.has_prev
-        %li
-          %a href="{{ url_for_other_page(pagination.page - 1) }}" -> Prev
-      -for page in pagination.iter_pages()
-        -if page
-          %li class="{% if page == pagination.page %}active{% endif %}"
-            %a href="{{ url_for_other_page(page) }}" -> {{ page }}
-        -else
-          %li.ellipsis -> …  
-      -if pagination.has_next
-        %li
-          %a href="{{ url_for_other_page(pagination.page + 1) }}" -> Next
+  -include "pagination.haml"
