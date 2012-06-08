@@ -61,3 +61,90 @@ class ClientsSingleton(object):
 
 
 clients = ClientsSingleton()
+
+
+class ClientSet(object):
+
+    @staticmethod
+    def strip_version(endpoint):
+        if not endpoint:
+            return ""
+        if endpoint.endswith("/"):
+            endpoint = endpoint[:-1]
+        if endpoint.endswith("/v2.0"):
+            endpoint = endpoint[:-5]
+        if endpoint.endswith("/v1"):
+            endpoint = endpoint[:-3]
+        return endpoint
+
+    def __init__(self, **conf):
+        """
+        Acceptable arguments:
+        - auth_uri or auth_url;
+        - username, password;
+        - tenant_id, tenant_name=None;
+        - token, region_name.
+        """
+        self.conf = conf.copy()
+        self.conf["auth_uri"] = "%s/v2.0" % self.strip_version(
+            conf.get("auth_uri") or conf.get("auth_url"))
+
+    @property
+    def keystone(self):
+        conf = self.conf
+        from keystoneclient.v2_0.client import Client as KeystoneClient
+        keystone = KeystoneClient(
+            username=conf.get("username"),
+            password=conf.get("password"),
+            tenant_id=conf.get("tenant_id"),
+            tenant_name=conf.get("tenant_name"),
+            auth_url=conf.get("auth_uri"),
+            region_name=conf.get("region_name"),
+            token=conf.get("token"))
+        # the __init__ calls authenticate() immediately
+        return keystone
+
+    @property
+    def nova(self):
+        conf = self.conf
+        keystone = self.keystone
+        from novaclient.v1_1.client import Client as NovaClient        
+        nova = NovaClient(
+            conf.get("username"),
+            conf.get("password"),
+            conf.get("tenant_name"),
+            conf.get("auth_uri"),
+            region_name=conf.get("region_name"),
+            token=keystone.token)
+        nova.client.management_url = (
+            keystone.service_catalog.url_for(
+                service_type="compute"))
+        return nova
+
+    @property
+    def glance(self):
+        keystone = self.keystone
+        from glanceclient.v1.client import Client as GlanceClient
+        self.glance = GlanceClient(
+            endpoint=self.strip_version(
+                keystone.service_catalog.url_for(
+                    service_type="image")),
+            token=keystone.auth_token)
+
+    @property
+    def billing(self):
+        keystone = self.keystone
+        return BillingHeartClient(
+            management_url=keystone.service_catalog.url_for(
+                service_type="nova-billing"))
+
+def get_my_clients(tenant_id):
+    conf = {
+        'username': flask.session['keystone_unscoped']['access']['user']['username'],
+        'password': '',
+        'token': flask.session['keystone_unscoped']['access']['token']['id'],
+        'auth_uri': flask.current_app.config['KEYSTONE_CONF']['auth_uri'],
+        'region_name': '',
+        'tenant_id': tenant_id
+        }
+    return ClientSet(**conf)
