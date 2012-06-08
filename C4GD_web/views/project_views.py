@@ -33,8 +33,7 @@ def setup_tenant():
     principal.Permission(('role', 'member', flask.g.tenant_id)).test()
     flask.g.tenant_dict = flask.session['keystone_scoped']\
         [flask.g.tenant_id]['access']['token']['tenant']
-    flask.g.c = get_my_clients(flask.g.tenant_id)
-    flask.g.tenant = flask.g.c.keystone_service.tenants.get(flask.g.tenant_id)
+    flask.g.tenant = clients.keystone.tenants.get(flask.g.tenant_id)
     flask.g.project_managers = [user for user in flask.g.tenant.list_users() if any(
             filter(
                 lambda role: role.name == 'projectmanager',
