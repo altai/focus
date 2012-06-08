@@ -8,6 +8,8 @@ UPLOADS_DEFAULT_DEST = "/var/tmp/focus-uploads/"
 
 RO_DATABASE_URI = ""
 RW_DATABASE_URI = ""
+INVITATIONS_URL = ''
+NEO4J_API_URL = ''
 
 KEYSTONE_CONF = {
     "auth_uri": "http://localhost:5000/v2.0/",
