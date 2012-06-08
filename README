@@ -1,0 +1,15 @@
+After installing RPM edit /etc/focus/local_settings.py.
+You'll need:
+- running Memcached server
+- credentials to Keystone db for user with read-only permissions
+- credentials to Keystone db for user with writing permissions
+- credentials to Mysql database for invitations
+- URL to access ODB
+- Keystone access configuration:
+ * auth_uri - port 5000 
+ * admin_tenant_name - usually systenant
+ * admin_user - usually admin
+ * admin_password - Keystone password for amin_user
+ * admin_tenant_id - ID of `admin_tenant_name` tenant
+
+MySQL database for invitations must be loaded with dump from /etc/invitations_dump.sql.

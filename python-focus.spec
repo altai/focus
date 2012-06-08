@@ -81,6 +81,7 @@ fi
 exit 0
 
 %files
+%doc README*
 %defattr(-,root,root,-)
 %{python_sitelib}/*
 %{_usr}/bin/*
