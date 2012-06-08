@@ -105,6 +105,16 @@ class ClientSet(object):
         return keystone
 
     @property
+    def keystone_service(self):
+        keystone = self.keystone
+        from keystoneclient.v2_0.client import Client as KeystoneClient
+        keystone_service = KeystoneClient(
+            endpoint=keystone.service_catalog.url_for(
+                service_type="identity", endpoint_type="publicURL"),
+            token=keystone.auth_token)
+        return keystone_service
+
+    @property
     def nova(self):
         conf = self.conf
         keystone = self.keystone
@@ -115,7 +125,7 @@ class ClientSet(object):
             conf.get("tenant_name"),
             conf.get("auth_uri"),
             region_name=conf.get("region_name"),
-            token=keystone.token)
+            token=keystone.auth_token)
         nova.client.management_url = (
             keystone.service_catalog.url_for(
                 service_type="compute"))
@@ -140,11 +150,8 @@ class ClientSet(object):
 
 def get_my_clients(tenant_id):
     conf = {
-        'username': flask.session['keystone_unscoped']['access']['user']['username'],
-        'password': '',
         'token': flask.session['keystone_unscoped']['access']['token']['id'],
         'auth_uri': flask.current_app.config['KEYSTONE_CONF']['auth_uri'],
-        'region_name': '',
-        'tenant_id': tenant_id
+        'tenant_id': tenant_id,
         }
     return ClientSet(**conf)

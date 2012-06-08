@@ -11,6 +11,7 @@ import urlparse
 
 from flask import request, redirect, url_for, flash, current_app
 from flask import blueprints
+from flaskext import principal
 
 from C4GD_web.clients import clients
 from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
@@ -22,16 +23,22 @@ bp = blueprints.Blueprint(
     'global_user_management', __name__, url_prefix='/global/users')
 
 
+@bp.before_request
+def authorize():
+    principal.Permission(('role', 'admin')).test()
+
+
 def get_admin_role_id():
     """Return ID of Admin role.
 
     :raises: RuntimeError if Admin roles does not exist
     """
     for role in clients.keystone.roles.list():
-        if role.name == 'Admin':
+        if role.name == current_app.config['ADMIN_ROLE_NAME']:
             return role.id
     else:
         raise RuntimeError, 'Admin role does not exist'
+
     
 def get_member_role_id():
     """Return ID of Member role.
@@ -63,7 +70,7 @@ def index():
         user.delete_form = form
         for tenant in tenants:
             user.is_global_admin = any(
-                [x.name == 'Admin' for x in user.list_roles(tenant)])
+                [x.name == current_app.config['ADMIN_ROLE_NAME'] for x in user.list_roles(tenant)])
             break
     return dict(pagination=p, data=data)
 
@@ -139,7 +146,7 @@ def remove_user_from_project():
 def grant_admin(user_id):
     """Grant admin permission.
 
-    Adds role with name 'Admin' in admin tenant (aka systenant).
+    Add admin role with in admin tenant (aka systenant).
 
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
@@ -156,7 +163,7 @@ def grant_admin(user_id):
 def revoke_admin(user_id):
     """Revoke admin permission.
 
-    Remove role with name 'Admin' in admin tenant (aka systenant).
+    Remove admin role in admin tenant (aka systenant).
 
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection

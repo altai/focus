@@ -4,6 +4,7 @@ from werkzeug.datastructures import iter_multi_items
 from flask import g, request, session, current_app
 from flask import redirect, url_for
 from flask.blueprints import Blueprint
+from flaskext import principal
 
 from C4GD_web.clients import clients
 from C4GD_web.exceptions import BillingAPIError, GentleException
@@ -20,6 +21,11 @@ from keystoneclient import exceptions as keystoneclient_exceptions
 
 bp = Blueprint('global_views', __name__, url_prefix='/global/')
 
+
+@bp.before_request
+def authorize():
+    principal.Permission(('role', 'admin')).test()
+    
 
 @bp.route('billing/')
 def billing():

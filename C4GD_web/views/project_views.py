@@ -3,13 +3,14 @@ import functools
 
 import flask
 from flask import blueprints
+from flaskext import principal
 
 from storm.locals import *
 
 from C4GD_web import benchmark
 from C4GD_web import exceptions
 from C4GD_web import utils
-from C4GD_web.clients import clients
+from C4GD_web.clients import clients, get_my_clients
 from C4GD_web.models.abstract import VirtualMachine, Image, Flavor, KeyPair, SecurityGroup, SSHKey
 from C4GD_web.views.utils import get_next_url
 from C4GD_web.views.generic_billing import generic_billing
@@ -23,23 +24,17 @@ bp = blueprints.Blueprint(
 
 @bp.url_value_preprocessor
 def preprocess_tenant_id(endpoint, values):
-    tenant_id = values.pop('tenant_id')
-    flask.g.tenant_id = tenant_id
-    if 'keystone_scoped' in flask.session:
-        try:
-            tenant_dict = flask.session['keystone_scoped'][tenant_id]['access']['token']['tenant']
-        except KeyError:
-            utils.obtain_scoped(tenant_id)
-            try:
-                tenant_dict = flask.session['keystone_scoped'][tenant_id]['access']['token']['tenant']
-            except KeyError:
-                raise exceptions.GentleException('Tenant %s is not accessible for you.' % tenant_id)
-        flask.g.tenant_dict = tenant_dict
-    
+    flask.g.tenant_id = values.pop('tenant_id')
+    # don't do anything substantial in url preprocessor
+
 
 @bp.before_request
 def setup_tenant():
-    flask.g.tenant = clients.keystone.tenants.get(flask.g.tenant_id)
+    principal.Permission(('role', 'member', flask.g.tenant_id)).test()
+    flask.g.tenant_dict = flask.session['keystone_scoped']\
+        [flask.g.tenant_id]['access']['token']['tenant']
+    flask.g.c = get_my_clients(flask.g.tenant_id)
+    flask.g.tenant = flask.g.c.keystone_service.tenants.get(flask.g.tenant_id)
     flask.g.project_managers = [user for user in flask.g.tenant.list_users() if any(
             filter(
                 lambda role: role.name == 'projectmanager',

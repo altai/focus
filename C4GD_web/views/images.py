@@ -36,6 +36,14 @@ def get_bp(name):
     def global_or_project(endpoint, values):
         flask.g.project_id = values.pop('project_id', None)
 
+    @bp.before_request
+    def authorize():
+        if flask.g.project_id:
+            need = ('role', 'member', flask.g.project_id)
+        else:
+            need = ('role', 'admin')
+        principal.Permission(need).test()
+
     @bp.route('<image_id>/', methods=['GET'])
     def show(image_id):
         """

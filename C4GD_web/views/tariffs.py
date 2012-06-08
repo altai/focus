@@ -6,12 +6,18 @@ import sys
 
 import flask
 from flask import blueprints
+from flaskext import principal
 
 from C4GD_web.models.abstract import Tariff
 from C4GD_web.views import forms
 
 
 bp = blueprints.Blueprint('tariffs', __name__, url_prefix='/global/tariffs/')
+
+
+@bp.before_request
+def authorize():
+    principal.Permission(('role', 'admin')).test()
 
 
 @bp.route('')

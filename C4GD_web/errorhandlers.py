@@ -30,7 +30,7 @@ def gentle_exception(error):
 if not app.debug:
     @app.errorhandler(Exception)
     def everything_exception(error):
-        flash(error.message, 'error')
+        flash(error.message or error.args[0], 'error')
         exc_type, exc_value, tb = sys.exc_info()
         app.log_exception((exc_type, exc_value, tb))
         return render_template('blank.haml')

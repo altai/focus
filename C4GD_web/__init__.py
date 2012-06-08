@@ -83,7 +83,7 @@ import errorhandlers
 import callbacks
 import context_processors
 import views.authentication
-import views.autorization
+import views.authorization
 import views.dashboard
 import views.profile
 import views.template_filters
