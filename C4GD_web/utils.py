@@ -18,12 +18,6 @@ from C4GD_web.exceptions import KeystoneExpiresException, GentleException, Billi
 from .benchmark import benchmark
 
 
-def response_ok(response):
-    return  200 <= response.status_code < 300
-
-from .benchmark import benchmark
-
-
 def unjson(response, attr='content'):
     if attr == 'read()':
         value = response.read()
@@ -211,6 +205,8 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
             )
 
         if current_app.debug:
+            current_app.logger.info(headers)
+            current_app.logger.info(kw)
             current_app.logger.info(response.content)
 
         return response
@@ -255,7 +251,9 @@ def obtain_scoped(tenant_id, is_admin=True):
 
 def billing_api_call(path, params={}, http_method=False):
     assert http_method, 'Use billing API functions wrapped'
-    url = current_app.config['BILLING_URL'] + path
+    # TODO(apugachev) use BillingHeartClient
+    # we have at least 1 scoped token, serviceCatalog exists.
+    url = [x['endpoints'][0]['publicURL'] for x in session['keystone_scoped'].values()[0]['access']['serviceCatalog'] if x['type'] == 'nova-billing'][0] + path
     headers = {
             'X-Auth-Token': session['keystone_unscoped']['access']\
                 ['token']['id'],
@@ -277,6 +275,8 @@ def billing_api_call(path, params={}, http_method=False):
         **kw)
 
     if current_app.debug:
+        current_app.logger.info(headers)
+        current_app.logger.info(kw)
         current_app.logger.info(response.content)
     
     if not response_ok(response):
@@ -286,4 +286,4 @@ def billing_api_call(path, params={}, http_method=False):
 
 
 billing_get = functools.partial(billing_api_call, http_method=requests.get)
-
+billing_post = functools.partial(billing_api_call, http_method=requests.post)

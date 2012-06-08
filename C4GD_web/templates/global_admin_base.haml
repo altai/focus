@@ -20,3 +20,5 @@
         %li{% if request.blueprint == 'global_user_management' %} class="active"{% endif %}
           %a href="{{ url_for('global_user_management.index')}}"
             Users
+        %li{% if request.blueprint == 'tariffs' %} class="active"{% endif %}
+          %a href="{{ url_for('tariffs.index') }}" -> Tariffs

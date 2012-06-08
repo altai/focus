@@ -17,7 +17,6 @@ class Dataset(object):
     def __init__(self, params=None, delayed=False, user_id=None, tenant_id=None):
         self.data = account_bill_show(
             params.account_id, user_id, tenant_id,
-            current_app.config['BILLING_URL'],
             period_start=params.period_start,
             period_end=params.period_end,
             time_period=params.time_period)
@@ -130,7 +129,7 @@ def _concentrate_resources(resources, tenant_id):
     return [x if (x['id'], x['rtype']) not in d else d[(x['id'], x['rtype'])] for x in resources]
 
 
-def account_bill_show(account_id, user_id, tenant_id, public_url, **kw):
+def account_bill_show(account_id, user_id, tenant_id, **kw):
     bill = AccountBill.get(account_id, **kw)[0] # list with tenant_id as ['name']
     bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
     bill['resources'] = _compact_bill(bill['resources'])

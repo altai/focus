@@ -1,0 +1,26 @@
+-extends "global_admin_base.haml"
+-block content
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Tariff
+        %th
+          Price, $
+        %th
+          Actions
+    %tbody
+      -for name, price in tariffs.items():
+        -if name != 'nova/instance':
+          %tr
+            %td
+              =name
+            %td
+              =price
+            %td
+              %a href="{{ url_for('.edit', name=name) }}"
+                %i.icon-pencil
+                edit price
+
+
+    

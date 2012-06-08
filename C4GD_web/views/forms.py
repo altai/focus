@@ -84,3 +84,17 @@ class RemoveUserFromProject(wtf.Form):
 
 class DeleteForm(wtf.Form):
     """Just an empty form to easily bypass CSRF checks."""
+
+
+class TariffEditForm(wtf.Form):
+    price = wtf.DecimalField(
+        'Price',
+        [
+            wtf.Required()
+            ],
+        places=None,
+        description="USD/hour")
+    migrate = wtf.BooleanField(
+        'Migrate Resources',
+        description="Whether all currently charging resources should migrate to\
+ the new tariffs")

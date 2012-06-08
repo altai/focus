@@ -41,7 +41,7 @@ from views import project_views
 from views import show_one
 from views import ssh_keys
 from views import users_management
-
+from views import tariffs
 # blueprints started
 SHOW_ONES = (
     ('images', '/images/', abstract.Image),
@@ -57,6 +57,7 @@ app.register_blueprint(global_views.bp)
 app.register_blueprint(ssh_keys.bp)
 app.register_blueprint(images.get_bp('global_images'), url_prefix='/global/images/')
 app.register_blueprint(users_management.bp)
+app.register_blueprint(tariffs.bp)
 
 #  it is not clear how to implement public/private images
 #app.register_blueprint(images.get_one('project_images'), url_prefix='/<project_id>/images/')
@@ -86,3 +87,4 @@ import views.autorization
 import views.dashboard
 import views.profile
 import views.template_filters
+

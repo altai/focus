@@ -17,7 +17,8 @@
             %a href="{{ url_for('global_images.index') }}" -> Images
           %li
             %a href="{{ url_for('global_user_management.index')}}" -> Users
-                
+          %li
+            %a href="{{ url_for('tariffs.index') }}" -> Tariffs
   -if tenants_with_roles|length
     %section
       %div.page-header

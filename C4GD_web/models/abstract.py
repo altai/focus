@@ -1,3 +1,4 @@
+import datetime
 import functools
 import httplib
 import os
@@ -382,6 +383,17 @@ class Tariff(Base):
     def list(cls):
         return utils.billing_get('/tariff')
 
+    @classmethod
+    def update(cls, name, price, migrate):
+        request_data = {
+            "datetime": "%sZ" % datetime.datetime.utcnow().isoformat(),
+            "migrate": migrate,
+            "values": {
+                name: float(price),
+                }
+            }
+        return utils.billing_post('/tariff', request_data)
+
 
 class SSHKey(NovaAPI):
     base = '/os-keypairs'
@@ -447,3 +459,4 @@ class SSHKey(NovaAPI):
         for keydata in cls.list():
             if keypair_name == keydata['name']:
                 return keydata
+
