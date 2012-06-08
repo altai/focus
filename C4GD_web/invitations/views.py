@@ -10,6 +10,7 @@ from flask import g, render_template, flash, render_template, url_for, redirect,
     request, session
     
 from flaskext.mail import Message
+from flaskext import principal
 from flaskext.wtf import TextField, Required
 
 from row_mysql_queries import save_invitation, get_invitation_by_hash, \
@@ -41,9 +42,9 @@ def invite_finish(invitation_hash):
         username_is_taken = True
     except Exception, e:
         if form.validate_on_submit():
-            new_user = register_user(form.username.data, form.email.data, form.password.data, role)
-            if new_user is not None:
-                authenticate_user(new_user, form.password.data)
+            new_odb_user = register_user(form.username.data, form.email.data, form.password.data, role)
+            if new_odb_user is not None:
+                authenticate_user(new_odb_user, form.password.data)
                 update_invitation(id, email, hash, 1)
                 return redirect('/')
     form.username.data = username
@@ -65,12 +66,12 @@ def invite():
             }, 'GET')[0]
             flash('User with email "%s" is already registered' % user_email, 'error')
             return render_template('invite.haml', form=form, masks=masks)
-        except KeyError:
+        except KeyError, GentleException:
             pass
         hash = create_hash_from_data(user_email)
         domain = user_email.split('@')[-1]
         if (domain,) not in masks:
-            flash('Not allowed mail mask')
+            flash('Not allowed email mask')
             return render_template('invite.haml', form=form, masks=masks)
         save_invitation(user_email, hash, 0, form.role.data)
         invite_link = "http://%s%s" % (request.host, url_for('invite_finish', invitation_hash=hash))
@@ -81,4 +82,7 @@ def invite():
             flash('Invitation sent successfully', 'info')  
         except Exception, e:
             raise GentleException(e.message)
-    return render_template('invite.haml', form=form, masks=masks)
+    return render_template('invite.haml', 
+                           form=form, 
+                           masks=masks,
+                           )

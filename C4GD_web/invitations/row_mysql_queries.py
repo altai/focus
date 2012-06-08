@@ -46,3 +46,22 @@ def get_masks():
     cursor.execute(query)
     rows = cursor.fetchall()
     return rows
+
+
+# password recovery
+def save_recovery(email, hash, complete):
+    query = "INSERT INTO invitations.recovery_requests SET "+\
+        "email='%s'," % email +\
+        "hash='%s'," % hash +\
+        "complete=%d;" % (1 if complete else 0)
+    cursor.execute(query) 
+    conn.commit()
+    
+def get_recovery_request_by_hash(recovery_hash):
+    query = """
+        SELECT * 
+        FROM invitations.recovery_requests 
+        WHERE recovery_requests.hash = '%s'""" % recovery_hash
+    cursor.execute(query)
+    row = cursor.fetchone()
+    return row

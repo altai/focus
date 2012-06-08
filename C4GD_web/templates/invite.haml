@@ -13,10 +13,9 @@
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
     {{ render_field(form.email) }}
-    {% if g.is_global_admin %}
+    -if ('role', 'admin') is allowed
         {{ render_field(form.role) }}
-    {% else %}
+    -else
         %input type="hidden" name="role" value="user"
-    {% endif %}
     %button type="submit" class="btn btn-primary"
       Invite

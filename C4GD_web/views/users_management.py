@@ -16,6 +16,7 @@ from C4GD_web.clients import clients
 from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
     RemoveUserFromProject 
 from C4GD_web.views.pagination import Pagination, per_page
+from C4GD_web.utils import user_tenants_list
 
 
 bp = blueprints.Blueprint(
@@ -75,12 +76,8 @@ def show(user_id):
     Name, username, email, roles in tenants.
     '''
     user = clients.keystone.users.get(user_id)
-    user_roles = []
-    all_tenants = clients.keystone.tenants.list(limit=1000000)
-    for tenant in all_tenants:
-        roles = user.list_roles(tenant)
-        if len(roles):
-            user_roles.append((tenant, roles))
+    
+    user_roles = user_tenants_list(user)
     add_user_to_project = AddUserToProject()
     add_user_to_project.user.data = user_id
     remove_user_from_project = RemoveUserFromProject()

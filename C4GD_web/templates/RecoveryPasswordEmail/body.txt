@@ -1,0 +1,2 @@
+To drop your password, please go here:
+{{ recovery_link }}

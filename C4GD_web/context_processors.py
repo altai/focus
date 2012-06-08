@@ -15,7 +15,7 @@ def frequent_data():
     try:
         if getattr(g, 'is_authenticated', False):
             tenants_with_roles = []
-            for tenant in session['tenants']['tenants']:
+            for tenant in session['tenants']:
                 tenants_with_roles.append(
                     (tenant, session['keystone_scoped'][tenant['id']]['access']['user']['roles']))
             return {'tenants_with_roles': tenants_with_roles}

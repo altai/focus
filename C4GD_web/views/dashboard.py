@@ -20,7 +20,7 @@ def dashboard():
     context = {}
     if principal.Permission(('role', 'admin')):
         # obtain scoped in advance
-        obtain_scoped(flask.current_app.config['DEFAULT_TENANT_ID']) 
+        obtain_scoped(flask.current_app.config['DEFAULT_TENANT_ID'])
         # all servers are returned on this api call
         vms = clients.nova.servers.list(search_opts={'all_tenants': 1})
         context.update(dict(

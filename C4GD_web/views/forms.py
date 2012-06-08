@@ -85,4 +85,6 @@ class AddUserToProject(wtf.Form):
 class RemoveUserFromProject(wtf.Form):
     project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
     user = wtf.HiddenField('User', [wtf.Required()])
-
+    
+class PasswordRecoveryRequest(wtf.Form):
+    email = wtf.html5.EmailField('Email', [wtf.Required()])
