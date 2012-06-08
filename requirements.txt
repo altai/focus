@@ -1,7 +1,8 @@
 Flask
 Flask-WTF
+Flask-Mail
 Jinja2
-MySQL-python
+#MySQL-python
 WTForms
 Hamlish-Jinja
 requests

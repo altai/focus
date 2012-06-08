@@ -8,6 +8,7 @@ from flaskext import uploads
 from flask_memcache_session import Session
 from werkzeug import ImmutableDict
 from werkzeug.contrib.cache import MemcachedCache
+from flaskext.mail import Mail
 
 import application
 
@@ -33,6 +34,9 @@ app.cache = MemcachedCache(
 app.session_interface = Session()
 if not app.debug:
     logging.basicConfig(stream=sys.stderr)
+    
+# SMTP
+mail = Mail(app)
 
 from models import abstract
 from views import global_views
@@ -87,4 +91,5 @@ import views.autorization
 import views.dashboard
 import views.profile
 import views.template_filters
-
+import C4GD_web.invitations
+import views.keystone2ODB

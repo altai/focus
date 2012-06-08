@@ -151,7 +151,7 @@ class Token(Storm):
             timedelta(hours=current_app.config['RELATIVE_TO_API_HOURS_SHIFT']) + \
             timedelta(minutes=1)
         return g.store.find(cls, cls.expires > valid_until)
-
+    
 
 def get_store(SETTINGS_PREFIX):
     return Store(create_database(

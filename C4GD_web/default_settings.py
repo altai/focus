@@ -3,11 +3,32 @@ RELATIVE_TO_API_HOURS_SHIFT = 0 # our system has 13, keystone db 14 => 1
 SECRET_KEY = 'g.U(\x8cQ\xbc\xdb\\\xc3\x9a\xb2\xb6,\xec\xad(\xf8"2*\xef\x0bd'
 NEXT_TO_LOGIN_ARG = 'next' # GET/POST field name to store next after login URL
 DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard' # no next? redirect to this view
-DEFAULT_NEXT_TO_LOGOUT_VIEW = 'dashboard'
+
+DEFAULT_NEXT_TO_LOGOUT_VIEW = 'login'
+LDAP_URI = 'ldap://ns/' 
+LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
+
+BILLING_URL = 'http://172.30.0.3:8787/v2'
+
+DEV = False
+
+MAIL_SERVER = 'mail.vm.griddynamics.net'
+MAIL_PORT = 25
+MAIL_USE_SSL = False
+MAIL_DEBUG = True
+DEFAULT_MAIL_SENDER = 'DoNotReply'
+
 TEMPLATE_EXTENSION = '.haml'
-# endpoints allowed for anonymous to visit
-ANONYMOUS_ALLOWED = ['login', 'static']
-#  for runserver and tornado app runner
+
+ANONYMOUS_ALLOWED = ['login', 
+                     'invite_finish', 
+                     'logout', 
+                     'static', 
+                     'convert_keystone_2_odb',
+                     'password_recovery_request',
+                     'password_recovery_finish',
+                     'update_passwords_in_ODB',]
+
 DEFAULT_APP_PORT = 5000
 # for keystone/nova/glance client
 KEYSTONE_CONF = {

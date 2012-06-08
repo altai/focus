@@ -36,8 +36,11 @@
                 %a href="{{ url_for('ssh_keys.index') }}" -> SSH Keys
           %ul class="nav pull-right"
             %li
+              %a href="{{ url_for('invite') }}"
+                Invite
+            %li
               %a href="{{ url_for('profile') }}"
-                =session['keystone_unscoped']['access']['user']['name']
+                =session['user']['username']
             %li
               %a href="{{ url_for('logout') }}"
                 Logout

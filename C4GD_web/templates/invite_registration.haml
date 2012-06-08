@@ -1,0 +1,18 @@
+-extends "base.haml"
+-block content
+  -from "_formhelpers.haml" import render_form_errors, render_field
+  %form method="POST" action="." class="well offset4 span4 form-vertical invite_registration"
+    %legend
+      Registration Form
+    {{ render_form_errors(form.csrf_token) }}
+    {{ form.hidden_tag() }}
+    Email: {{ email }}
+    {{ render_field(form.email) }}
+    Username: 
+    {% if not username_is_taken %}
+        {{ username }}
+    {% endif %}
+    {{ render_field(form.username) }}
+    Password: {{ render_field(form.password) }}
+    %button type="submit" class="btn btn-primary"
+      Register

@@ -1,0 +1,21 @@
+-extends "authenticated_base.haml"
+-block content
+  -from "_formhelpers.haml" import render_form_errors, render_field
+  %form method="POST" action="." class="well offset4 span4 form-vertical invite"
+    %legend
+      Invitation Form
+    Allowed domains:
+    %ul class="unstyled"
+      {% for mask in masks: %}
+          %li
+            {{ mask.0 }}
+      {% endfor %}
+    {{ render_form_errors(form.csrf_token) }}
+    {{ form.hidden_tag() }}
+    {{ render_field(form.email) }}
+    -if ('role', 'admin') is allowed
+        {{ render_field(form.role) }}
+    -else
+        %input type="hidden" name="role" value="user"
+    %button type="submit" class="btn btn-primary"
+      Invite

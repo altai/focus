@@ -25,7 +25,7 @@ def commit_storm_store_optionally(exception):
 
 @app.before_request
 def authenticate():
-    flask.g.is_authenticated = 'keystone_unscoped' in flask.session
+    flask.g.is_authenticated = 'user' in flask.session
     if flask.g.is_authenticated:
         flask.g.user = flask.session['keystone_unscoped']['access']['user']
     else:

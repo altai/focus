@@ -3,6 +3,7 @@ import json
 import functools
 import requests
 import sys
+import base64, hashlib
 
 from flask import session, flash, current_app
 
@@ -14,9 +15,8 @@ import sys
 from flask import session, flash, current_app
 
 from C4GD_web.exceptions import KeystoneExpiresException, GentleException, BillingAPIError
-
-from .benchmark import benchmark
-
+from C4GD_web.clients import clients
+from C4GD_web.benchmark import benchmark
 
 def unjson(response, attr='content'):
     if attr == 'read()':
@@ -97,7 +97,6 @@ def keystone_get(path, params={}, is_admin=False):
 
 def keystone_post(path, data={}, is_admin=False):
     url = current_app.config['KEYSTONE_CONF']['auth_uri'] + path
-    print url, data
     if is_admin:
         url = url.replace('5000', '35357')
     headers = {
@@ -239,14 +238,15 @@ def openstack_api_call(service_type, tenant_id, path, params={}, http_method=Fal
 
 
 def obtain_scoped(tenant_id, is_admin=True):
-    session['keystone_scoped'][tenant_id] = keystone_post(
-        '/tokens',
+    data = keystone_post(
+        'tokens',
         data={
             'auth': {
                 'token' : {'id': session['keystone_unscoped']['access']['token']['id']},
                 'tenantId': tenant_id,
                 }
-            })
+            }, is_admin=True)
+    session['keystone_scoped'][tenant_id] = data
 
 
 def billing_api_call(path, params={}, http_method=False):
@@ -287,3 +287,93 @@ def billing_api_call(path, params={}, http_method=False):
 
 billing_get = functools.partial(billing_api_call, http_method=requests.get)
 billing_post = functools.partial(billing_api_call, http_method=requests.post)
+
+
+def create_hash_from_data(data):
+    h = hashlib.new('ripemd160')
+    h.update(data)
+    h.update("my cool secret")
+    h.hexdigest()
+    return h.hexdigest()
+
+def create_hashed_password(password):
+    m = hashlib.md5()
+    m.update(password)
+    return "{MD5}%s" % base64.standard_b64encode(m.digest())
+    
+
+def neo4j_api_call(path, params={}, method='GET'):
+    url = current_app.config['NEO4J_API_URL'] + path
+    headers = {'Content-Type': 'application/json'}
+    
+    if method == 'POST':
+        response = requests.post(
+            url, 
+            data=json.dumps(params), 
+            headers=headers)
+    if method == 'GET':
+        response = requests.get(
+            url, 
+            params=params, 
+            headers=headers)
+    if method == 'PUT':
+        response = requests.put(
+            url, 
+            data=json.dumps(params), 
+            headers=headers)
+    if method == 'DELETE':
+        response = requests.delete(
+            url, 
+            data=json.dumps(params), 
+            headers=headers)
+    if response.status_code != 404:
+        if not response_ok(response):
+            raise GentleException('ODB request returned %s' % response.status_code, response)
+    return unjson(response)
+
+def user_tenants_list(keystone_user):
+    """
+    Not implemented in Keystone API feature
+    Returns a list of tenants keystone_user belongs to.
+    
+    Important: Should return dicts instead of Keystone client internal objects,
+    because this value will be stored in session and cannot be normally 
+    serialized. 
+    """
+    user_tenants = []
+    all_tenants = clients.keystone.tenants.list(limit=1000000)
+    for tenant in all_tenants:
+        roles = keystone_user.list_roles(tenant)
+        if len(roles):
+            user_tenants.append({u'id': tenant.id, 
+                                u'enabled': tenant.enabled, 
+                                u'description': tenant.description, 
+                                u'name': tenant.name})
+    return user_tenants
+
+def user_tenants_with_roles_list(keystone_user):
+    """
+    Not implemented in Keystone API feature
+    Returns a list with user's roles in it 
+    """
+    user_roles = []
+    all_tenants = clients.keystone.tenants.list(limit=1000000)
+    for tenant in all_tenants:
+        roles = keystone_user.list_roles(tenant)
+        if len(roles):
+            user_roles.append((tenant, roles))
+    return user_roles
+
+
+def get_keystone_user_by_username(username):
+    """
+    Not implemented in Keystone API feature
+    returns a user with specific username
+    
+    Important:
+    Hardcore iteration through all existing users in keystone db 
+    """
+    users = clients.keystone.users.list()
+    for user in users:
+        if user.name == username:
+            return user
