@@ -21,19 +21,22 @@ from C4GD_web.exceptions import GentleException
 
 import MySQLdb
 
-def authenticate_user(odb_user, password):
+def authenticate_user(email, password):
     """
     Checks if user exists in ODB
     Obtains tokens from keystone and storing them in session
     """
     try:
         odb_user = neo4j_api_call('/users',{
-            "email": odb_user['email']
+            "email": email
         }, 'GET')[0]
     except KeyError, GentleException:
-        flash('user does not exists in ODB', 'error')
+        #flash('user does not exists in ODB', 'error')
         return False
-    
+    else:
+        if odb_user['passwordHash'] != create_hashed_password(password):
+            return False
+        
     success, unscoped_token_data = keystone_obtain_unscoped(
         odb_user['username'], password)
     if success:
@@ -126,16 +129,9 @@ def login():
     """
     form = get_login_form()()
     if form.validate_on_submit():
-        try:
-            user = neo4j_api_call('/users', {'email': form.username.data},'GET')[0]
-        except KeyError, GentleException:
-            flash("User doesn't exists, code: 2", 'error')
-            return {'form': form}
-        if user['passwordHash'] != create_hashed_password(form.password.data):
-            flash("Wrong username/password, code: 3", 'error')
-            return {'form': form}
-        if authenticate_user(user, form.password.data):
+        if authenticate_user(form.email.data, form.password.data):
             return redirect(form.next.data)
+        flash("Wrong email/password.", 'error')
     return {'form': form}
 
 

@@ -12,7 +12,7 @@ def get_login_form():
     """
     class LoginForm(wtf.Form):
         next = wtf.HiddenField(default=utils.get_next_url())
-        username = wtf.TextField('Username', [wtf.Required()])
+        email = wtf.TextField('Email', [wtf.Required(), wtf.Email()])
         password = wtf.PasswordField('Password', [wtf.Required()])
     return LoginForm
 

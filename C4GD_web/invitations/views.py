@@ -44,7 +44,7 @@ def invite_finish(invitation_hash):
         if form.validate_on_submit():
             new_odb_user = register_user(form.username.data, form.email.data, form.password.data, role)
             if new_odb_user is not None:
-                authenticate_user(new_odb_user, form.password.data)
+                authenticate_user(form.email.data, form.password.data)
                 update_invitation(id, email, hash, 1)
                 return redirect('/')
     form.username.data = username
