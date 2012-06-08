@@ -128,7 +128,7 @@ class OpenstackMixinBase(object):
         if 'tenants' in kwargs:
             return [x['id'] for x in kwargs['tenants']]
         else:
-            tenants = [x['id'] for x in session['tenants']['tenants']]
+            tenants = [x['id'] for x in session['tenants']]
             if len(tenants):
                 return tenants
         return [current_app.config['DEFAULT_TENANT_ID']]

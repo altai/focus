@@ -98,3 +98,8 @@ class TariffEditForm(wtf.Form):
         'Migrate Resources',
         description="Whether all currently charging resources should migrate to\
  the new tariffs")
+
+    
+class PasswordRecoveryRequest(wtf.Form):
+    email = wtf.html5.EmailField('Email', [wtf.Required()])
+

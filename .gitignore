@@ -16,3 +16,4 @@ local_fab_settings.py
 .settings
 venv
 tests
+centosvenv
