@@ -24,13 +24,5 @@
       %span.custom-period-indicator style="display:block;"
         &nbsp;
 
-  %div.row
-    %div.span
-      Tariffs:
-      {% for item in tariffs|dictsort: %}
-      {% if item[0] != 0.0 %}
-      {{ item[0] }}: $<b>{{ item[1] }}</b>/year{% if not loop.last %},{% endif %}
-      {% endif %}
-      {% endfor %}
   %div.graph-view.row
   %div.table-view

@@ -14,6 +14,7 @@ define([
   , 'project_billing/views/table'
   , 'project_billing/views/graph'
   , 'project_billing/collections/data'
+  , 'project_billing/views/tariff'
 ], function(
   $
   , Backbone
@@ -22,6 +23,7 @@ define([
   , TableView
   , GraphView
   , DataCollection
+  , TariffView
 ){
   function formatDateToISO(date){
     new_date = new Date(date.replace(/-/g, '/'));
@@ -34,6 +36,7 @@ define([
       this.period_view = new PeriodView({el: $('.period-view'), router: this});
       this.table_view = new TableView({el: $('.table-view'), router: this});
       this.graph_view = new GraphView({el: $('.graph-view'), router: this});
+      this.tariff_view = new TariffView({el: $('.tariff-view'), router: this});
       this.filter = [];
     },
     routes: {

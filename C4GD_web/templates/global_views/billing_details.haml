@@ -4,6 +4,29 @@
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
+  %div.row.tariff-view
+    %div.toggleable
+      %table.table.table-striped.table-bordered.table-condensed
+        %tbody
+          {% for rgroup in [["glance/image", "nova/volume"],
+                          ["local_gb", "memory_mb", "vcpus"]] %}
+          {% for rtype in rgroup %}
+          %tr
+            %td
+              {{ rtype }}
+            %td
+              ${{ tariffs[rtype] }}/hour
+          {% endfor %}
+            {% if not loop.last %}
+          %tr
+            %td colspan=2
+              nova/instance
+            {% endif %}
+          {% endfor %}
+    %div.pull-right style="font-style: italic"
+      %a class="toggle_tariff" href="#"
+        hide
+
   %div
     %select.change-tenant
       -for tenant in tenants
