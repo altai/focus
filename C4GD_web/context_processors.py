@@ -4,14 +4,11 @@ import urllib
 import urlparse
 
 from flask import g, session, request
-from storm.locals import *
 from C4GD_web import app
-
-import requests
 
 
 @app.context_processor
-def frequent_data():
+def navigation_bar_tenant_data():
     try:
         if getattr(g, 'is_authenticated', False):
             tenants_with_roles = []
