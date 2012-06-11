@@ -1,0 +1,48 @@
+-extends "global_admin_base.haml"
+-block subnav
+  =super()
+  -include "projects/_subnav.haml"
+-block content:
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Project Name
+        %th
+          Description
+        %th
+          Enabled
+        %th
+          Actions
+      -for object in objects
+        %tr
+          %td
+            =object.name
+          %td
+            -if object.description != None:
+              =object.description
+          %td
+            -if object.enabled:
+              yes
+          %td
+            %div.modal.hide id="delete_{{ object.id }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ object.name }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('.delete', object_id=object.id) }}"
+                  {{ delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_{{ object.id }}"
+              delete
+  -include "pagination.haml"

@@ -22,3 +22,5 @@
             Users
         %li{% if request.blueprint == 'tariffs' %} class="active"{% endif %}
           %a href="{{ url_for('tariffs.index') }}" -> Tariffs
+        %li{% if request.blueprint == 'projects' %} class="active"{% endif %}
+          %a href="{{ url_for('projects.index') }}" -> Projects

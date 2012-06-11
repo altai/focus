@@ -19,6 +19,9 @@
             %a href="{{ url_for('global_user_management.index')}}" -> Users
           %li
             %a href="{{ url_for('tariffs.index') }}" -> Tariffs
+          %li
+            %a href="{{ url_for('projects.index') }}" -> Projects
+
   -if tenants_with_roles|length
     %section
       %div.page-header

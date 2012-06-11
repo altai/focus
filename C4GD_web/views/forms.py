@@ -103,3 +103,7 @@ class TariffEditForm(wtf.Form):
 class PasswordRecoveryRequest(wtf.Form):
     email = wtf.html5.EmailField('Email', [wtf.Required()])
 
+
+class NewProject(wtf.Form):
+    name = wtf.TextField('Name', [wtf.Required()])
+    description = wtf.TextField('Description')

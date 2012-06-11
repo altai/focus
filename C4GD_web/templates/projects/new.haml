@@ -1,0 +1,19 @@
+-extends "global_admin_base.haml"
+-block subnav
+  =super()
+  -include "projects/_subnav.haml"
+-block content:
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
+  %form.form-horizontal method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()  
+    %fieldset
+      %legend
+        New Project
+      =render_h_field(form.name, is_required=True)
+      =render_h_field(form.description)
+      %div.form-actions
+        %button.btn.btn-primary type="submit"
+          Create
+        %a.btn href="{{ url_for('.index')}}"
+          Cancel
