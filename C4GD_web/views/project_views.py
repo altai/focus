@@ -11,6 +11,7 @@ from C4GD_web import benchmark
 from C4GD_web import exceptions
 from C4GD_web import utils
 from C4GD_web.clients import clients, get_my_clients
+from C4GD_web.models import orm
 from C4GD_web.models.abstract import VirtualMachine, Image, Flavor, KeyPair, SecurityGroup, SSHKey
 from C4GD_web.views.utils import get_next_url
 from C4GD_web.views.generic_billing import generic_billing
@@ -27,6 +28,13 @@ def preprocess_tenant_id(endpoint, values):
     flask.g.tenant_id = values.pop('tenant_id')
     # don't do anything substantial in url preprocessor
 
+
+@bp.url_defaults
+def substitute_tenant_id(endpoint, values):
+    if 'tenant_id' in values or not flask.g.tenant_id:
+        return
+    if flask.current_app.url_map.is_endpoint_expecting(endpoint, 'tenant_id'):
+        values['tenant_id'] = flask.g.tenant_id
 
 @bp.before_request
 def setup_tenant():
@@ -135,3 +143,27 @@ def list_users():
         'pagination': p,
         'objects': p.slice(users)
         }
+
+
+@bp.route('/get-credentials/')
+def get_credentials():
+    store = orm.get_store('RO')
+    key = store.execute(
+        'select access from ec2_credential where user_id = ?',
+        [flask.session['keystone_unscoped']['access']['user']['id']])\
+        .get_one()[0]
+    user = flask.session['keystone_unscoped']['access']['user']['username']
+    tenant = clients.keystone.tenants.get(flask.g.tenant_id).name
+    keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
+    response = flask.make_response(
+        flask.render_template(
+            'project_views/get_credentials.txt',
+            **{
+                'user': user,
+                'tenant': tenant,
+                'key': key,
+                'keystone_url': keystone_url}))
+    response.headers['Content-Disposition'] = \
+        'attachment; filename=nova-rc-oscore'
+    response.headers['Content-Type'] = 'text/plain'
+    return response

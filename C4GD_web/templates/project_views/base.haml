@@ -22,3 +22,6 @@
         %li class="{% if request.path == url_for('project_views.list_users', tenant_id=g.tenant_id) %}active{% endif %}"
           %a href="{{ url_for('project_views.list_users', tenant_id=g.tenant_id) }}"
             Users
+        %li
+          %a href="{{ url_for('project_views.get_credentials') }}"
+            Get Credentials File
