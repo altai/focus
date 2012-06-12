@@ -173,11 +173,8 @@ def password_recovery_finish(recovery_hash):
     msg = Message('Password recovery', recipients=[odb_user['email']])
     msg.body = render_template('RecoveryPasswordFinishEmail/body.txt', 
                                new_pass=new_hash)
-    try:
-        mail.send(msg)
-        flash('New password was sent to you', 'success')  
-    except Exception, e:
-        flash('SMTP error', 'error')
+    mail.send(msg)
+    flash('New password was sent to you', 'success')  
     return redirect('/')
 
 
@@ -203,12 +200,9 @@ def password_recovery_request():
         msg = Message('Password recovery', recipients=[form.email.data])
         msg.body = render_template('RecoveryPasswordEmail/body.txt', 
                                    recovery_link=recovery_link)
-        try:
-            mail.send(msg)
-            flash('Recovery request was sent successfully', 'info')  
-        except Exception, e:
-            flash('SMTP error', 'error')
+        mail.send(msg)
+        flash('Recovery request was sent successfully', 'info')  
     return {'form': form}
 
-from invitations.row_mysql_queries import save_recovery , \
+from C4GD_web.invitations.row_mysql_queries import save_recovery , \
     get_recovery_request_by_hash
