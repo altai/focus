@@ -1,3 +1,0 @@
-1       Session expired
-2       User doesn't exists
-3       Wrong username/password

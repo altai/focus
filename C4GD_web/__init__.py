@@ -38,15 +38,15 @@ if not app.debug:
 # SMTP
 mail = Mail(app)
 
-from models import abstract
-from views import global_views
-from views import images
-from views import project_views
-from views import show_one
-from views import ssh_keys
-from views import users_management
-from views import tariffs
-from views import projects
+from C4GD_web.models import abstract
+from C4GD_web.views import global_views
+from C4GD_web.views import images
+from C4GD_web.views import project_views
+from C4GD_web.views import show_one
+from C4GD_web.views import ssh_keys
+from C4GD_web.views import users_management
+from C4GD_web.views import tariffs
+from C4GD_web.views import projects
 # blueprints started
 SHOW_ONES = (
     ('images', '/images/', abstract.Image),
@@ -84,13 +84,13 @@ files_uploads = ResolvingUploadSet('files', uploads.ALL)
 uploads.configure_uploads(app, [files_uploads])
 
 # these import app
-import errorhandlers
-import callbacks
-import context_processors
-import views.authentication
-import views.authorization
-import views.dashboard
-import views.profile
-import views.template_filters
+import C4GD_web.errorhandlers
+import C4GD_web.callbacks
+import C4GD_web.context_processors
+import C4GD_web.views.authentication
+import C4GD_web.views.authorization
+import C4GD_web.views.dashboard
+import C4GD_web.views.profile
+import C4GD_web.views.template_filters
 import C4GD_web.invitations
-import views.keystone2ODB
+import C4GD_web.views.keystone2ODB

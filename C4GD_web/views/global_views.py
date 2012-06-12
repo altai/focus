@@ -13,9 +13,9 @@ from C4GD_web.models.orm import Tenant
 from C4GD_web.views import pagination
 
 
-from .dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
-from .exporter import Exporter
-from .generic_billing import generic_billing
+from C4GD_web.views.dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
+from C4GD_web.views.exporter import Exporter
+from C4GD_web.views.generic_billing import generic_billing
 from keystoneclient import exceptions as keystoneclient_exceptions
 
 
