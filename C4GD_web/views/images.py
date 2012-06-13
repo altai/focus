@@ -61,6 +61,17 @@ def get_bp(name):
             need = ('role', 'admin')
         principal.Permission(need).test()
 
+        # TODO(apugachev) move from here, setup callback common with project views
+        if flask.g.project_id:
+            flask.g.tenant_id = flask.g.project_id
+            flask.g.tenant_dict = flask.session['keystone_scoped']\
+                [flask.g.project_id]['access']['token']['tenant']
+            flask.g.tenant = clients.keystone.tenants.get(flask.g.project_id)
+            flask.g.project_managers = [user for user in flask.g.tenant.list_users() if any(
+                    filter(
+                        lambda role: role.name == 'projectmanager',
+                        user.list_roles(flask.g.project_id)))]
+
     @bp.route('<image_id>/', methods=['GET'])
     def show(image_id):
         """Present details page for single image object.
