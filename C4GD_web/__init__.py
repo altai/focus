@@ -47,6 +47,8 @@ from C4GD_web.views import ssh_keys
 from C4GD_web.views import users_management
 from C4GD_web.views import tariffs
 from C4GD_web.views import projects
+from C4GD_web.views import networks
+
 # blueprints started
 SHOW_ONES = (
     ('images', '/images/', abstract.Image),
@@ -57,16 +59,19 @@ for name, url_prefix, model in SHOW_ONES:
     app.register_blueprint(
         show_one.get_one(name), url_prefix=url_prefix, model=model)
 
+app.register_blueprint(
+    images.get_bp('global_images'), url_prefix='/global/images/')
+app.register_blueprint(
+    images.get_bp('project_images'),
+    url_prefix='/projects/<project_id>/images/')
+
 app.register_blueprint(project_views.bp)
 app.register_blueprint(global_views.bp)
 app.register_blueprint(ssh_keys.bp)
-app.register_blueprint(images.get_bp('global_images'), url_prefix='/global/images/')
 app.register_blueprint(users_management.bp)
 app.register_blueprint(tariffs.bp)
 app.register_blueprint(projects.bp)
-#  it is not clear how to implement public/private images
-#app.register_blueprint(images.get_one('project_images'), url_prefix='/<project_id>/images/')
-
+app.register_blueprint(networks.bp)
 
 class ResolvingUploadSet(uploads.UploadSet):
     '''Quick workaround for extensinless filenames.'''
