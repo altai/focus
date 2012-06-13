@@ -34,7 +34,11 @@ def authenticate_user(email, password):
         #flash('user does not exists in ODB', 'error')
         return False
     else:
-        if odb_user['passwordHash'] != create_hashed_password(password):
+        try:
+            if odb_user['passwordHash'] != create_hashed_password(password):
+                return False
+        except UnicodeEncodeError:
+            # md5 digest does not work with unicode and the password can't be unicode right now
             return False
         
     success, unscoped_token_data = keystone_obtain_unscoped(
