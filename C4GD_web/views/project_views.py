@@ -59,7 +59,7 @@ def show_tenant():
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
     for x in data:
-        if x['status'] == 'ERROR' and x['user_id'].isdigit():
+        if x['user_id'].isdigit():
             user = clients.keystone.users.get(x['user_id'])
             x['user_id'] = user.name
     return dict(vms=data, pagination=p)
