@@ -156,23 +156,20 @@ def list_users():
 
 @bp.route('/get-credentials/')
 def get_credentials():
-    store = orm.get_store('RO')
-    key = store.execute(
-        'select access from ec2_credential where user_id = ?',
-        [flask.session['keystone_unscoped']['access']['user']['id']])\
-        .get_one()[0]
-    user = flask.session['keystone_unscoped']['access']['user']['username']
-    tenant = clients.keystone.tenants.get(flask.g.tenant_id).name
-    keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
-    response = flask.make_response(
-        flask.render_template(
-            'project_views/get_credentials.txt',
-            **{
-                'user': user,
-                'tenant': tenant,
-                'key': key,
-                'keystone_url': keystone_url}))
-    response.headers['Content-Disposition'] = \
-        'attachment; filename=nova-rc-oscore'
-    response.headers['Content-Type'] = 'text/plain'
-    return response
+    if 'download' in flask.request.args:
+        user = flask.session['keystone_unscoped']['access']['user']['username']
+        tenant = clients.keystone.tenants.get(flask.g.tenant_id).name
+        keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
+        response = flask.make_response(
+            flask.render_template(
+                'project_views/get_credentials.txt',
+                **{
+                    'user': user,
+                    'tenant': tenant,
+                    'keystone_url': keystone_url}))
+        response.headers['Content-Disposition'] = \
+            'attachment; filename=nova-rc-%s' % tenant
+        response.headers['Content-Type'] = 'text/plain'
+        return response
+    else:
+        return {}
