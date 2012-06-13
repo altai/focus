@@ -1,13 +1,14 @@
 # coding=utf-8
-import hashlib
 import datetime
+import hashlib
+import uuid
 
 from C4GD_web import app, mail
 from C4GD_web.exceptions import GentleException
 from forms import InviteForm, InviteRegisterForm
 
 from flask import g, render_template, flash, render_template, url_for, redirect, \
-    request, session
+    request, session, abort
     
 from flaskext.mail import Message
 from flaskext import principal
@@ -16,14 +17,19 @@ from flaskext.wtf import TextField, Required
 from row_mysql_queries import save_invitation, get_invitation_by_hash, \
     update_invitation, get_masks
     
-from C4GD_web.utils import neo4j_api_call, create_hash_from_data
+from C4GD_web.utils import neo4j_api_call
 from C4GD_web.views.authentication import authenticate_user, register_user
 
 
 
 @app.route('/invite/finish/<invitation_hash>/', methods=['GET', 'POST'])
 def invite_finish(invitation_hash):
-    id, email, hash, complete, role = get_invitation_by_hash(invitation_hash)
+    # TODO(apugachev) show 404 for wrong code or something gentle
+    try:
+        id, email, hash_code, complete, role = get_invitation_by_hash(invitation_hash)
+    except TypeError:
+        # hash code not found, None returned
+        abort(404)
     if complete == 1:
         flash('Invitation token is already used', 'error')
         return redirect('/')
@@ -45,7 +51,7 @@ def invite_finish(invitation_hash):
             new_odb_user = register_user(form.username.data, form.email.data, form.password.data, role)
             if new_odb_user is not None:
                 authenticate_user(form.email.data, form.password.data)
-                update_invitation(id, email, hash, 1)
+                update_invitation(id, email, hash_code)
                 return redirect('/')
     form.username.data = username
     return render_template('invite_registration.haml', 
@@ -53,6 +59,7 @@ def invite_finish(invitation_hash):
                            email=email,
                            username=username,
                            username_is_taken=username_is_taken)
+
 
 @app.route('/invite/', methods=['GET', 'POST'])
 def invite():
@@ -68,20 +75,17 @@ def invite():
             return render_template('invite.haml', form=form, masks=masks)
         except KeyError, GentleException:
             pass
-        hash = create_hash_from_data(user_email)
+        hash_code = str(uuid.uuid4())
         domain = user_email.split('@')[-1]
         if (domain,) not in masks:
             flash('Not allowed email mask')
             return render_template('invite.haml', form=form, masks=masks)
-        save_invitation(user_email, hash, 0, form.role.data)
-        invite_link = "http://%s%s" % (request.host, url_for('invite_finish', invitation_hash=hash))
+        save_invitation(user_email, hash_code, form.role.data)
+        invite_link = "http://%s%s" % (request.host, url_for('invite_finish', invitation_hash=hash_code))
         msg = Message('Invitation', recipients=[user_email])
         msg.body = render_template('InviteEmail/body.txt', invite_link=invite_link)
-        try:
-            mail.send(msg)
-            flash('Invitation sent successfully', 'info')  
-        except Exception, e:
-            raise GentleException(e.message)
+        mail.send(msg)
+        flash('Invitation sent successfully', 'info')  
     return render_template('invite.haml', 
                            form=form, 
                            masks=masks,

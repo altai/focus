@@ -1,77 +1,65 @@
-import urlparse
-import MySQLdb
+import functools
+
+import flask
 
 from C4GD_web import app
+from C4GD_web.models import orm
 
 
-conn_creds = urlparse.urlsplit(app.config['INVITATIONS_URL'])
-cred_kw = dict(host=conn_creds.hostname,
-    user=conn_creds.username,
-    db=conn_creds.path[1:])
-if conn_creds.password:
-    cred_kw['passwd'] = conn_creds.password
-conn = MySQLdb.connect(**cred_kw)
+def prepare_database_connection(func):
+    """Create Storm ORM Store if it does not exist yet."""
+    @functools.wraps(func)
+    def _wrapped(*args, **kwargs):
+        if not hasattr(flask.g, 'inv_store'):
+            flask.g.inv_store = orm.get_store('INVITATIONS')
+        return func(*args, **kwargs)
+    return _wrapped
 
 
-cursor = conn.cursor()
+@prepare_database_connection
+def save_invitation(email, hash_code, role):
+    flask.g.inv_store.execute(
+        'INSERT INTO invitations.invitations SET '
+        'email = ?, hash = ?, complete = ?, role = ?',
+        (email, hash_code, 0, role))
+    flask.g.inv_store.commit()
 
 
-# invitations
-def save_invitation(email, hash, complete, role):
-    query = "INSERT INTO invitations.invitations SET "+\
-        "email='%s'," % email +\
-        "hash='%s'," % hash +\
-        "complete=%d," % (1 if complete else 0) +\
-        "role='%s';" % role
-    cursor.execute(query) 
-    conn.commit()
-
-    
+@prepare_database_connection
 def get_invitation_by_hash(invitation_hash):
-    query = """
-        SELECT * 
-        FROM invitations.invitations 
-        WHERE invitations.hash = '%s'""" % invitation_hash
-    cursor.execute(query)
-    row = cursor.fetchone()
-    return row
+    return flask.g.inv_store.execute(
+        'SELECT * FROM invitations.invitations '
+        'WHERE invitations.hash = ?', 
+        (invitation_hash, )).get_one()
 
 
-def update_invitation(id, email, hash, complete):
-    query = """
-        UPDATE invitations.invitations 
-        SET
-         email='%s',
-         hash='%s',
-         complete=%d 
-        WHERE id=%d""" % (email, hash, 1 if complete else 0, id)
-    cursor.execute(query) 
-    conn.commit()
+@prepare_database_connection
+def update_invitation(invitation_id, email, hash_code):
+    flask.g.inv_store.execute(
+        'UPDATE invitations.invitations SET '
+        'email = ?, hash = ?, complete = ? '
+        'WHERE id = ?',
+        (email, hash_code, 1, invitation_id))
+    flask.g.inv_store.commit()
 
        
-#masks
+@prepare_database_connection
 def get_masks():
-    query = """SELECT email_mask FROM invitations.email_masks;"""
-    cursor.execute(query)
-    rows = cursor.fetchall()
-    return rows
+    return flask.g.inv_store.execute(
+        'SELECT email_mask FROM invitations.email_masks').get_all()
 
 
-# password recovery
-def save_recovery(email, hash, complete):
-    query = "INSERT INTO invitations.recovery_requests SET "+\
-        "email='%s'," % email +\
-        "hash='%s'," % hash +\
-        "complete=%d;" % (1 if complete else 0)
-    cursor.execute(query) 
-    conn.commit()
+@prepare_database_connection
+def save_recovery(email, hash_code, complete):
+    flask.g.inv_store.execute(
+        'INSERT INTO invitations.recovery_requests SET '
+        'email = ?, hash = ?, complete = ?',
+        (email, hash_code, complete))
+    flask.g.inv_store.commit()
 
-    
+
+@prepare_database_connection
 def get_recovery_request_by_hash(recovery_hash):
-    query = """
-        SELECT * 
-        FROM invitations.recovery_requests 
-        WHERE recovery_requests.hash = '%s'""" % recovery_hash
-    cursor.execute(query)
-    row = cursor.fetchone()
-    return row
+    return flask.g.inv_store.execute(
+        'SELECT * FROM invitations.recovery_requests '
+        'WHERE recovery_requests.hash = ?', (recovery_hash,)).get_one()

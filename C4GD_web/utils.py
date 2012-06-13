@@ -289,13 +289,6 @@ billing_get = functools.partial(billing_api_call, http_method=requests.get)
 billing_post = functools.partial(billing_api_call, http_method=requests.post)
 
 
-def create_hash_from_data(data):
-    h = hashlib.new('ripemd160')
-    h.update(data)
-    h.update("my cool secret")
-    h.hexdigest()
-    return h.hexdigest()
-
 def create_hashed_password(password):
     m = hashlib.md5()
     m.update(password)

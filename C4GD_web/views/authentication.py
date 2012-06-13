@@ -1,7 +1,8 @@
 # coding=utf-8
 import json
-import requests
 import datetime
+import requests
+import uuid
 
 from flask import g, session, request, current_app, render_template
 from flask import flash, redirect, url_for
@@ -9,17 +10,16 @@ from flaskext import principal
 
 from C4GD_web import app, mail
 from C4GD_web.utils import obtain_scoped, keystone_obtain_unscoped,\
-    neo4j_api_call, create_hash_from_data, create_hashed_password, \
+    neo4j_api_call, create_hashed_password, \
     user_tenants_list, get_keystone_user_by_username
 
-from .forms import get_login_form, PasswordRecoveryRequest
+from C4GD_web.views.forms import get_login_form, PasswordRecoveryRequest
 
 from flaskext.mail import Message
 
 from C4GD_web.clients import clients
 from C4GD_web.exceptions import GentleException
 
-import MySQLdb
 
 def authenticate_user(email, password):
     """
@@ -152,12 +152,12 @@ def password_recovery_finish(recovery_hash):
     """
     This will be called after user clicked link in email.
     """
-    id, email, hash, complete = get_recovery_request_by_hash(recovery_hash)
+    id, email, hash_code, complete = get_recovery_request_by_hash(recovery_hash)
     if complete == 1:
         flash('Password recovery token is expired', 'error')
         return redirect('/')
     odb_user = neo4j_api_call('/users',{"email": email}, 'GET')[0]
-    new_hash = create_hash_from_data(hash)
+    new_hash = str(uuid.uuid4())
     # set trash password in keystone
     keystone_user = get_keystone_user_by_username(odb_user['username']) 
     clients.keystone.users.update_password(keystone_user, new_hash)
@@ -193,10 +193,10 @@ def password_recovery_request():
             flash('User with that email "%s" is not registered' % form.email.data, 
                   'error')
             return {}
-        hash = create_hash_from_data(form.email.data)
+        hash_code = str(uuid.uuid4())
         recovery_link = "http://%s%s" % (request.host, 
-            url_for('password_recovery_finish', recovery_hash=hash))
-        save_recovery(form.email.data, hash, 0)
+            url_for('password_recovery_finish', recovery_hash=hash_code))
+        save_recovery(form.email.data, hash_code, 0)
         msg = Message('Password recovery', recipients=[form.email.data])
         msg.body = render_template('RecoveryPasswordEmail/body.txt', 
                                    recovery_link=recovery_link)
@@ -204,5 +204,6 @@ def password_recovery_request():
         flash('Recovery request was sent successfully', 'info')  
     return {'form': form}
 
+#circular dependency
 from C4GD_web.invitations.row_mysql_queries import save_recovery , \
     get_recovery_request_by_hash
