@@ -62,7 +62,7 @@ def index():
     This would allow to use marker and limit to fetch one page only.
     """
     page = int(request.args.get('page', 1))
-    users = clients.keystone.users.list(limit=1000000)
+    users = sorted(clients.keystone.users.list(limit=1000000), key=lambda x: x.name)
     p = pagination.Pagination(users)
     data = p.slice(users)
     tenants = clients.keystone.tenants.list(limit=1000000)
