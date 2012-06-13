@@ -57,7 +57,12 @@ def show_tenant():
                     x['tenant_id'] == flask.g.tenant_id]
     vms = enumerate(sorted(vms_data, key=lambda x: x['name']))
     p = pagination.Pagination(vms_data)
-    return dict(vms=p.slice(vms_data), pagination=p)
+    data = p.slice(vms_data)
+    for x in data:
+        if x['status'] == 'ERROR' and x['user_id'].isdigit():
+            user = clients.keystone.users.get(x['user_id'])
+            x['user_id'] = user.name
+    return dict(vms=data, pagination=p)
 
 
 @bp.route('/vms/spawn/', methods=['GET', 'POST'])
@@ -67,7 +72,11 @@ def spawn_vm():
 
     '''
     with benchmark.benchmark('Getting data via API'):
-        images = Image.list()
+        images = clients.glance.images.list()
+        ids = [
+            flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'],
+            flask.g.tenant_id]
+        images = [x for x in images if getattr(x, 'owner') in ids]
         flavors = Flavor.list()
         security_groups = SecurityGroup.list()
         key_pairs = KeyPair.list()

@@ -40,6 +40,15 @@ def get_bp(name):
         """
         flask.g.project_id = values.pop('project_id', None)
 
+    @bp.url_defaults
+    def put_project_id(endpoint, values):
+        """Substitute project_id arg with default"""
+        if 'project_id' in values or not hasattr(flask.g, 'project_id'):
+            return
+        if flask.current_app.url_map.is_endpoint_expecting(
+            endpoint, 'project_id'):
+            values['project_id'] = flask.g.project_id
+
     @bp.before_request
     def authorize():
         """Check user permissions.
@@ -64,6 +73,17 @@ def get_bp(name):
         return {'glance_image': glance_image,
                 'nova_image': nova_image}
 
+    def get_tenant_id():
+        return flask.g.project_id or \
+            flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+
+    def get_images_list():
+        ids = [flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']]
+        if flask.g.project_id:
+            ids.append(flask.g.project_id)
+        images = [x for x in clients.glance.images.list() if x.owner in ids]
+        return images
+
     @bp.route('')
     def index():
         """List images.
@@ -71,7 +91,7 @@ def get_bp(name):
         Admin (global visibility level) should see only images from 
         systenant. Project members should see images for projects only.
         """
-        images = abstract.Image.list()
+        images = get_images_list()
         p = pagination.Pagination(images)
         data = p.slice(images)
         return {
@@ -102,11 +122,13 @@ def get_bp(name):
             if flask.request.form['upload_type'] == 'rootfs':
                 kw['kernel_id'] = flask.request.form['kernel']
                 kw['ramdisk_id'] = flask.request.form['initrd']
+                kw['is_public'] = not bool(flask.g.project_id)
+                kw['protected'] = True
             path = C4GD_web.files_uploads.path(
                     flask.request.form['uploaded_filename'])
             try:
                 response = abstract.Image.create(
-                    flask.current_app.config['DEFAULT_TENANT_ID'],
+                    get_tenant_id(),
                     flask.request.form['name'],
                     flask.request.form['container'],
                     flask.request.form['disk'],
@@ -128,16 +150,15 @@ def get_bp(name):
                 except OSError:
                     # nothing to do, temporal file was removed by something
                     pass
-
-        images = abstract.Image.list(limit=1000000)
-        kernels = filter(lambda x: x['container_format'] == 'aki', images)
-        initrds = filter(lambda x: x['container_format'] == 'ari', images)
-        rootfss = filter(
-            lambda x: x['container_format'] not in ['aki', 'ari'], images)
+        images = get_images_list()
+        kernels = filter(lambda x: getattr(x, 'container_format') == 'aki', images)
+        initrds = filter(lambda x: getattr(x, 'container_format') == 'ari', images)
+        # rootfss = filter(
+        #     lambda x: x.get('container_format') not in ['aki', 'ari'], images)
 
         return {
-            'kernel_list': json.dumps(kernels),
-            'initrd_list': json.dumps(initrds)
+            'kernel_list': json.dumps([x.properties for x in kernels]),
+            'initrd_list': json.dumps([x.properties for x in initrds])
             }
 
     @bp.route('new/upload/', methods=['POST'])
@@ -153,14 +174,17 @@ def get_bp(name):
 
     @bp.route('<image_id>/delete/', methods=['POST'])
     def delete(image_id):
+        image = clients.glance.images.get(image_id)
+        owner = getattr(image, 'owner')
+        if owner == flask.current_app.config['KEYSTONE_CONF']\
+                ['admin_tenant_id']:
+            principal.Permission(('role', 'admin')).test()
+        else:
+            principal.Permission(('role', 'member', owner)).test()
         form = forms.DeleteForm()
         if form.validate_on_submit():
-            try:
-                clients.glance.images.get(image_id).delete()
-            except Exception, e:
-                flask.flash('API error: %s' % e.message, 'error')
-            else:
-                flask.flash('Image successfully deleted', 'success')
+            image.delete()
+            flask.flash('Image successfully deleted', 'success')
         else:
             flask.flash('Invalid form', 'error')
         return flask.redirect(flask.url_for('.index'))

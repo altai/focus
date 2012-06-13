@@ -25,14 +25,15 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     Validation won't pass later if you won't supply real data for form 
     validating user input.
     """
-    l1 = lambda x: (x['id'], x['name'])
-    l2 = lambda x: (x['name'], x['name'])
-    l3 = lambda x: x[1]
-    l4 = lambda x: (x['keypair']['name'], x['keypair']['name'])
-    IMAGE_CHOICES = sorted(map(l1, images), key=l3)
-    FLAVOR_CHOICES = sorted(map(l1, flavors), key=l3)
-    SECURITY_GROUP = sorted(map(l1, security_groups), key=l3)
-    KEYPAIR_CHOICES = sorted(map(l4, key_pairs), key=l3)   
+    l_id_name = lambda x: (x['id'], x['name'])
+    l_by_name = lambda x: x[1]
+    IMAGE_CHOICES = sorted(
+        map(lambda x: (x.id, x.name), images), key=l_by_name)
+    FLAVOR_CHOICES = sorted(map(l_id_name, flavors), key=l_by_name)
+    SECURITY_GROUP = sorted(map(l_id_name, security_groups), key=l_by_name)
+    KEYPAIR_CHOICES = sorted(
+        map(lambda x: (x['keypair']['name'], x['keypair']['name']), key_pairs),
+        key=l_by_name)
 
     class SpawnForm(wtf.Form):
         image = wtf.SelectField('Image', [wtf.Required()], choices=IMAGE_CHOICES)
