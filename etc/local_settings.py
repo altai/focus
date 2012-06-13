@@ -20,3 +20,6 @@ KEYSTONE_CONF = {
 }
 
 DEFAULT_TENANT_ID = KEYSTONE_CONF['admin_tenant_id']
+
+MAIL_SERVER = ''
+MAIL_PORT = 25
