@@ -7,8 +7,8 @@ from C4GD_web import app
 @app.route('/profile/', methods=['GET'])
 def profile():
     """
-    For now shows a user's auth token for console usage
+    TODO(apugachev) Add password change form here.
     """
-    return render_template("profile.haml", 
-       token=session['keystone_unscoped']['access']['token']['id'])
+    return render_template("profile.haml")
+
     
