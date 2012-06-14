@@ -1,15 +1,18 @@
 After installing RPM edit /etc/focus/local_settings.py.
-You'll need:
-- running Memcached server
-- credentials to Keystone db for user with read-only permissions
-- credentials to Keystone db for user with writing permissions
-- credentials to Mysql database for invitations
-- URL to access ODB
-- Keystone access configuration:
- * auth_uri - port 5000 
- * admin_tenant_name - usually systenant
- * admin_user - usually admin
- * admin_password - Keystone password for amin_user
- * admin_tenant_id - ID of `admin_tenant_name` tenant
+You'll need to:
+- have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
+- set credentials to Keystone MySQL db for read-only user (RO_DATABASE_URI)
+- set credentials to Keystone MySQL db for read-write user (RW_DATABASE_URI)
+- set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
+MySQL database for invitations must be loaded with dump from /etc/invitations_dump.sql on install. Update for now does not require any actions.
 
-MySQL database for invitations must be loaded with dump from /etc/invitations_dump.sql.
+- set URL to access ODB (NEO4J_API_URL)
+- set Keystone access configuration dictionary (KEYSTONE_CONF):
+ * auth_uri - Keyston authentication URL for port 5000 
+ * admin_tenant_name - usually 'systenant'
+ * admin_user - usually 'admin'
+ * admin_password - Keystone password for admin_user
+ * admin_tenant_id - ID of admin_tenant_name tenant
+- set SMTP server configuration (MAIL_SERVER, MAIL_PORT)
+- set default uploads destination (UPLOADS_DEFAULT_DEST)
+- set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)

@@ -36,3 +36,4 @@ KEYSTONE_CONF = {
 # id of systenant, as string
 DEFAULT_TENANT_ID = KEYSTONE_CONF['admin_tenant_id']
 ADMIN_ROLE_NAME = 'Admin'
+MEMCACHED_HOST = '127.0.0.1:11211'

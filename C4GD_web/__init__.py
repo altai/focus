@@ -28,7 +28,7 @@ except IOError:
 
 app.jinja_env.hamlish_mode = 'indented'
 app.cache = MemcachedCache(
-    ['127.0.0.1:11211'],
+    [app.config['MEMCACHED_HOST']],
     default_timeout=300000,
     key_prefix='focus')
 app.session_interface = Session()
