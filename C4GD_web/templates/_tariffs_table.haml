@@ -1,0 +1,22 @@
+%div.row.tariff-view
+  %div.toggleable
+    %table.table.table-striped.table-bordered.table-condensed
+      %tbody
+        {% for rgroup in [["glance/image", "nova/volume"],
+                        ["local_gb", "memory_mb", "vcpus"]] %}
+        {% for rtype in rgroup %}
+        %tr
+          %td
+            {{ rtype }}
+          %td
+            ${{ tariffs[rtype] }}/hour
+        {% endfor %}
+        {% if not loop.last %}
+        %tr
+          %td colspan=2
+            nova/instance
+        {% endif %}
+        {% endfor %}
+  %div.pull-right style="font-style: italic"
+    %a class="toggle_tariff" href="#"
+      hide

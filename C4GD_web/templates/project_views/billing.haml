@@ -4,4 +4,5 @@
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"
 -block content
+  -include "_tariffs_table.haml"
   -include "_generic_billing.haml"
