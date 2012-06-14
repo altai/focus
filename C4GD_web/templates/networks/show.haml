@@ -1,0 +1,27 @@
+-extends "networks/base.haml"
+-block content:
+  %h2
+    Network {{ object['label'] }}
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %tbody
+      -for k, v in headers.items():
+        %tr
+          %td
+            =v
+          %td
+            =object[k]
+  %h2
+    Fixed IPS
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %th
+        Address
+      %th
+        Reserved
+    %tbody
+      -for address, reserved in fixed_ips:
+        %tr
+          %td
+            =address
+          %td
+            =reserved

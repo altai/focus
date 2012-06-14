@@ -27,6 +27,7 @@ Requires:       python-storm-mysql
 Requires:       python-tornado
 Requires:       python-pylibmc
 Requires:       python-flask-mail
+Requires:       python-netaddr
 
 %description
 

@@ -108,3 +108,21 @@ class PasswordRecoveryRequest(wtf.Form):
 class NewProject(wtf.Form):
     name = wtf.TextField('Name', [wtf.Required()])
     description = wtf.TextField('Description')
+
+
+class CreateNetwork(wtf.Form):
+    label = wtf.TextField('Label', [wtf.Required()])
+    cidr = wtf.TextField('CIDR', [wtf.Required()])
+    netmask = wtf.TextField('Netmask', [wtf.Required()])
+    bridge = wtf.TextField('Bridge', [wtf.Required()])
+    gateway = wtf.TextField('Gateway', [wtf.Required()])
+    broadcast = wtf.TextField('Broadcast', [wtf.Required()])
+    vlan = wtf.TextField('Vlan', [wtf.Required()])
+    vpn_public_address = wtf.TextField('VPN public address', [wtf.Required()])
+    vpn_public_port = wtf.TextField('VPN public port', [wtf.Required()])
+    vpn_private_address = wtf.TextField('VPN private address', [wtf.Required()])
+    dhcp_start = wtf.TextField('DHCP start', [wtf.Required()])
+    host = wtf.TextField('Host', [wtf.Required()])
+    bridge_interface = wtf.TextField('Bridge interface', [wtf.Required()])
+
+

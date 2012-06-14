@@ -39,5 +39,6 @@ setup(
         'requests',
         'gevent',
         'storm',
+        'netaddr'
     ]
 )
