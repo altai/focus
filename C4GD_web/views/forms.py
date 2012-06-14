@@ -25,7 +25,7 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     Validation won't pass later if you won't supply real data for form 
     validating user input.
     """
-    l_id_name = lambda x: (x['id'], x['name'])
+    l_id_name = lambda x: (str(x['id']), x['name'])
     l_by_name = lambda x: x[1]
     IMAGE_CHOICES = sorted(
         map(lambda x: (x.id, x.name), images), key=l_by_name)
@@ -108,6 +108,7 @@ class PasswordRecoveryRequest(wtf.Form):
 class NewProject(wtf.Form):
     name = wtf.TextField('Name', [wtf.Required()])
     description = wtf.TextField('Description')
+    network = wtf.SelectField('Network', [wtf.Required()], choices=[], description='Network label, CIDR, Vlan respectively')
 
 
 class CreateNetwork(wtf.Form):

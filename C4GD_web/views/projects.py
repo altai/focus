@@ -12,6 +12,7 @@ from flask import blueprints
 from flaskext import principal
 
 from C4GD_web import clients
+from C4GD_web.models import orm
 from C4GD_web.views import forms
 from C4GD_web.views import pagination
 
@@ -49,26 +50,30 @@ def index():
 def delete(object_id):
     """Deletes project.
 
-    TODO(apugachev) remove VMs, images, network
+    TODO(apugachev) remove images
     """
     try:
         tenant = clients.clients.keystone.tenants.get(object_id)
     except Exception, e:
-        flask.flash('Can\'t get project with ID %s.' % e.args[0], 'error')
-        exc_type, exc_value, tb = sys.exc_info()
-        flask.current_app.log_exception((exc_type, exc_value, tb))
-        return flask.redirect(flask.url_for('.index'))
+        flask.abort(404)
 
     form = forms.DeleteForm()
     if form.validate_on_submit():
-        try:
-            tenant.delete()
-        except Exception, e:
-            flask.flash('Error occured: %s.' % e.args[0], 'error')
-            exc_type, exc_value, tb = sys.exc_info()
-            flask.current_app.log_exception((exc_type, exc_value, tb))
-        else:
-            flask.flash('Project removed successfully.', 'success')
+        store = orm.get_store('NOVA_RW')
+        # kill vms
+        vms = filter(
+            lambda x: x.tenant_id == object_id,
+            clients.clients.nova.servers.list(search_opts={'all_tenants': 1}))
+        for x in vms:
+            x.delete()
+        # detach network
+        store.execute(
+            'UPDATE networks SET project_id = NULL WHERE project_id = ?',
+            (object_id,))
+        store.commit()
+        # delete tenant
+        tenant.delete()
+        flask.flash('Project removed successfully.', 'success')
     else:
         flask.flash('Form is not valid.', 'error')
     return flask.redirect(flask.url_for('.index'))
@@ -78,25 +83,31 @@ def delete(object_id):
 def new():
     """Creates project.
 
-    Currently network for the project is created automatically on first VM
-    spawn. No sense to check network availability manually because on the
-    moment of spawn network can be already used by some other project.
-    Network can be taken by user of other tools.
+    Bind network to the project at the same time.
     """
+    store = orm.get_store('NOVA_RW')
     form = forms.NewProject()
+    rows = store.execute(
+        'SELECT id, label, cidr, vlan FROM networks '
+        'WHERE project_id IS NULL').get_all()
+    form.network.choices = map(
+        lambda x: (str(x[0]), '%s (%s, %s)' % (x[1:4])),
+        rows)
     if form.validate_on_submit():
-        try:
-            if form.description.data:
-                clients.clients.keystone.tenants.create(
-                    form.name.data, form.description.data)
-            else:
-                clients.clients.keystone.tenants.create(form.name.data)
-        except Exception, e:
-            flask.flash('Error occured: %s' % e.args[0], 'error')
-            exc_type, exc_value, tb = sys.exc_info()
-            flask.current_app.log_exception((exc_type, exc_value, tb))
+        if form.description.data:
+            args = (form.name.data, form.description.data)
         else:
-            flask.flash('Project created.', 'success')
-            return flask.redirect(flask.url_for('.index'))
+            args = (form.name.data, )
+        tenant = clients.clients.keystone.tenants.create(*args)
+        try:
+            store.execute(
+                'UPDATE networks SET project_id = ? WHERE id = ? AND project_id IS NULL LIMIT 1',
+                (tenant.id, form.network.data))
+            store.commit()
+        except Exception, e:
+            tenant.delete()
+            raise
+        flask.flash('Project created.', 'success')
+        return flask.redirect(flask.url_for('.index'))
     return {'form': form}
 
