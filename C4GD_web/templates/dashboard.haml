@@ -23,6 +23,8 @@
             %a href="{{ url_for('projects.index') }}" -> Projects
           %li
             %a href="{{ url_for('networks.index') }}" -> Networks
+          %li
+            %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
 
   -if tenants_with_roles|length
     %section

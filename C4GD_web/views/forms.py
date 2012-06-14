@@ -127,3 +127,8 @@ class CreateNetwork(wtf.Form):
     bridge_interface = wtf.TextField('Bridge interface', [wtf.Required()])
 
 
+class CreateEmailMask(wtf.Form):
+    email_mask = wtf.TextField(
+        'Domain',
+        [wtf.Required()],
+        description='Domain part of allowed emails for invitations')

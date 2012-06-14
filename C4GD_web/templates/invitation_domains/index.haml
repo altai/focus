@@ -1,0 +1,37 @@
+-extends "invitation_domains/base.haml"
+-block content:
+  %span class="label label-important"
+    Important: 'delete' actions cannot be reverted 
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Email domain
+        %th
+          Actions
+    %tbody
+      -for object in objects
+        %tr
+          %td
+            =object['email_mask']
+          %td
+            %div.modal.hide id="delete_object_{{ object['id'] }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Confirmation request
+              %div.modal-body
+                %p
+                  Sure to delete "{{ object['email_mask'] }}"?
+              %div.modal-footer
+                %form method="post" action="{{ url_for('.delete', object_id=object['id']) }}"
+                  {{ delete_form.hidden_tag() }}
+                  %button.btn
+                    Delete
+                  %a.btn.btn-primary href="#" data-dismiss="modal"
+                    No
+            %a data-toggle="modal" href="#delete_object_{{ object['id'] }}"
+              delete
+
+  -include "pagination.haml"

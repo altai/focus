@@ -1,0 +1,15 @@
+-extends "invitation_domains/base.haml"
+-block content:
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
+  %form.form-horizontal method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()
+    %fieldset
+      %legend
+        New Email Domain
+      =render_h_field(form.email_mask, is_required=True)
+      %div.form-actions
+        %button.btn.btn-primary type="submit"
+          Create
+        %a.btn href="{{ url_for('.index')}}"
+          Cancel

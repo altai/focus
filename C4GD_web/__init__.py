@@ -48,6 +48,7 @@ from C4GD_web.views import users_management
 from C4GD_web.views import tariffs
 from C4GD_web.views import projects
 from C4GD_web.views import networks
+from C4GD_web.views import invitation_domains
 
 # blueprints started
 SHOW_ONES = (
@@ -72,6 +73,7 @@ app.register_blueprint(users_management.bp)
 app.register_blueprint(tariffs.bp)
 app.register_blueprint(projects.bp)
 app.register_blueprint(networks.bp)
+app.register_blueprint(invitation_domains.bp)
 
 class ResolvingUploadSet(uploads.UploadSet):
     '''Quick workaround for extensinless filenames.'''
