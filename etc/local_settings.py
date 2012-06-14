@@ -10,6 +10,8 @@ RO_DATABASE_URI = ''
 RW_DATABASE_URI = ''
 INVITATIONS_DATABASE_URI = ''
 NEO4J_API_URL = ''
+NOVA_RO_DATABASE_URI = ''
+NOVA_RW_DATABASE_URI = ''
 
 KEYSTONE_CONF = {
     'auth_uri': 'http://localhost:5000/v2.0/',
