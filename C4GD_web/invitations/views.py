@@ -69,7 +69,7 @@ def invite():
         user_email = form.email.data
         try:
             user = neo4j_api_call('/users',{
-                "email": user_email 
+                "email": user_email
             }, 'GET')[0]
             flash('User with email "%s" is already registered' % user_email, 'error')
             return render_template('invite.haml', form=form, masks=masks)
