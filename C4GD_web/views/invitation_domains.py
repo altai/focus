@@ -33,7 +33,6 @@ def index():
 
 @bp.route('delete/<object_id>/', methods=['POST'])
 def delete(object_id):
-    import pdb; pdb.set_trace()
     form = forms.DeleteForm()
     if form.validate_on_submit():
         flask.g.store.execute(

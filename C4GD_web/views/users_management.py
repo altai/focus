@@ -19,6 +19,7 @@ from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
 from C4GD_web.views import pagination
 from C4GD_web.views.pagination import Pagination
 from C4GD_web.utils import user_tenants_list, user_tenants_with_roles_list
+from C4GD_web.utils import neo4j_api_call
 
 
 bp = blueprints.Blueprint(
@@ -187,8 +188,19 @@ def delete():
     """
     form = DeleteUserForm()
     if form.validate_on_submit():
-        clients.keystone.users.delete(form.user_id.data)
-        flash('User was deleted', 'success')
+        keystone_user = clients.keystone.users.get(form.user_id.data)
+        if keystone_user.email:
+            odb_user = neo4j_api_call('/users',{
+                "email": keystone_user.email
+            }, 'GET')[0]
+        else:
+            odb_user_list = neo4j_api_call('/users', method='GET')
+            odb_user = filter(
+                lambda x: x.username == keystone_user.name,
+                odb_user_list)
+        neo4j_api_call('/users/%s' % odb_user['id'], method='DELETE')
+        keystone_user.delete()        
+        flash('User was deleted.', 'success')
     else:
         flash('User was not deleted', 'error')
     return redirect(url_for('.index'))
