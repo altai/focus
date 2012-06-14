@@ -17,6 +17,7 @@ Requires:       python-flask
 Requires:       python-flask-wtf
 Requires:       python-flask-principal
 Requires:       python-flask-uploads
+Requires:       python-flask-mail
 Requires:       MySQL-python
 Requires:       python-wtforms
 Requires:       python-hamlish-jinja
@@ -26,8 +27,13 @@ Requires:       python-storm
 Requires:       python-storm-mysql
 Requires:       python-tornado
 Requires:       python-pylibmc
-Requires:       python-flask-mail
 Requires:       python-netaddr
+
+Requires:       start-stop-daemon
+
+Requires:       python-novaclient-essex
+Requires:       python-keystoneclient-essex
+Requires:       python-glanceclient-essex
 
 %description
 
