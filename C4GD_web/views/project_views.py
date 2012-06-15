@@ -38,6 +38,8 @@ def substitute_tenant_id(endpoint, values):
 
 @bp.before_request
 def setup_tenant():
+    if flask.g.tenant_id not in [x.id for x in utils.get_visible_tenants()]:
+        flask.abort(404)
     principal.Permission(('role', 'member', flask.g.tenant_id)).test()
     flask.g.tenant_dict = flask.session['keystone_scoped']\
         [flask.g.tenant_id]['access']['token']['tenant']

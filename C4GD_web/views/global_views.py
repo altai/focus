@@ -69,6 +69,7 @@ def list_vms():
     '''
     List all virtual machines in the cloud.
     '''
+    # not in visible tenants, but in all tenants
     tenants = dict([(x.id, x) for x in clients.keystone.tenants.list()])
     class ProjectNameColumn(StrColumn):
         def __call__(self, x):

@@ -5,6 +5,7 @@ from flaskext import principal
 
 from C4GD_web import app
 from C4GD_web.clients import clients, get_my_clients
+from C4GD_web import utils
 
 
 @app.route('/')
@@ -16,9 +17,14 @@ def dashboard():
     """
     context = {}
     if principal.Permission(('role', 'admin')).can():
+        projects = utils.get_visible_tenants()
+        project_ids = [x.id for x in projects]
+        users = clients.keystone.users.list()
+        servers = filter(
+            lambda x: x.tenant_id in project_ids,
+            clients.nova.servers.list(search_opts={'all_tenants': 1}))
         context.update(dict(
-                total_users=len(clients.keystone.users.list()),
-                total_projects=len(clients.keystone.tenants.list()),
-                total_vms=len(clients.nova.servers.list(
-                        search_opts={'all_tenants': 1}))))
+                total_users=len(users),
+                total_projects=len(projects),
+                total_vms=len(servers)))
     return context

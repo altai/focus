@@ -370,3 +370,16 @@ def get_keystone_user_by_username(username):
     for user in users:
         if user.name == username:
             return user
+
+
+def get_visible_tenants():
+    """Return visible tenants.
+
+    Exclude systenants and tenants which are not enabled.
+    """
+    systenant_id = current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+    return filter(
+        lambda x: x.enabled,
+        filter(
+            lambda x: x.id != systenant_id,
+            clients.keystone.tenants.list()))

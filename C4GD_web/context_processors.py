@@ -19,7 +19,9 @@ def navigation_bar_tenant_data():
             # now use simple iteration through all tenants and users
             #  user = clients.clients.keystone.users.get(user_id)
             #  roles = user.list_roles()
-            tenants = clients.clients.keystone.tenants.list()
+            
+            # dont' count systenant as a project, do not list it
+            tenants = utils.get_visible_tenants()
             for tenant in tenants:
                 users = tenant.list_users()
                 if filter(lambda x: x.id == user_id, users):

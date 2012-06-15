@@ -12,6 +12,7 @@ from flask import blueprints
 from flaskext import principal
 
 from C4GD_web import clients
+from C4GD_web import utils
 from C4GD_web.models import orm
 from C4GD_web.views import forms
 from C4GD_web.views import pagination
@@ -36,7 +37,7 @@ def index():
     List only enabled, sort by name.
     """
 
-    tenants = clients.clients.keystone.tenants.list()
+    tenants = utils.get_visible_tenants()
     ordered = sorted(tenants, key=lambda x: x.name)
     pagina = pagination.Pagination(ordered)
     delete_form = forms.DeleteForm()
