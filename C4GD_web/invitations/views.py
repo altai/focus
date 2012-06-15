@@ -24,7 +24,10 @@ from C4GD_web.views.authentication import authenticate_user, register_user
 
 @app.route('/invite/finish/<invitation_hash>/', methods=['GET', 'POST'])
 def invite_finish(invitation_hash):
-    # TODO(apugachev) show 404 for wrong code or something gentle
+    """Finish invitation process.
+    
+    If all checks pass register user in ODB and in Keystone.
+    """
     try:
         id, email, hash_code, complete, role = get_invitation_by_hash(invitation_hash)
     except TypeError:
