@@ -30,7 +30,8 @@ def invite_finish(invitation_hash):
     Clear session before any actions to ensure authentication will run for \
     newly created user.
     """
-    session.clear()
+    if request.method == 'GET':
+        session.clear()
     try:
         id, email, hash_code, complete, role = get_invitation_by_hash(invitation_hash)
     except TypeError:
