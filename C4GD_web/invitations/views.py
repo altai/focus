@@ -27,7 +27,10 @@ def invite_finish(invitation_hash):
     """Finish invitation process.
     
     If all checks pass register user in ODB and in Keystone.
+    Clear session before any actions to ensure authentication will run for \
+    newly created user.
     """
+    session.clear()
     try:
         id, email, hash_code, complete, role = get_invitation_by_hash(invitation_hash)
     except TypeError:
