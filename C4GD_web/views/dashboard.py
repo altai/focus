@@ -9,12 +9,10 @@ from C4GD_web.clients import clients, get_my_clients
 
 @app.route('/')
 def dashboard():
-    """
-    Present short info and useful links for users depending on their roles.
+    """Present brief info and useful links.
 
-    Global admins need to see all servers. We use nova call to one tenant
-    which returns servers for all tenants. Useful bug.
-
+    Global admins see numbers summary and links to administrative section.
+    Members of projects see links to their respective projects.
     """
     context = {}
     if principal.Permission(('role', 'admin')).can():
