@@ -8,6 +8,8 @@ class Session(SessionInterface):
     session_class = SessionData
 
     def open_session(self, app, request):
+        if request.environ["PATH_INFO"].startswith("/static"):
+            return None
         self.cookie_session_id = request.cookies.get(app.session_cookie_name, None)
         self.session_new = False
         if self.cookie_session_id is None:
@@ -25,6 +27,8 @@ class Session(SessionInterface):
         return self.session_class(session)
 
     def save_session(self, app, session, response):
+        if not session:
+            return None
         expires = self.get_expiration_time(app, session)
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)

@@ -5,6 +5,8 @@ import flask
 from flask import blueprints
 from flaskext import principal
 
+import json
+
 from storm.locals import *
 
 from C4GD_web import benchmark
@@ -75,11 +77,13 @@ def spawn_vm():
     '''
     with benchmark.benchmark('Getting data via API'):
         images = clients.glance.images.list()
+        flavors = Flavor.list()
         ids = [
             flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'],
             flask.g.tenant_id]
-        images = [x for x in images if getattr(x, 'owner') in ids]
-        flavors = Flavor.list()
+        images = [x for x in images
+                  if getattr(x, 'owner') in ids and
+                     x.container_format not in ["ari", "aki"]]
         security_groups = SecurityGroup.list()
         key_pairs = KeyPair.list()
     form = forms.get_spawn_form(images, flavors, security_groups, key_pairs)()
@@ -95,7 +99,10 @@ def spawn_vm():
         flask.flash('Virtual machine spawned.', 'success')
         return flask.redirect(flask.url_for(
                 '.show_tenant', tenant_id=flask.g.tenant_id))
-    return dict(form=form, tenant=flask.g.tenant)
+    return dict(form=form, tenant=flask.g.tenant,
+        images=json.dumps([image._info
+                           for image in images]),
+        flavors=json.dumps(flavors))
 
 
 @bp.route('/vms/<vm_id>/')
