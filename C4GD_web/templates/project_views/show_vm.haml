@@ -3,7 +3,7 @@
   %h2
     Server
     =server.name
-    -if flavor:
+  -if flavor:
       %p
         Flavor
         =flavor.name
@@ -13,7 +13,7 @@
         %br
         CPUs:
         =flavor.vcpus
-    -if image:
+  -if image:
       %p
         Image
         =image.name
