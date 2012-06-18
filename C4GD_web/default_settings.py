@@ -17,14 +17,13 @@ TEMPLATE_EXTENSION = '.haml'
 
 ANONYMOUS_ALLOWED = [
     'login', 
-    'invite_finish', 
     'logout', 
     'static', 
     'convert_keystone_2_odb',
     'password_recovery_request',
     'password_recovery_finish',
     'update_passwords_in_ODB',
-    'invite_finish'
+    'invitations.finish'
 ]
 
 DEFAULT_APP_PORT = 5000

@@ -1,9 +1,8 @@
 # coding=utf-8
-from flask import g
-
+# TODO(apugachev) convert factories to plain classes where possible
 from flaskext import wtf
-
-import utils
+from flaskext.wtf import html5
+from C4GD_web.views import utils
 
 
 def get_login_form():
@@ -45,6 +44,7 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
         security_groups = wtf.SelectMultipleField('Security Groups', choices=SECURITY_GROUP)
 
     return SpawnForm
+
 
 def get_new_user_to_project_form(users, roles):
     USERS_CHOICES = [(x.id, x.name) for x in users]
@@ -132,3 +132,21 @@ class CreateEmailMask(wtf.Form):
         'Domain',
         [wtf.Required()],
         description='Domain part of allowed emails for invitations')
+
+
+#TODO(apugachev) check if this role is passed to keystone; if yes, take from settings
+ROLES = (
+    ('Admin', 'Global Admin'),
+    ('user', 'User'),
+)
+
+
+class Invite(wtf.Form):
+    email = html5.EmailField('Email', [wtf.Required()])
+    role = wtf.SelectField(u'Role', choices=ROLES)
+    
+
+class InviteRegister(wtf.Form):
+    email = wtf.HiddenField()
+    username = wtf.HiddenField()
+    password = wtf.PasswordField('Password', [wtf.Required()])

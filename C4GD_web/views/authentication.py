@@ -208,6 +208,8 @@ def password_recovery_request():
         flash('Recovery request was sent successfully', 'info')  
     return {'form': form}
 
-#circular dependency
-from C4GD_web.invitations.row_mysql_queries import save_recovery , \
+
+# NOTE(apugachev) circular dependency
+# TODO(apugacehv) get rid off functions shared with invitations
+from C4GD_web.models.row_mysql_queries import save_recovery , \
     get_recovery_request_by_hash

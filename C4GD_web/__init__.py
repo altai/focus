@@ -49,6 +49,7 @@ from C4GD_web.views import tariffs
 from C4GD_web.views import projects
 from C4GD_web.views import networks
 from C4GD_web.views import invitation_domains
+from C4GD_web.views import invitations
 
 # blueprints started
 SHOW_ONES = (
@@ -74,6 +75,7 @@ app.register_blueprint(tariffs.bp)
 app.register_blueprint(projects.bp)
 app.register_blueprint(networks.bp)
 app.register_blueprint(invitation_domains.bp)
+app.register_blueprint(invitations.bp, url_prefix='/invite/')
 
 class ResolvingUploadSet(uploads.UploadSet):
     '''Quick workaround for extensinless filenames.'''
@@ -99,5 +101,4 @@ import C4GD_web.views.authorization
 import C4GD_web.views.dashboard
 import C4GD_web.views.profile
 import C4GD_web.views.template_filters
-import C4GD_web.invitations
 import C4GD_web.views.keystone2ODB

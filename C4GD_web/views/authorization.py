@@ -19,8 +19,8 @@ def on_identity_loaded(sender, identity):
     Exclude endpoints which do not require authentication/authorization.
     """
     is_anon = identity.name == 'anon'
-    is_loose = flask.request.endpoint in flask.current_app.\
-        config['ANONYMOUS_ALLOWED']
+    loose_endpoints = flask.current_app.config['ANONYMOUS_ALLOWED']
+    is_loose = flask.request.endpoint in loose_endpoints
     if not (is_loose or is_anon):
         user = clients.keystone.users.get(identity.name)
         roles = clients.keystone.roles.roles_for_user(
