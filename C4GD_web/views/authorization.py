@@ -11,14 +11,17 @@ principals = principal.Principal(app)
 
 @principal.identity_loaded.connect
 def on_identity_loaded(sender, identity):
-    '''
-    Add admin and project participation roles.
+    """Add admin and project participation roles.
 
-    If user is authenticated and user has role Admin in default admin tenant he has role admin permission.
-    If user is authenticated and user participates in a tenant he has project member permission.
-    Exclude static endpoint from this.
-    '''
-    if flask.request.endpoint != 'static' and identity.name != 'anon':
+    If user is authenticated and user has role Admin in default admin tenant he
+    has role admin permission. If user is authenticated and user participates
+    in a tenant he has project member permission.
+    Exclude endpoints which do not require authentication/authorization.
+    """
+    is_anon = identity.name == 'anon'
+    is_loose = flask.request.endpoint in flask.current_app.\
+        config['ANONYMOUS_ALLOWED']
+    if not (is_loose or is_anon):
         user = clients.keystone.users.get(identity.name)
         roles = clients.keystone.roles.roles_for_user(
                     identity.name, 

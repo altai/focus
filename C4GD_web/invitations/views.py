@@ -26,12 +26,9 @@ from C4GD_web.views.authentication import authenticate_user, register_user
 def invite_finish(invitation_hash):
     """Finish invitation process.
     
-    If all checks pass register user in ODB and in Keystone.
-    Clear session before any actions to ensure authentication will run for \
-    newly created user.
+    Check everything, create user, redirect to logout 
+    (it wipes out session and redirects to login).
     """
-    if request.method == 'GET':
-        session.clear()
     try:
         id, email, hash_code, complete, role = get_invitation_by_hash(invitation_hash)
     except TypeError:
@@ -57,9 +54,9 @@ def invite_finish(invitation_hash):
         if form.validate_on_submit():
             new_odb_user = register_user(form.username.data, form.email.data, form.password.data, role)
             if new_odb_user is not None:
-                authenticate_user(form.email.data, form.password.data)
                 update_invitation(id, email, hash_code)
-                return redirect('/')
+                # no flash, it gets deleted on logout
+                return redirect(url_for('logout'))
     form.username.data = username
     return render_template('invite_registration.haml', 
                            form=form, 
