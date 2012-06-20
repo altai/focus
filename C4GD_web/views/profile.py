@@ -1,14 +1,13 @@
 # coding=utf-8
-from flask import render_template, session
+# TODO(apugachev) to 'main' blueprint
+import flask
 
-from C4GD_web import app
+import C4GD_web
 
 
-@app.route('/profile/', methods=['GET'])
+@C4GD_web.app.route('/profile/', methods=['GET'])
 def profile():
     """
     TODO(apugachev) Add password change form here.
     """
-    return render_template("profile.haml")
-
-    
+    return flask.render_template("profile.haml")

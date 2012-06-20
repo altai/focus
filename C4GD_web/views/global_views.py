@@ -1,31 +1,29 @@
 # coding=utf-8
-from werkzeug.datastructures import iter_multi_items
+from werkzeug import datastructures
+from keystoneclient import exceptions as keystoneclient_exceptions
 
-from flask import g, request, session, current_app
-from flask import redirect, url_for
-from flask.blueprints import Blueprint
+import flask
+from flask import blueprints
 from flaskext import principal
 
-from C4GD_web.clients import clients
-from C4GD_web.exceptions import BillingAPIError, GentleException
-from C4GD_web.models.abstract import AccountBill, VirtualMachine, Flavor
-from C4GD_web.models.orm import Tenant
+from C4GD_web import clients
+from C4GD_web import exceptions
+from C4GD_web.models import abstract
+from C4GD_web.models import orm
+from C4GD_web.views import dataset
+from C4GD_web.views import environments
+from C4GD_web.views import exporter
+from C4GD_web.views import generic_billing
 from C4GD_web.views import pagination
 
 
-from C4GD_web.views.dataset import IntColumn, StrColumn, ColumnKeeper, DataSet
-from C4GD_web.views.exporter import Exporter
-from C4GD_web.views.generic_billing import generic_billing
-from keystoneclient import exceptions as keystoneclient_exceptions
-
-
-bp = Blueprint('global_views', __name__, url_prefix='/global/')
+bp = environments.admin(blueprints.Blueprint('global_views', __name__))
 
 
 @bp.before_request
 def authorize():
     principal.Permission(('role', 'admin')).test()
-    
+
 
 @bp.route('billing/')
 def billing():
@@ -34,15 +32,15 @@ def billing():
 
     Not all tenants are accessible! Check '11' (pmo)
     '''
-    billing_accounts = AccountBill.list()
+    billing_accounts = abstract.AccountBill.list()
     if len(billing_accounts):
-        return redirect(
-            url_for(
+        return flask.redirect(
+            flask.url_for(
                 '.billing_details',
-                tenant_id=billing_accounts[0]['name']))    
+                tenant_id=billing_accounts[0]['name']))
     else:
-        raise GentleException('No billing accounts to show')
-    
+        raise exceptions.GentleException('No billing accounts to show')
+
 
 @bp.route('billing/<tenant_id>/')
 def billing_details(tenant_id):
@@ -50,18 +48,19 @@ def billing_details(tenant_id):
     Present billing info for tenant.
     '''
     tenants_in_billing = []
-    for x in AccountBill.list():
+    for x in abstract.AccountBill.list():
         try:
             # Billing API calls "ID" - "name"
-            t = clients.keystone.tenants.get(x['name'])
+            t = clients.clients.keystone.tenants.get(x['name'])
         except keystoneclient_exceptions.NotFound:
             # sometimes Billing API returns non-existing tenant IDs
             # there is nothing in particular we can do about it
             pass
         else:
             tenants_in_billing.append(t)
-    tenant = clients.keystone.tenants.get(tenant_id)
-    return generic_billing(tenant, g.user, tenants=tenants_in_billing)
+    tenant = clients.clients.keystone.tenants.get(tenant_id)
+    return generic_billing.generic_billing(
+        tenant, flask.g.user, tenants=tenants_in_billing)
 
 
 @bp.route('')
@@ -70,8 +69,10 @@ def list_vms():
     List all virtual machines in the cloud.
     '''
     # not in visible tenants, but in all tenants
-    tenants = dict([(x.id, x) for x in clients.keystone.tenants.list()])
-    class ProjectNameColumn(StrColumn):
+    tenants = dict(
+        [(x.id, x) for x in clients.clients.keystone.tenants.list()])
+
+    class ProjectNameColumn(dataset.StrColumn):
         def __call__(self, x):
             try:
                 tenant = tenants[x.tenant_id]
@@ -79,54 +80,63 @@ def list_vms():
                 return '[deleted] %s' % x.tenant_id
             else:
                 return tenant.name
-    page = int(request.args.get('page', 1))
+    page = int(flask.request.args.get('page', 1))
     default_columns = ['id', 'name', 'project_name', 'ram']
     #creating and adjusting columns vector, columns ordering
-    columns = ColumnKeeper({
-        'id': StrColumn('id', 'ID'),
-        'name': StrColumn('name', 'Name'),
-        'user_id': StrColumn('user_id', 'User'),
-        'tenant_id': StrColumn('tenant_id', 'Project ID'),
-        'project_name': ProjectNameColumn('project_name', 'Project Name'),
-        'ram': IntColumn('ram', 'RAM'),
-        'vcpus': IntColumn('vcpus', 'Number of CPUs')
+    columns = dataset.ColumnKeeper({
+        'id': dataset.StrColumn('id', 'ID'),
+        'name': dataset.StrColumn('name', 'Name'),
+        'user_id': dataset.StrColumn('user_id', 'User'),
+        'tenant_id': dataset.StrColumn('tenant_id', 'Project ID'),
+        'project_name': ProjectNameColumn(
+                'project_name', 'Project Name'),
+        'ram': dataset.IntColumn('ram', 'RAM'),
+        'vcpus': dataset.IntColumn('vcpus', 'Number of CPUs')
         }, default_columns)
-    if 'columns' in request.args:
-        columns.adjust([x for x in request.args['columns'].split(',') if x])
-    if 'asc' in request.args or 'desc' in request.args:
-        columns.order(request.args.getlist('asc'), request.args.getlist('desc'))
-    if 'groupby' in request.args:
-        columns.adjust_groupby(request.args['groupby'])
-    vms = clients.nova.servers.list(search_opts={'all_tenants': 1})
-    flavors = dict([(x.id, x) for x in clients.nova.flavors.list()])
+    if 'columns' in flask.request.args:
+        columns.adjust(
+            [x for x in flask.request.args['columns'].split(',') if x])
+    if 'asc' in flask.request.args or 'desc' in flask.request.args:
+        columns.order(
+            flask.request.args.getlist('asc'),
+            flask.request.args.getlist('desc'))
+    if 'groupby' in flask.request.args:
+        columns.adjust_groupby(flask.request.args['groupby'])
+    vms = clients.clients.nova.servers.list(search_opts={'all_tenants': 1})
+    flavors = dict([(x.id, x) for x in clients.clients.nova.flavors.list()])
     for server in vms:
         try:
             flavor = flavors[server.flavor['id']]
         except KeyError:
-            flavor = clients.nova.flavors.get(server.flavor['id'])
+            flavor = clients.clients.nova.flavors.get(server.flavor['id'])
             flavors[server.flavor['id']] = flavor
         server.ram = flavor.ram
         server.vcpus = flavor.vcpus
 
-    dataset = DataSet(vms, columns)
-    if 'export' in request.args:
+    current_dataset = dataset.DataSet(vms, columns)
+    if 'export' in flask.request.args:
         try:
-            export = Exporter(
-                request.args['export'], dataset.data, columns, 'vms')
+            export = exporter.Exporter(
+                flask.request.args['export'],
+                current_dataset.data, columns, 'vms')
         except KeyError:
 
-            d = request.args.copy()
+            d = flask.request.args.copy()
             d.pop('export')
-            return redirect(request.path + '?' + '&'.join((['%s=%s' % (k, v) for k, v in iter_multi_items(d)])))
+            query = '&'.join((
+                    ['%s=%s' % (k, v) for k, v in \
+                         datastructures.iter_multi_items(d)]))
+            url = flask.request.path + '?' + query
+            return flask.redirect(url)
         response = export()
     else:
-        p = pagination.Pagination(dataset.data)
-        visible_data = p.slice(dataset.data)
+        p = pagination.Pagination(current_dataset.data)
+        visible_data = p.slice(current_dataset.data)
         response = dict(
             pagination=p,
             columns=columns,
             data=visible_data)
         if 'project_name' in columns.current_names:
             response['distinct_projects_names'] = sorted(
-                dataset.get_distinct_values("project_name"))
+                current_dataset.get_distinct_values("project_name"))
     return response

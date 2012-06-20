@@ -1,5 +1,6 @@
 import flask
 
+
 class ClientsSingleton(object):
     _clients = {}
     conf = None
@@ -13,7 +14,7 @@ class ClientsSingleton(object):
             endpoint = endpoint[:-1]
         if endpoint.endswith("/v2.0"):
             endpoint = endpoint[:-5]
-        self.conf["auth_uri"] = endpoint 
+        self.conf["auth_uri"] = endpoint
 
     def __getattr__(self, name):
         if name.startswith("_client_"):
@@ -29,7 +30,7 @@ class ClientsSingleton(object):
 
     def _client_heart(self):
         return BillingHeartClient(
-            management_url=self.conf["billing_heart_url"]) 
+            management_url=self.conf["billing_heart_url"])
 
     def _client_nova(self):
         from novaclient.v1_1.client import Client
@@ -38,7 +39,7 @@ class ClientsSingleton(object):
             self.conf["admin_password"],
             self.conf["admin_tenant_name"],
             "%s/v2.0" % self.conf["auth_uri"])
-    
+
     def _client_keystone(self):
         from keystoneclient.v2_0.client import Client
         return Client(
@@ -46,7 +47,7 @@ class ClientsSingleton(object):
             password=self.conf["admin_password"],
             tenant_name=self.conf["admin_tenant_name"],
             auth_url="%s/v2.0" % self.conf["auth_uri"])
-    
+
     def _client_glance(self):
         from glanceclient.v1.client import Client
         from keystoneclient import service_catalog
@@ -118,14 +119,14 @@ class ClientSet(object):
     def nova(self):
         conf = self.conf
         keystone = self.keystone
-        from novaclient.v1_1.client import Client as NovaClient        
+        from novaclient.v1_1.client import Client as NovaClient
         nova = NovaClient(
             conf.get("username"),
             conf.get("password"),
             conf.get("tenant_name"),
             conf.get("auth_uri"),
-            region_name=conf.get("region_name"),
-            token=keystone.auth_token)
+            region_name=conf.get("region_name"))
+        nova.client.auth_token = keystone.auth_token
         nova.client.management_url = (
             keystone.service_catalog.url_for(
                 service_type="compute"))
@@ -147,6 +148,7 @@ class ClientSet(object):
         return BillingHeartClient(
             management_url=keystone.service_catalog.url_for(
                 service_type="nova-billing"))
+
 
 def get_my_clients(tenant_id):
     conf = {

@@ -11,7 +11,7 @@
         %li{% if request.path == url_for('global_views.list_vms') %} class="active"{% endif %}
           %a href="{{ url_for('global_views.list_vms') }}"
             Virtual machines
-        %li{% if request.path == url_for('global_views.billing') %} class="active"{% endif %}
+        %li{% if request.path.startswith(url_for('global_views.billing')) %} class="active"{% endif %}
           %a href="{{ url_for('global_views.billing') }}"
             Billing
         %li{% if request.blueprint == 'global_images' %} class="active"{% endif %}

@@ -2,8 +2,6 @@
 RELATIVE_TO_API_HOURS_SHIFT = 0
 DEBUG = False
 
-DEFAULT_APP_PORT = 5050
-
 UPLOADS_DEFAULT_DEST = '/var/tmp/focus-uploads/'
 
 RO_DATABASE_URI = ''

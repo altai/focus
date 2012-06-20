@@ -1,16 +1,21 @@
 # coding=utf-8
 import logging
 import sys
-from gevent import monkey; monkey.patch_all()
+from gevent import monkey
+
+
+monkey.patch_all()
+
 
 from flask import Flask
 from flaskext import uploads
-from flask_memcache_session import Session
-from werkzeug import ImmutableDict
-from werkzeug.contrib.cache import MemcachedCache
-from flaskext.mail import Mail
 
-import application
+from werkzeug import ImmutableDict
+from werkzeug.contrib import cache
+from flaskext import mail as mail_module
+
+from C4GD_web import application
+from C4GD_web import flask_memcache_session
 
 app = application.FatFlask(__name__)
 
@@ -27,16 +32,16 @@ except IOError:
     pass
 
 app.jinja_env.hamlish_mode = 'indented'
-app.cache = MemcachedCache(
+app.cache = cache.MemcachedCache(
     [app.config['MEMCACHED_HOST']],
     default_timeout=300000,
     key_prefix='focus')
-app.session_interface = Session()
+app.session_interface = flask_memcache_session.Session()
 if not app.debug:
     logging.basicConfig(stream=sys.stderr)
-    
+
 # SMTP
-mail = Mail(app)
+mail = mail_module.Mail(app)
 
 from C4GD_web.models import abstract
 from C4GD_web.views import global_views
@@ -49,6 +54,7 @@ from C4GD_web.views import tariffs
 from C4GD_web.views import projects
 from C4GD_web.views import networks
 from C4GD_web.views import invitation_domains
+from C4GD_web.views import invitations
 
 # blueprints started
 SHOW_ONES = (
@@ -60,23 +66,23 @@ for name, url_prefix, model in SHOW_ONES:
     app.register_blueprint(
         show_one.get_one(name), url_prefix=url_prefix, model=model)
 
+app.register_blueprint(images.ABP, url_prefix='/global/images/')
+app.register_blueprint(images.PBP, url_prefix='/projects/<tenant_id>/images/')
+app.register_blueprint(project_views.bp, url_prefix='/projects/<tenant_id>/')
+app.register_blueprint(global_views.bp, url_prefix='/global/')
 app.register_blueprint(
-    images.get_bp('global_images'), url_prefix='/global/images/')
-app.register_blueprint(
-    images.get_bp('project_images'),
-    url_prefix='/projects/<project_id>/images/')
+    ssh_keys.bp,
+    url_prefix='/projects/<tenant_id>/keypairs/')
+app.register_blueprint(users_management.bp, url_prefix='/global/users/')
+app.register_blueprint(tariffs.bp, url_prefix='/global/tariffs/')
+app.register_blueprint(projects.bp, url_prefix='/global/projects/')
+app.register_blueprint(networks.bp, url_prefix='/global/networks/')
+app.register_blueprint(invitation_domains.bp, url_prefix='/global/invites/')
+app.register_blueprint(invitations.bp, url_prefix='/invite/')
 
-app.register_blueprint(project_views.bp)
-app.register_blueprint(global_views.bp)
-app.register_blueprint(ssh_keys.bp)
-app.register_blueprint(users_management.bp)
-app.register_blueprint(tariffs.bp)
-app.register_blueprint(projects.bp)
-app.register_blueprint(networks.bp)
-app.register_blueprint(invitation_domains.bp)
 
 class ResolvingUploadSet(uploads.UploadSet):
-    '''Quick workaround for extensinless filenames.'''
+    '''Quick workaround for extensionless filenames.'''
 
     def resolve_conflict(self, target_folder, basename):
         try:
@@ -99,5 +105,3 @@ import C4GD_web.views.authorization
 import C4GD_web.views.dashboard
 import C4GD_web.views.profile
 import C4GD_web.views.template_filters
-import C4GD_web.invitations
-import C4GD_web.views.keystone2ODB

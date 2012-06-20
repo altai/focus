@@ -1,6 +1,6 @@
 # coding=utf-8
-from csv_staff import UnicodeWriter
-from contextlib import closing
+import contextlib
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -10,7 +10,9 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-from flask import make_response, jsonify
+import flask
+
+from C4GD_web.views import csv_staff
 
 
 class BaseExporter(object):
@@ -20,7 +22,7 @@ class BaseExporter(object):
         self.basename = basename
 
     def wrap(self, content):
-        r = make_response(content)
+        r = flask.make_response(content)
         r.headers['Content-Disposition'] = 'attachment; filename=%s.%s' % (
             self.basename, self.extension)
         r.headers['Content-Type'] = self.mime
@@ -32,7 +34,7 @@ class JSONExporter(BaseExporter):
     mime = 'application/json'
 
     def __call__(self):
-        return self.wrap(jsonify(
+        return self.wrap(flask.jsonify(
             {
                 'header': [(x.attr_name, x.verbose_name) for x in \
                                self.columns.selected],
@@ -45,10 +47,12 @@ class CSVExporter(BaseExporter):
     mime = 'text/csv'
 
     def __call__(self):
-        with closing(StringIO()) as f:
-            w = UnicodeWriter(f)
-            w.writerow(["%s|%s" % (x.attr_name, x.verbose_name) for x in \
-                            self.columns.selected])
+        with contextlib.closing(StringIO()) as f:
+            w = csv_staff.UnicodeWriter(f)
+            w.writerow(
+                map(
+                    lambda x: "%s|%s" % (x.attr_name, x.verbose_name),
+                    self.columns.selected))
             w.writerows([[str(j) for j in i] for i in self.data])
             return self.wrap(f.getvalue())
 
@@ -62,7 +66,7 @@ class XMLExporter(BaseExporter):
         header = ET.SubElement(r, 'head')
         for x in self.columns.selected:
             ET.SubElement(
-                header, 'name', 
+                header, 'name',
                 {'attr_name': x.attr_name, 'verbose_name': x.verbose_name})
         body = ET.SubElement(r, 'body')
         for data in self.data:
@@ -74,9 +78,9 @@ class XMLExporter(BaseExporter):
                     {
                         'value': repr(x),
                         'type': type(x).__name__
-                        #'picled': 
+                        #'picled':
                         })
-        with closing(StringIO()) as f:
+        with contextlib.closing(StringIO()) as f:
             ET.ElementTree(r).write(f)
             result = self.wrap(f.getvalue())
         return result
@@ -84,7 +88,7 @@ class XMLExporter(BaseExporter):
 
 class Exporter(object):
     def __init__(self, datatype, data, columns, basename):
-        klass  = {
+        klass = {
             'json': JSONExporter,
             'csv': CSVExporter,
             'xml': XMLExporter}[datatype]
@@ -92,4 +96,3 @@ class Exporter(object):
 
     def __call__(self):
         return self.exporter()
-

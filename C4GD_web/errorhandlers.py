@@ -3,11 +3,11 @@ import sys
 
 import flask
 
-from C4GD_web import app
+import C4GD_web
 from C4GD_web import exceptions
 
 
-@app.errorhandler(exceptions.KeystoneExpiresException)
+@C4GD_web.app.errorhandler(exceptions.KeystoneExpiresException)
 def keystone_expired(error):
     """Handles expired Keyston token.
 
@@ -19,10 +19,10 @@ def keystone_expired(error):
     return flask.redirect(flask.url_for('logout'))
 
 
-@app.errorhandler(exceptions.GentleException)
+@C4GD_web.app.errorhandler(exceptions.GentleException)
 def gentle_exception(error):
     """Handles exception raised oftenly during API calls with.
-    
+
     Handles situation with AJAX queries and wraps error message properly.
     """
     flask.flash(error.args[0], 'error')
@@ -36,8 +36,8 @@ def gentle_exception(error):
         return flask.render_template('blank.haml')
 
 
-if not app.debug:
-    @app.errorhandler(Exception)
+if not C4GD_web.app.debug:
+    @C4GD_web.app.errorhandler(Exception)
     def everything_exception(error):
         """Handle all exceptions.
 

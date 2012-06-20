@@ -1,13 +1,14 @@
 import flask
 from flask import blueprints
 from flaskext import principal
+
 from C4GD_web.models import orm
-from C4GD_web.views import pagination
 from C4GD_web.views import forms
+from C4GD_web.views import environments
+from C4GD_web.views import pagination
 
 
-bp = blueprints.Blueprint(
-    'invitation_domains', __name__, url_prefix='/global/invitation-domains/')
+bp = environments.admin(blueprints.Blueprint('invitation_domains', __name__))
 
 
 @bp.before_request

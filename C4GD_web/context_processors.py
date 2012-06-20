@@ -1,61 +1,71 @@
 # coding=utf-8
+# NOTE(apugachev) all context processors return empty dictionaries on error
+# and log exceptions because we want template blank.html to render always.
 import sys
 import urllib
 import urlparse
 
-from flask import g, session, request
-from C4GD_web import app
+import flask
+
+import C4GD_web
 from C4GD_web import clients
 from C4GD_web import utils
 
-@app.context_processor
+
+@C4GD_web.app.context_processor
 def navigation_bar_tenant_data():
     try:
-        if getattr(g, 'is_authenticated', False):
+        if getattr(flask.g, 'is_authenticated', False):
             tenants_with_roles = []
             # keystone user id
-            user_id = session['keystone_unscoped']['access']['user']['id']
+            user_id = flask.session[
+                'keystone_unscoped']['access']['user']['id']
             # TODO(apugachev) use simpler way when keystone works correctly
             # now use simple iteration through all tenants and users
             #  user = clients.clients.keystone.users.get(user_id)
             #  roles = user.list_roles()
-            
+
             # dont' count systenant as a project, do not list it
             tenants = utils.get_visible_tenants()
             for tenant in tenants:
                 users = tenant.list_users()
                 if filter(lambda x: x.id == user_id, users):
-                    # TODO(apugachev) take roles from keystone API 
+                    # TODO(apugachev) take roles from keystone API
                     # when list_roles() works instead of obtain_scoped
-                    if tenant.id not in session['keystone_scoped']:
+                    scoped = flask.session.get('keystone_scoped', {}).keys()
+                    if tenant.id not in scoped:
                         utils.obtain_scoped(tenant.id)
                     # NOTE(apugachev) templates expect dicts
                     tenants_with_roles.append(
-                        (tenant._info, session['keystone_scoped'][tenant.id]\
-                             ['access']['user']['roles']))
+                        (tenant._info,
+                         flask.session[
+                                'keystone_scoped'][tenant.id][
+                                'access']['user']['roles']))
             return {'tenants_with_roles': tenants_with_roles}
 
     except Exception:
         exc_type, exc_value, tb = sys.exc_info()
-        app.log_exception((exc_type, exc_value, tb))
+        C4GD_web.app.log_exception((exc_type, exc_value, tb))
     return {}
 
 
+# TODO(apugachev) gather templates-related staff like filters to separate
+# module
 def url_for_other_page(page):
     try:
-        args = request.args.copy()
+        args = flask.request.args.copy()
         args['page'] = page
         result = '%s?%s' % (
-            request.path,
+            flask.request.path,
             urllib.urlencode(
-                tuple(args.iterlists()), 
+                tuple(args.iterlists()),
                 doseq=1))
         return result
 
     except Exception:
         exc_type, exc_value, tb = sys.exc_info()
-        app.log_exception((exc_type, exc_value, tb))
+        C4GD_web.app.log_exception((exc_type, exc_value, tb))
     return {}
 
 
-app.jinja_env.globals['url_for_other_page'] = url_for_other_page
+C4GD_web.app.jinja_env.globals['url_for_other_page'] = url_for_other_page

@@ -1,11 +1,14 @@
 # coding=utf-8
-RELATIVE_TO_API_HOURS_SHIFT = 0 # our system has 13, keystone db 14 => 1
+# our system has 13, keystone db 14 => 1
+RELATIVE_TO_API_HOURS_SHIFT = 0
 SECRET_KEY = 'g.U(\x8cQ\xbc\xdb\\\xc3\x9a\xb2\xb6,\xec\xad(\xf8"2*\xef\x0bd'
-NEXT_TO_LOGIN_ARG = 'next' # GET/POST field name to store next after login URL
-DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard' # no next? redirect to this view
+# GET/POST field name to store next after login URL
+NEXT_TO_LOGIN_ARG = 'next'
+# no next? redirect to this view
+DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard'
 DEFAULT_NEXT_TO_LOGOUT_VIEW = 'login'
 
-LDAP_URI = 'ldap://ns/' 
+LDAP_URI = 'ldap://ns/'
 LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
 
 
@@ -16,18 +19,17 @@ DEFAULT_MAIL_SENDER = 'DoNotReply'
 TEMPLATE_EXTENSION = '.haml'
 
 ANONYMOUS_ALLOWED = [
-    'login', 
-    'invite_finish', 
-    'logout', 
-    'static', 
+    'login',
+    'logout',
+    'static',
     'convert_keystone_2_odb',
     'password_recovery_request',
     'password_recovery_finish',
     'update_passwords_in_ODB',
-    'invite_finish'
+    'invitations.finish'
 ]
 
-DEFAULT_APP_PORT = 5000
+DEFAULT_APP_PORT = 8080
 # for keystone/nova/glance client
 KEYSTONE_CONF = {
     'admin_user': 'admin',

@@ -1,96 +1,92 @@
 """User management for administrators.
 
 Admins can list users, delete user, grant or revoke admin permissions.
-TODO(apugachev) Consider having admin role id in settigns as a constant.
 TODO(apugachev) Look for a simpler way of deciding if user is admin.
 TODO(apugachev) Add warnings for destroying operations.
 TODO(apugachev) Add navigation inside this blueprint's pages.
 """
-
-import urlparse
-
-from flask import request, redirect, url_for, flash, current_app
+import flask
 from flask import blueprints
 from flaskext import principal
 
-from C4GD_web.clients import clients
-from C4GD_web.views.forms import DeleteUserForm, AddUserToProject, \
-    RemoveUserFromProject 
+from C4GD_web import clients
+from C4GD_web import utils
+from C4GD_web.views import environments
+from C4GD_web.views import forms
 from C4GD_web.views import pagination
-from C4GD_web.views.pagination import Pagination
-from C4GD_web.utils import user_tenants_list, user_tenants_with_roles_list
-from C4GD_web.utils import neo4j_api_call
 
 
-bp = blueprints.Blueprint(
-    'global_user_management', __name__, url_prefix='/global/users')
-
-
-@bp.before_request
-def authorize():
-    principal.Permission(('role', 'admin')).test()
+bp = environments.admin(
+    blueprints.Blueprint('global_user_management', __name__))
 
 
 def get_admin_role_id():
     """Return ID of Admin role.
 
-    :raises: RuntimeError if Admin roles does not exist
     """
-    for role in clients.keystone.roles.list():
-        if role.name == current_app.config['ADMIN_ROLE_NAME']:
+    for role in clients.clients.keystone.roles.list():
+        if role.name == flask.current_app.config['ADMIN_ROLE_NAME']:
             return role.id
     else:
-        raise RuntimeError, 'Admin role does not exist'
+        raise RuntimeError('Admin role does not exist')
 
-    
+
 def get_member_role_id():
     """Return ID of Member role.
 
     :raises: RuntimeError if Member roles does not exist
     """
-    for role in clients.keystone.roles.list():
+    for role in clients.clients.keystone.roles.list():
         if role.name == 'Member':
             return role.id
     else:
-        raise RuntimeError, 'Member role does not exist'
+        raise RuntimeError('Member role does not exist')
 
 
-@bp.route('/', methods=['GET'])
+@bp.route('', methods=['GET'])
 def index():
     """List users.
 
     TODO(apugachev): find way to count users without fetching all users.
     This would allow to use marker and limit to fetch one page only.
     """
-    page = int(request.args.get('page', 1))
-    users = sorted(clients.keystone.users.list(limit=1000000), key=lambda x: x.name)
+    page = int(flask.request.args.get('page', 1))
+    users = sorted(
+        clients.clients.keystone.users.list(limit=1000000),
+        key=lambda x: x.name)
     p = pagination.Pagination(users)
     data = p.slice(users)
-    tenants = clients.keystone.tenants.list(limit=1000000)
+    tenants = clients.clients.keystone.tenants.list(limit=1000000)
     for user in data:
-        form = DeleteUserForm()
+        # TODO(apugachev) modify to work with form.DeleteUser
+        form = forms.DeleteUserForm()
         form.user_id.data = user.id
         user.delete_form = form
         for tenant in tenants:
             user.is_global_admin = any(
-                [x.name == current_app.config['ADMIN_ROLE_NAME'] for x in user.list_roles(tenant)])
+                map(
+                    lambda x: x.name == \
+                        flask.current_app.config['ADMIN_ROLE_NAME'],
+                    user.list_roles(tenant)))
             break
-    return dict(pagination=p, data=data)
+    return {
+        'pagination': p,
+        'data': data
+        }
 
 
-@bp.route('/<user_id>/', methods=['GET'])
+@bp.route('<user_id>/', methods=['GET'])
 def show(user_id):
     '''Show user details.
 
     Name, username, email, roles in tenants.
     '''
-    user = clients.keystone.users.get(user_id)
-    
-    user_roles = user_tenants_with_roles_list(user)
+    user = clients.clients.keystone.users.get(user_id)
+    user_roles = utils.user_tenants_with_roles_list(user)
 
-    add_user_to_project = AddUserToProject()
+    add_user_to_project = forms.AddUserToProject()
     add_user_to_project.user.data = user_id
-    remove_user_from_project = RemoveUserFromProject()
+    remove_user_from_project = forms.RemoveUserFromProject()
     remove_user_from_project.user.data = user_id
     user_projects = []
     users_projects_choices = []
@@ -99,39 +95,40 @@ def show(user_id):
         users_projects_choices.append((tenant.id, tenant.name))
         user_projects.append(tenant.id)
     remove_user_from_project.project.choices = users_projects_choices
-    all_tenants = clients.keystone.tenants.list()
+    all_tenants = clients.clients.keystone.tenants.list()
     for tenant in all_tenants:
         if not tenant.id in user_projects:
             not_user_projects_choices.append((tenant.id, tenant.name))
     add_user_to_project.project.choices = not_user_projects_choices
-    return dict(user=user,
-                user_roles=user_roles,
-                add_user_to_project_form=add_user_to_project,
-                remove_user_from_project_form=remove_user_from_project)
-    
+    return {
+        'user': user,
+        'user_roles': user_roles,
+        'add_user_to_project_form': add_user_to_project,
+        'remove_user_from_project_form': remove_user_from_project}
 
-@bp.route('/add_user_to_project/', methods=['POST'])
+
+@bp.route('add_user_to_project/', methods=['POST'])
 def add_user_to_project():
     """
     Giving a 'Member' role in given tenant
     """
-    form = AddUserToProject()
-    tenant = clients.keystone.tenants.get(form.project.data) 
+    form = forms.AddUserToProject()
+    tenant = clients.clients.keystone.tenants.get(form.project.data)
     tenant.add_user(form.user.data, get_member_role_id())
-    flash('User was added to project', 'success')
-    return redirect(url_for('.show', user_id=form.user.data))
+    flask.flash('User was added to project', 'success')
+    return flask.redirect(flask.url_for('.show', user_id=form.user.data))
 
 
-@bp.route('/remove_user_from_project/', methods=['POST'])
+@bp.route('remove_user_from_project/', methods=['POST'])
 def remove_user_from_project():
     """
     Removes all user's roles for given tenant
     """
-    form = RemoveUserFromProject()
-    project = clients.keystone.tenants.get(form.project.data) 
-    user = clients.keystone.users.get(form.user.data)
+    form = forms.RemoveUserFromProject()
+    project = clients.clients.keystone.tenants.get(form.project.data)
+    user = clients.clients.keystone.users.get(form.user.data)
     user_roles_in_project = []
-    all_tenants = clients.keystone.tenants.list(limit=1000000)
+    all_tenants = clients.clients.keystone.tenants.list(limit=1000000)
     for tenant in all_tenants:
         if tenant.id == project.id:
             roles = user.list_roles(tenant)
@@ -139,11 +136,11 @@ def remove_user_from_project():
                 [user_roles_in_project.append(r) for r in roles]
     for role in user_roles_in_project:
         project.remove_user(form.user.data, role.id)
-    flash('User was removed from project', 'success')
-    return redirect(url_for('.show', user_id=form.user.data))
+    flask.flash('User was removed from project', 'success')
+    return flask.redirect(flask.url_for('.show', user_id=form.user.data))
 
 
-@bp.route('/<user_id>/grant/Admin/', methods=['GET'])
+@bp.route('<user_id>/grant/Admin/', methods=['GET'])
 def grant_admin(user_id):
     """Grant admin permission.
 
@@ -152,15 +149,15 @@ def grant_admin(user_id):
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
     """
-    clients.keystone.roles.add_user_role(
+    clients.clients.keystone.roles.add_user_role(
         user_id,
         get_admin_role_id(),
-        current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
-    flash('Admin role granted', 'success')
-    return redirect(url_for('.index'))
+        flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
+    flask.flash('Admin role granted', 'success')
+    return flask.redirect(flask.url_for('.index'))
 
 
-@bp.route('/<user_id>/remove/Admin/', methods=['GET'])
+@bp.route('<user_id>/remove/Admin/', methods=['GET'])
 def revoke_admin(user_id):
     """Revoke admin permission.
 
@@ -169,15 +166,15 @@ def revoke_admin(user_id):
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
     """
-    clients.keystone.roles.remove_user_role(
+    clients.clients.keystone.roles.remove_user_role(
         user_id,
         get_admin_role_id(),
-        current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
-    flash('Admin role removed', 'success')
-    return redirect(url_for('.index'))
+        flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
+    flask.flash('Admin role removed', 'success')
+    return flask.redirect(flask.url_for('.index'))
 
 
-@bp.route('/delete/', methods=['POST'])
+@bp.route('delete/', methods=['POST'])
 def delete():
     """Delete user.
 
@@ -186,21 +183,21 @@ def delete():
     TODO(apugachev): pass user_id in path, make form empty just for CSRF sake.
     This provides better tracking via HTTPD logs.
     """
-    form = DeleteUserForm()
+    form = forms.DeleteUserForm()
     if form.validate_on_submit():
-        keystone_user = clients.keystone.users.get(form.user_id.data)
+        keystone_user = clients.clients.keystone.users.get(form.user_id.data)
         if keystone_user.email:
-            odb_user = neo4j_api_call('/users',{
+            odb_user = utils.neo4j_api_call('/users', {
                 "email": keystone_user.email
             }, 'GET')[0]
         else:
-            odb_user_list = neo4j_api_call('/users', method='GET')
+            odb_user_list = utils.neo4j_api_call('/users', method='GET')
             odb_user = filter(
                 lambda x: x.username == keystone_user.name,
                 odb_user_list)
-        neo4j_api_call('/users/%s' % odb_user['id'], method='DELETE')
-        keystone_user.delete()        
-        flash('User was deleted.', 'success')
+        utils.neo4j_api_call('/users/%s' % odb_user['id'], method='DELETE')
+        keystone_user.delete()
+        flask.flash('User was deleted.', 'success')
     else:
-        flash('User was not deleted', 'error')
-    return redirect(url_for('.index'))
+        flask.flash('User was not deleted', 'error')
+    return flask.redirect(flask.url_for('.index'))

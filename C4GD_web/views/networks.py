@@ -1,3 +1,4 @@
+# TODO(apugachev) consider using Storm models
 import itertools
 import netaddr
 import uuid
@@ -7,19 +8,46 @@ from flask import blueprints
 from flaskext import principal
 
 from C4GD_web.models import orm
-from C4GD_web.views import pagination
+from C4GD_web.views import environments
 from C4GD_web.views import forms
+from C4GD_web.views import pagination
 
 
-bp = blueprints.Blueprint('networks', __name__, url_prefix='/global/networks/')
+HEADERS = [
+    'created_at',
+    'updated_at',
+    'deleted_at',
+    'deleted',
+    'id',
+    'injected',
+    'cidr',
+    'netmask',
+    'bridge',
+    'gateway',
+    'broadcast',
+    'dns1',
+    'vlan',
+    'vpn_public_address',
+    'vpn_public_port',
+    'vpn_private_address',
+    'dhcp_start',
+    'project_id',
+    'host',
+    'cidr_v6',
+    'gateway_v6',
+    'label',
+    'netmask_v6',
+    'bridge_interface',
+    'multi_host',
+    'dns2',
+    'uuid',
+    'priority',
+    'rxtx_base'
+]
 
 
-@bp.before_request
-def authorize():
-    principal.Permission(('role', 'admin')).test()
+bp = environments.admin(blueprints.Blueprint('networks', __name__))
 
-
-HEADERS = [x.strip() for x in 'created_at          | updated_at          | deleted_at | deleted | id | injected | cidr          | netmask       | bridge | gateway    | broadcast    | dns1 | vlan | vpn_public_address | vpn_public_port | vpn_private_address | dhcp_start | project_id | host | cidr_v6 | gateway_v6 | label   | netmask_v6 | bridge_interface | multi_host | dns2 | uuid                                 | priority | rxtx_base '.split('|')]
 
 @bp.route('')
 def index():
@@ -29,7 +57,7 @@ def index():
     data = store.execute(
         'SELECT * FROM networks ORDER BY label  LIMIT ?, ? ',
         p.limit_offset()).get_all()
-    data = map(lambda row: dict(zip(HEADERS, row)), data) 
+    data = map(lambda row: dict(zip(HEADERS, row)), data)
     return {
         'objects': data,
         'pagination': p,
@@ -55,35 +83,83 @@ def new():
 
     Insert record in db for network and create records for fixed IPs based on
     network CIDR.
+    Creating fixed IPs like nova/network/manager.py:_create_fixed_ips()
     """
     form = forms.CreateNetwork()
     if form.validate_on_submit():
-        # creating fixed IPs as nova/network/manager.py:_create_fixed_ips() does
         try:
             project_net = netaddr.IPNetwork(form.cidr.data)
         except netaddr.core.AddrFormatError:
             flask.flash(
-                'Unable to build IP list for CIDR %s' % form.cidr.data, 'error')
+                'Unable to build IP list for CIDR %s' % form.cidr.data,
+                'error')
         else:
             store = orm.get_store('NOVA_RW')
             store.execute(
-                'INSERT INTO networks (label, cidr, netmask, bridge, gateway, '
-                'broadcast, vlan, vpn_public_address, vpn_public_port, '
-                'vpn_private_address, dhcp_start, host, bridge_interface, '
-                'rxtx_base, multi_host, uuid, created_at, deleted, injected) '
-                'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, '
-                '?, now(), 0, 0)',
-                (form.label.data, form.cidr.data, form.netmask.data, 
-                 form.bridge.data, form.gateway.data, form.broadcast.data, 
-                 form.vlan.data, form.vpn_public_address.data, 
-                 form.vpn_public_port.data, form.vpn_private_address.data, 
-                 form.dhcp_start.data, form.host.data, form.bridge_interface.data, 
-                 str(uuid.uuid4())))
+                'INSERT INTO networks ( '
+                'label, '
+                'cidr, '
+                'netmask, '
+                'bridge, '
+                'gateway, '
+                'broadcast, '
+                'vlan, '
+                'vpn_public_address, '
+                'vpn_public_port, '
+                'vpn_private_address, '
+                'dhcp_start, '
+                'host, '
+                'bridge_interface, '
+                'rxtx_base, '
+                'multi_host, '
+                'uuid, '
+                'created_at, '
+                'deleted, '
+                'injected) '
+                'VALUES ( '
+                '?, '  # label
+                '?, '  # cidr
+                '?, '  # netmask
+                '?, '  # bridge
+                '?, '  # gateway
+                '?, '  # broadcast
+                '?, '  # vlan
+                '?, '  # vpn_public_address
+                '?, '  # vpn_public_port
+                '?, '  # vpn_private_address
+                '?, '  # dhcp_start
+                '?, '  # host
+                '?, '  # bridge_interface
+                '1, '  # rxtx_base
+                '0, '  # multi_host
+                '?, '  # uuid
+                'now(), '  # created_at
+                '0, '  # deleted
+                '0'  # injected
+                ')',
+                (
+                    'net' + form.vlan.data,  # label
+                    form.cidr.data,  # cidr
+                    form.netmask.data,  # netmask
+                    form.bridge.data,  # bridge
+                    form.gateway.data,  # gateway
+                    form.broadcast.data,  # broadcast
+                    form.vlan.data,  # vlan
+                    form.vpn_public_address.data,  # vpn_public_address
+                    form.vpn_public_port.data,  # vpn_public_port
+                    form.vpn_private_address.data,  # vpn_private_address
+                    form.dhcp_start.data,  # dhcp_start
+                    form.host.data,  # host
+                    form.bridge_interface.data,  # bridge_interface
+                    str(uuid.uuid4())  # uuid
+                    ))
             store.commit()
             network_id = store.execute('SELECT last_insert_id()').get_one()[0]
             num_ips = len(project_net)
-            bottom_reserved = 2 # network, gateway
-            top_reserved = 1 # broadcast
+            # network, gateway
+            bottom_reserved = 2
+            # broadcast
+            top_reserved = 1
             ips = []
             for index in range(num_ips):
                 address = str(project_net[index])
@@ -96,8 +172,8 @@ def new():
                             'address': address,
                             'reserved': reserved})
             values = itertools.chain(*[(
-                        x['address'], 
-                        x['network_id'], 
+                        x['address'],
+                        x['network_id'],
                         x['reserved']) for x in ips])
             sql_tmpl = (
                 'INSERT INTO fixed_ips (address, network_id, reserved, '
@@ -119,7 +195,7 @@ def delete(object_id):
     if form.validate_on_submit():
         store = orm.get_store('NOVA_RW')
         exists = store.execute(
-            'SELECT count(*) FROM networks where id = ?', 
+            'SELECT count(*) FROM networks where id = ?',
             (object_id,)).get_one()[0] > 0
         if not exists:
             flask.abort(404)
@@ -133,5 +209,3 @@ def delete(object_id):
         store.commit()
         flask.flash('Network deleted.', 'success')
     return flask.redirect(flask.url_for('.index'))
-    
-    

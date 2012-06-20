@@ -1,12 +1,12 @@
 # coding=utf-8
 import copy
 
-from C4GD_web.clients import clients
-from C4GD_web.utils import select_keys
+from C4GD_web import utils
 
 
 class Column(object):
     sorted = None
+
     def __init__(self, attr_name, verbose_name=None):
         self.attr_name = attr_name
         self.verbose_name = verbose_name or attr_name
@@ -17,8 +17,10 @@ class Column(object):
     def adapt(self, value):
         raise NotImplementedError
 
+
 class IntColumn(Column):
     adapt = int
+
 
 class StrColumn(Column):
     adapt = str
@@ -40,8 +42,8 @@ class ColumnKeeper(object):
         self.adjust(default_names)
 
     def adjust(self, names):
-        self.selected = list(select_keys(self.mapping, names, True))
-        self.spare = list(select_keys(
+        self.selected = list(utils.select_keys(self.mapping, names, True))
+        self.spare = list(utils.select_keys(
                 self.mapping, set(self.mapping) - set(names)))
         if names != self.default_names:
             self.is_changed = True
@@ -56,16 +58,15 @@ class ColumnKeeper(object):
             if name in desc:
                 self.ordering.append((name, 'desc'))
                 self.selected[self.index(name)].sorted = 'desc'
-                
+
     def index(self, attr_name):
         return self.current_names.index(attr_name)
-
 
     def adjust_groupby(self, code):
         attr_name, value = code.split('|')
         if attr_name in self.current_names:
             self.groupby = attr_name, value
-    
+
 
 class DataSet(object):
     data = []
@@ -74,7 +75,8 @@ class DataSet(object):
     def __init__(self, objects, columns):
         self.columns = columns
         # load data
-        self.flat_data = [[x(obj) for x in self.columns.selected] for obj in objects]
+        self.flat_data = [
+            [x(obj) for x in self.columns.selected] for obj in objects]
         # group it
         if self.columns.groupby:
             attr_name, value = self.columns.groupby
@@ -97,23 +99,21 @@ class DataSet(object):
                     # filter out only rows for this value of grouper attr
                     def group_rows_filter(x):
                         # data row or header row
-                        return type(x) is list and x[self.columns.index(attr_name)] == value \
+                        return type(x) is list and \
+                            x[self.columns.index(attr_name)] == value \
                             or x['value'] == value
                     data = filter(group_rows_filter, self.data[1:])
                     # preserve cloud statistics at index 0
                     self.data[1:] = data
                     # preserve group statistics at index 1
-                    self.data[2:] = self.order_dataset(self.data[2:]) # leave group stat
+                    # leave group stat
+                    self.data[2:] = self.order_dataset(self.data[2:])
                 else:
-                    # separate rows of data into buckets based on grouping value
-                    # order each group
-                    # glue up groups respecting ordering by attr_name if exists
-
-                    # separate
-                    last_group = self.data[1]['value']# it exists because flat data exist
+                    last_group = self.data[1]['value']
                     hashed_data = {last_group: [self.data[1]]}
                     for row in self.data[2:]:
-                        if type(row) is list and row[self.columns.index(attr_name)] == last_group:
+                        if type(row) is list and row[
+                            self.columns.index(attr_name)] == last_group:
                             hashed_data[last_group].append(row)
                         else:
                             if 'value' in row:
@@ -127,7 +127,8 @@ class DataSet(object):
                     values = hashed_data.keys()
                     ordering = dict(self.columns.ordering)
                     if attr_name in ordering:
-                        values = sorted(values, reverse=ordering[attr_name] == 'desc')
+                        values = sorted(
+                            values, reverse=ordering[attr_name] == 'desc')
                     self.data = self.data[:1]
                     for x in values:
                         self.data.extend(hashed_data[x])
@@ -137,6 +138,7 @@ class DataSet(object):
     def order_dataset(self, data):
         data = copy.deepcopy(data)
         ordering = dict(self.columns.ordering)
+
         def _cmp(x, y):
             for attr_name in self.columns.current_names:
                 if attr_name in ordering:
@@ -150,14 +152,19 @@ class DataSet(object):
             return 0
         result = sorted(data, cmp=_cmp)
         return result
-        
+
     def get_distinct_values(self, attr_name):
-        return list(set([x[self.columns.index(attr_name)] for x in self.flat_data]))
+        return list(set(
+                [x[self.columns.index(attr_name)] for x in self.flat_data]))
 
     def get_group_for(self, attr_name, value):
         index = self.columns.index(attr_name)
-        result = [{'description': 'Group statistics for %s=%s' % (attr_name, value), 'value': value}] + [x for x in self.flat_data if x[index] == value]
+        result = [
+            {
+                'description': 'Group statistics for %s=%s' % (
+                    attr_name,
+                    value),
+                'value': value
+                }
+            ] + [x for x in self.flat_data if x[index] == value]
         return result
-
-        
-            

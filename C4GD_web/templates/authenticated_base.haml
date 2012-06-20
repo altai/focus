@@ -32,11 +32,9 @@
                     %li
                       %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                         =tenant['name']
-              %li
-                %a href="{{ url_for('ssh_keys.index') }}" -> SSH Keys
           %ul class="nav pull-right"
             %li
-              %a href="{{ url_for('invite') }}"
+              %a href="{{ url_for('invitations.invite') }}"
                 Invite
             %li
               %a href="{{ url_for('profile') }}"

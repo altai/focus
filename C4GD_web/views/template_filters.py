@@ -1,4 +1,4 @@
-from C4GD_web import app
+import C4GD_web
 
 
 def convert_bytes(bytes):
@@ -20,4 +20,4 @@ def convert_bytes(bytes):
     return size
 
 
-app.jinja_env.filters['size'] = convert_bytes
+C4GD_web.app.jinja_env.filters['size'] = convert_bytes
