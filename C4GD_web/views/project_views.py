@@ -82,8 +82,8 @@ def spawn_vm():
     return {
         'form': form,
         'tenant': flask.g.tenant,
-        'images': json.dumps([image._info for image in images]),
-        'flavors': json.dumps(flavors))
+        'images': json.dumps([x._info for x in images]),
+        'flavors': json.dumps([x._info for x in flavors])
         }
 
 
