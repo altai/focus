@@ -8,10 +8,6 @@ NEXT_TO_LOGIN_ARG = 'next'
 DEFAULT_NEXT_TO_LOGIN_VIEW = 'dashboard'
 DEFAULT_NEXT_TO_LOGOUT_VIEW = 'login'
 
-LDAP_URI = 'ldap://ns/'
-LDAP_BASEDN = 'ou=people,ou=griddynamics,dc=griddynamics,dc=net'
-
-
 MAIL_USE_SSL = False
 MAIL_DEBUG = True
 DEFAULT_MAIL_SENDER = 'DoNotReply'

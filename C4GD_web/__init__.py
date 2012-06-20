@@ -44,17 +44,17 @@ if not app.debug:
 mail = mail_module.Mail(app)
 
 from C4GD_web.models import abstract
-from C4GD_web.views import global_views
-from C4GD_web.views import images
-from C4GD_web.views import project_views
-from C4GD_web.views import show_one
-from C4GD_web.views import ssh_keys
-from C4GD_web.views import users_management
-from C4GD_web.views import tariffs
-from C4GD_web.views import projects
-from C4GD_web.views import networks
-from C4GD_web.views import invitation_domains
-from C4GD_web.views import invitations
+from C4GD_web.views.blueprints import global_views
+from C4GD_web.views.blueprints import images
+from C4GD_web.views.blueprints import project_views
+from C4GD_web.views.blueprints import show_one
+from C4GD_web.views.blueprints import ssh_keys
+from C4GD_web.views.blueprints import users_management
+from C4GD_web.views.blueprints import tariffs
+from C4GD_web.views.blueprints import projects
+from C4GD_web.views.blueprints import networks
+from C4GD_web.views.blueprints import invitation_domains
+from C4GD_web.views.blueprints import invitations
 
 # blueprints started
 SHOW_ONES = (
