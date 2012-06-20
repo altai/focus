@@ -14,20 +14,12 @@ from flaskext import principal
 from C4GD_web import clients
 from C4GD_web import utils
 from C4GD_web.models import orm
+from C4GD_web.views import environments
 from C4GD_web.views import forms
 from C4GD_web.views import pagination
 
 
-bp = blueprints.Blueprint('projects', __name__, url_prefix='/global/projects/')
-
-
-@bp.before_request
-def authorize():
-    """Check user is authorized.
-
-    Only admins are allowed here.
-    """
-    principal.Permission(('role', 'admin')).test()
+bp = environments.admin(blueprints.Blueprint('projects', __name__))
 
 
 @bp.route('')
@@ -69,8 +61,13 @@ def delete(object_id):
             x.delete()
         # detach network
         store.execute(
-            'UPDATE networks SET project_id = NULL WHERE project_id = ?',
+            'SELECT vlan FROM networks WHERE project_id = ?',
             (object_id,))
+        vlan = store.get_one()[0]
+        store.execute(
+            'UPDATE networks SET project_id = NULL, label = ? '
+            'WHERE project_id = ?',
+            ('net' + vlan, object_id,))
         store.commit()
         # delete tenant
         tenant.delete()
@@ -102,8 +99,9 @@ def new():
         tenant = clients.clients.keystone.tenants.create(*args)
         try:
             store.execute(
-                'UPDATE networks SET project_id = ? WHERE id = ? AND project_id IS NULL LIMIT 1',
-                (tenant.id, form.network.data))
+                'UPDATE networks SET project_id = ?, label = ? '
+                'WHERE id = ? AND project_id IS NULL LIMIT 1',
+                (tenant.id, tenant.name, form.network.data))
             store.commit()
         except Exception, e:
             tenant.delete()
@@ -111,4 +109,3 @@ def new():
         flask.flash('Project created.', 'success')
         return flask.redirect(flask.url_for('.index'))
     return {'form': form}
-

@@ -1,34 +1,40 @@
+# TODO(apugachev) replace use of these by aababilov client's calls
 import datetime
 import functools
 import httplib
 import os
 import urlparse
-
-from flask import session, current_app
-
 import requests
+
+import flask
 
 from C4GD_web import exceptions
 from C4GD_web import utils
 
 
 class Base(object):
-    class NotFound(Exception): pass
-    # raise
-    @classmethod
-    def list(cls, *args, **kwargs): raise NotImplementedError
+    class NotFound(Exception):
+        pass
 
     @classmethod
-    def get(cls, obj_id): raise NotImplementedError
+    def list(cls, *args, **kwargs):
+        raise NotImplementedError
 
     @classmethod
-    def delete(cls, obj_id): raise NotImplementedError
+    def get(cls, obj_id):
+        raise NotImplementedError
 
     @classmethod
-    def create(cls, *args, **kwargs): raise NotImplementedError
+    def delete(cls, obj_id):
+        raise NotImplementedError
 
     @classmethod
-    def update(cls, obj_id): raise NotImplementedError
+    def create(cls, *args, **kwargs):
+        raise NotImplementedError
+
+    @classmethod
+    def update(cls, obj_id):
+        raise NotImplementedError
 
 
 class OpenstackListMixin(object):
@@ -36,7 +42,7 @@ class OpenstackListMixin(object):
     def list(cls, *args, **kwargs):
         """
         Gets list data representing requested objects.
-        We either have tenant_id passed in as kwarg or return data for all 
+        We either have tenant_id passed in as kwarg or return data for all
         tenants concatenated. Response is usually a dictionary with one key and
         an array corresponding to that list.
         404 considered an error here.
@@ -44,6 +50,7 @@ class OpenstackListMixin(object):
         :: params
         """
         acc = []
+
         def haul(response):
             acc.extend(cls.list_accessor(response))
         path = cls.base + getattr(cls, 'list_prefix', '')
@@ -60,7 +67,7 @@ class OpenstackListMixin(object):
             api_func=functools.partial(
                 utils.openstack_api_call,
                 cls.service_type,
-                http_method=requests.get)) 
+                http_method=requests.get))
         if tenant_id is not None:
             snap(tenant_id)
         else:
@@ -69,6 +76,7 @@ class OpenstackListMixin(object):
                 if getattr(cls, 'list_any_one_tenant', False):
                     break
         return acc
+
 
 class OpenstackMixinBase(object):
     @classmethod
@@ -90,10 +98,11 @@ class OpenstackMixinBase(object):
         else:
             for tenant_id in cls._tenants(**kwargs):
                 return snap(tenant_id)
-        raise cls.NotFound, "%s with ID %s not found." % (cls.__name__, obj_id)
+        raise cls.NotFound, '%s with ID %s not found.' % (cls.__name__, obj_id)
 
     @staticmethod
-    def _snap(tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
+    def _snap(
+        tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
         """
         Used when we uncertain what tenant is correct for an object
         """
@@ -128,10 +137,10 @@ class OpenstackMixinBase(object):
         if 'tenants' in kwargs:
             return [x['id'] for x in kwargs['tenants']]
         else:
-            tenants = [x['id'] for x in session['tenants']]
+            tenants = [x['id'] for x in flask.session['tenants']]
             if len(tenants):
                 return tenants
-        return [current_app.config['DEFAULT_TENANT_ID']]
+        return [flask.current_app.config['DEFAULT_TENANT_ID']]
 
 
 class OpenstackDeleteMixin(object):
@@ -141,7 +150,7 @@ class OpenstackDeleteMixin(object):
         Deletes object by id.
         """
         return cls._call(obj_id, tenant_id, 'delete_prefix', requests.delete)
-        
+
 
 class OpenstackGetMixin(object):
     @classmethod
@@ -156,7 +165,12 @@ class OpenstackGetMixin(object):
         return cls._call(obj_id, tenant_id, 'get_prefix', requests.get)
 
 
-class OpenstackAPI(OpenstackMixinBase, OpenstackListMixin, OpenstackGetMixin, OpenstackDeleteMixin, Base): 
+class OpenstackAPI(
+    OpenstackMixinBase,
+    OpenstackListMixin,
+    OpenstackGetMixin,
+    OpenstackDeleteMixin,
+    Base):
     pass
 
 
@@ -178,20 +192,20 @@ class Image(GlanceAPI):
 
     @classmethod
     def create(
-        cls, tenant_id, name, container_format, disk_format, path, 
+        cls, tenant_id, name, container_format, disk_format, path,
         public=True, architecture='x86_64', kernel_id=None, ramdisk_id=None):
-        '''Upload image to Glance API.
-        
+        """Upload image to Glance API.
+
         Prepare headers.
         - content type application/octet-stream
         - image size
         Post request with file content as body.
         Return key 'image' from unjsoned response.
-        '''
+        """
         size_in_bytes = os.path.getsize(path)
         headers = {
-            'X-Auth-Token': session['keystone_scoped'][tenant_id]['access']\
-                ['token']['id'],
+            'X-Auth-Token': flask.session['keystone_scoped'][tenant_id][
+                'access']['token']['id'],
             'content-type': 'application/octet-stream',
             'x-image-meta-size': unicode(size_in_bytes),
             'content-length': unicode(size_in_bytes),
@@ -229,24 +243,24 @@ class Image(GlanceAPI):
                            httplib.CREATED,
                            httplib.ACCEPTED,
                            httplib.NO_CONTENT):
-            current_app.logger.info(
-                "Abnormal request result: %s" % response.read())
+            flask.current_app.logger.info(
+                'Abnormal request result: %s' % response.read())
             if status_code == httplib.UNAUTHORIZED:
-                raise RuntimeError("Glance: User not authorized")
+                raise RuntimeError('Glance: User not authorized')
             elif status_code == httplib.FORBIDDEN:
-                raise RuntimeError("Glance: User not authorized")
+                raise RuntimeError('Glance: User not authorized')
             elif status_code == httplib.NOT_FOUND:
-                raise RuntimeError("Glance: Not found")
+                raise RuntimeError('Glance: Not found')
             elif status_code == httplib.CONFLICT:
-                raise RuntimeError("Glance: Bad request. Duplicate data")
+                raise RuntimeError('Glance: Bad request. Duplicate data')
             elif status_code == httplib.BAD_REQUEST:
-                raise RuntimeError("Glance: Bad request")
+                raise RuntimeError('Glance: Bad request')
             elif status_code == httplib.MULTIPLE_CHOICES:
-                raise RuntimeError("Glance: Multiple choices")
+                raise RuntimeError('Glance: Multiple choices')
             elif status_code == httplib.INTERNAL_SERVER_ERROR:
-                raise RuntimeError("Glance: Internal Server error")
+                raise RuntimeError('Glance: Internal Server error')
             else:
-                raise RuntimeError("Glance: Unknown error occurred")
+                raise RuntimeError('Glance: Unknown error occurred')
         return utils.unjson(response, attr='read()')['image']
 
 
@@ -259,6 +273,7 @@ def get_connection_type(scheme):
     else:
         return httplib.HTTPConnection
 
+
 def get_status_code(response):
     """
     Returns the integer status code from the response, which
@@ -268,6 +283,7 @@ def get_status_code(response):
         return response.status_int
     else:
         return response.status
+
 
 class NovaImage(NovaAPI):
     base = '/images'
@@ -287,14 +303,16 @@ class VirtualMachine(NovaAPI):
         return obj['servers']
 
     @classmethod
-    def create(cls, tenant_id, name, image_id, flavor_id, 
+    def create(cls, tenant_id, name, image_id, flavor_id,
                password=None, keypair=None, security_groups=[]):
-        
+
         image = NovaImage.get(image_id)
         try:
-            imageRef = [x['href'] for x in image['image']['links'] if x['rel'] == u'self'][0]
+            imageRef = [
+                x['href'] for x in image['image']['links'] if \
+                    x['rel'] == u'self'][0]
         except KeyError:
-            raise RuntimeError('API returns image without link "self"', image)
+            raise RuntimeError('API returns image without link `self`', image)
         request_data = {
             'server': {
                 'name': name,
@@ -311,16 +329,16 @@ class VirtualMachine(NovaAPI):
                 {'name': x['name']} for x in SecurityGroup.list() \
                     if x['id'] in security_groups]
         utils.openstack_api_call(
-            cls.service_type, tenant_id, cls.base, request_data, 
+            cls.service_type, tenant_id, cls.base, request_data,
             http_method=requests.post)
-    
+
     @classmethod
     def reboot(cls, tenant_id, vm_id, type):
         utils.openstack_api_call(
-            cls.service_type, 
-            tenant_id, 
-            "%s/%s/action" % (cls.base, vm_id),  
-            {'reboot': {'type': type}}, 
+            cls.service_type,
+            tenant_id,
+            '%s/%s/action' % (cls.base, vm_id),
+            {'reboot': {'type': type}},
             requests.post)
 
 
@@ -366,7 +384,7 @@ class AccountBill(Base):
         for x in 'time_period', 'period_start', 'period_end':
             if kwargs.get(x) is not None:
                 request_data[x] = kwargs[x]
-        
+
         return utils.billing_get('/report', params=request_data)['accounts']
 
 
@@ -386,9 +404,9 @@ class Tariff(Base):
     @classmethod
     def update(cls, name, price, migrate):
         request_data = {
-            "datetime": "%sZ" % datetime.datetime.utcnow().isoformat(),
-            "migrate": migrate,
-            "values": {
+            'datetime': '%sZ' % datetime.datetime.utcnow().isoformat(),
+            'migrate': migrate,
+            'values': {
                 name: float(price),
                 }
             }
@@ -416,9 +434,9 @@ class SSHKey(NovaAPI):
     @classmethod
     def register(cls, name, public_key):
         request = {
-            "keypair": {
-                "name": name,
-                "public_key": public_key
+            'keypair': {
+                'name': name,
+                'public_key': public_key
             }
         }
         for tenant_id in cls._tenants():
@@ -430,15 +448,16 @@ class SSHKey(NovaAPI):
                     cls.service_type,
                     http_method=requests.post),
                 params=request)
-            if result != None:#some tenant allowed to post
+            if result != None:
+                # some tenant allowed to post, we can return
                 return
-        raise RuntimeError, 'No tenant to post'
+        raise RuntimeError('No tenant to post')
 
     @classmethod
     def generate(cls, name):
         request = {
-            "keypair": {
-                "name": name
+            'keypair': {
+                'name': name
             }
         }
         for tenant_id in cls._tenants():
@@ -450,13 +469,12 @@ class SSHKey(NovaAPI):
                     cls.service_type,
                     http_method=requests.post),
                 params=request)
-            if result != None:#some tenant allowed to post
-                return result["keypair"]
-        raise RuntimeError, 'No tenant to post'
+            if result != None:
+                return result['keypair']
+        raise RuntimeError('No tenant to post')
 
     @classmethod
     def get(cls, keypair_name):
         for keydata in cls.list():
             if keypair_name == keydata['name']:
                 return keydata
-

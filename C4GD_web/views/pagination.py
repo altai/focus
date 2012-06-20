@@ -39,13 +39,14 @@ class Pagination(object):
             last = num
 
     def base(self):
-        return (self.page-1) * self.per_page
-    
+        return (self.page - 1) * self.per_page
+
     def slice(self, data):
         return data[self.base():self.base() + self.per_page]
 
     def limit_offset(self):
         return (self.base(), self.per_page)
+
 
 def per_page_value():
     return 20

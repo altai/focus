@@ -2,11 +2,11 @@ import flask
 
 from flaskext import principal
 
-from C4GD_web import app
-from C4GD_web.clients import clients, get_my_clients
+import C4GD_web
+from C4GD_web import clients
 
 
-principals = principal.Principal(app)
+principals = principal.Principal(C4GD_web.app)
 
 
 @principal.identity_loaded.connect
@@ -22,24 +22,24 @@ def on_identity_loaded(sender, identity):
     loose_endpoints = flask.current_app.config['ANONYMOUS_ALLOWED']
     is_loose = flask.request.endpoint in loose_endpoints
     if not (is_loose or is_anon):
-        user = clients.keystone.users.get(identity.name)
-        roles = clients.keystone.roles.roles_for_user(
-                    identity.name, 
-                    flask.current_app.config\
-                        ['KEYSTONE_CONF']['admin_tenant_id'])
+        user = clients.clients.keystone.users.get(identity.name)
+        roles = clients.clients.keystone.roles.roles_for_user(
+            identity.name,
+            flask.current_app.config[
+                'KEYSTONE_CONF']['admin_tenant_id'])
         if any([x.name == flask.current_app.config['ADMIN_ROLE_NAME'] \
                     for x in roles]):
             identity.provides.add(('role', 'admin'))
         # TODO(apugachev): use list_roles() when server implemented it
-        for tenant in clients.keystone.tenants.list():
+        for tenant in clients.clients.keystone.tenants.list():
             if len(user.list_roles(tenant)):
-                identity.provides.add(('role', 'member', tenant.id)) 
+                identity.provides.add(('role', 'member', tenant.id))
 
 
-if not app.debug:
-    @app.errorhandler(principal.PermissionDenied)
+if not C4GD_web.app.debug:
+    @C4GD_web.app.errorhandler(principal.PermissionDenied)
     def forbidden(e):
-        app.logger.info(
+        C4GD_web.app.logger.info(
             'Forbidden access for identity %s to %s' % (
                 flask.session.get('identity.name', ''), flask.request.path))
         return '_forbidden.haml', {}
@@ -47,4 +47,4 @@ if not app.debug:
 
 def allowed(*needs):
     return principal.Permission(*needs).can()
-app.jinja_env.tests['allowed'] = allowed
+C4GD_web.app.jinja_env.tests['allowed'] = allowed

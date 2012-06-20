@@ -1,65 +1,55 @@
-# coding=utf-
+# coding=utf-8
+import novaclient
 
-from flask import redirect, url_for, flash, abort
+import flask
 from flask import blueprints
 
+from C4GD_web import clients
 from C4GD_web import exceptions
-from C4GD_web.models import abstract
 from C4GD_web.views import forms
+from C4GD_web.views import environments
 
-bp = blueprints.Blueprint('ssh_keys', __name__, url_prefix='/ssh-keys')
+
+bp = environments.project(blueprints.Blueprint('ssh_keys', __name__))
 
 
-@bp.route('/')
+@bp.route('')
 def index():
+    c = clients.get_my_clients(flask.g.tenant_id)
     context = {
-        'keys': abstract.SSHKey.list(),
+        'keys': c.nova.keypairs.list(),
         'delete_form': forms.DeleteForm()
         }
     return context
 
 
-@bp.route('/create/', methods=['GET', 'POST'])
+@bp.route('create/', methods=['GET', 'POST'])
 def new():
     form = forms.CreateSSHKey()
     if form.validate_on_submit():
-        try:
-            keydata = abstract.SSHKey.create(**form.data)
-        except exceptions.GentleException:
-            name_exists = any([x for x in abstract.SSHKey.list() if x['name'] == form.data['name']])
-            if name_exists:
-                flash(
-                    'Keypair with name %s already exists.' % form.data['name'],
-                    'error')
-            else:
-                if form.data['public_key']:
-                    flash('API was unable to register keypair.', 'error')
-                else:
-                    flash('API was unable to generate keypair.', 'error')
+        c = clients.get_my_clients(flask.g.tenant_id).nova.keypairs.create
+        if form.public_key.data:
+            c(form.name.data, form.public_key.data)
         else:
-            if form.data['public_key']:
-                flash('Keypair registered.', 'success')
-            else:
-                flash('Keypair generated and registered.', 'success')
-                flash('Important! This is private key for generated keypair, copy it now, it won\'t be shown again! <br><code>%s</code>.' % keydata['private_key'], 'info')
-            return redirect(url_for('.index'))
+            c(form.name.data)
+        return flask.redirect(flask.url_for('.index'))
+    return {'form': form}
+
+
+@bp.route('delete/<name>/', methods=['GET', 'POST'])
+def delete(name):
+    try:
+        keypair = filter(
+            lambda x: x.name == name,
+            clients.get_my_clients(flask.g.tenant_id).nova.keypairs.list())[0]
+    except IndexError:
+        abort(404)
+    form = forms.DeleteForm()
+    if form.validate_on_submit():
+        keypair.delete()
+        flask.flash('Keypair removed.', 'success')
+        return flask.redirect(flask.url_for('.index'))
     return {
+        'keypair': keypair,
         'form': form
         }
-
-
-@bp.route('/delete/<name>/', methods=['GET', 'POST'])
-def delete(name):
-    keydata = abstract.SSHKey.get(name)
-    if keydata is None:
-        abort(404)
-    else:
-        form = forms.DeleteForm()
-        if form.validate_on_submit():
-            abstract.SSHKey.delete(name)
-            flash('Keypair removed.', 'success')
-            return redirect(url_for('.index'))
-        return {
-            'keydata': keydata,
-            'form': form
-            }

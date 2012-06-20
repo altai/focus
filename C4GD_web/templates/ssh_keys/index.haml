@@ -1,4 +1,4 @@
--extends "authenticated_base.haml"
+-extends "projects_base.haml"
 -block subnav
   =super()
   -include "ssh_keys/_subnav.haml"
@@ -20,14 +20,25 @@
       -for key in keys:
         %tr
           %td
-            "{{ key['name'] }}"
+            "{{ key.name }}"
           %td
-            "{{ key['fingerprint'] }}"
+            "{{ key.fingerprint }}"
           %td
-            %a.btn href="#" onclick="javascript:alert('{{ key['public_key'].replace('\n', '') }}'); return false;"
+            %div.modal.hide id="show_key_{{ key.name }}"
+              %div.modal-header
+                %a.close data-dismiss="modal"
+                  ×
+                %h3
+                  Public Key for {{ key.name }}
+              %div.modal-body
+                %textarea.input-xlarge rows="3" style="width: 521px; height: 105px;/* ad hoc */" ->  =key.public_key
+              %div.modal-footer
+                %a.btn.btn-primary href="#" data-dismiss="modal"
+                  OK
+            %a data-toggle="modal" href="#show_key_{{ key.name }}"
               show
           %td
-            %div.modal.hide id="delete_key_{{ key['name'] }}"
+            %div.modal.hide id="delete_key_{{ key.name }}"
               %div.modal-header
                 %a.close data-dismiss="modal"
                   ×
@@ -37,11 +48,11 @@
                 %p
                   Sure to delete "{{ key['name'] }}"?
               %div.modal-footer
-                %form method="post" action="{{ url_for('.delete', name=key['name']) }}"
-                  {{ delete_form.hidden_tag() }}
+                %form method="post" action="{{ url_for('.delete', name=key.name) }}"
+                  =delete_form.hidden_tag()
                   %button.btn
                     Delete
                   %a.btn.btn-primary href="#" data-dismiss="modal"
                     No
-            %a data-toggle="modal" href="#delete_key_{{ key['name'] }}"
+            %a data-toggle="modal" href="#delete_key_{{ key.name }}"
               delete

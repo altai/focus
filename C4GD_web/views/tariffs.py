@@ -1,46 +1,44 @@
-"""Allows global admins to list and update tariffs.
+"""List and update tariffs.
 
+Restrict access of non-admin users.
 """
-import decimal
 import sys
 
 import flask
 from flask import blueprints
 from flaskext import principal
 
-from C4GD_web.models.abstract import Tariff
+from C4GD_web.models import abstract
+from C4GD_web.views import environments
 from C4GD_web.views import forms
 
 
-bp = blueprints.Blueprint('tariffs', __name__, url_prefix='/global/tariffs/')
-
-
-@bp.before_request
-def authorize():
-    principal.Permission(('role', 'admin')).test()
+bp = environments.admin(blueprints.Blueprint('tariffs', __name__))
 
 
 @bp.route('')
 def index():
     """List tariffs"""
-    tariffs = Tariff.list()
+    tariffs = abstract.Tariff.list()
     return {'tariffs': tariffs}
 
 
 @bp.route('<path:name>/', methods=['GET', 'POST'])
 def edit(name):
     """Edit tariff"""
-    tariffs = Tariff.list()
+    tariffs = abstract.Tariff.list()
     # TODO(apugachev) - handle nonexisting tariff, KeyError in next line
     form = forms.TariffEditForm(price=tariffs[name])
     if form.validate_on_submit():
         try:
-            response = Tariff.update(
+            response = abstract.Tariff.update(
                 name,
                 form.price.data,
                 form.migrate.data)
         except Exception, e:
-            flask.flash('Failed to update tariff. Error: %s' % e.args[0], 'error')
+            flask.flash(
+                'Failed to update tariff. Error: %s' % e.args[0],
+                'error')
             exc_type, exc_value, tb = sys.exc_info()
             flask.current_app.log_exception((exc_type, exc_value, tb))
         else:

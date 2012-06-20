@@ -55,16 +55,30 @@ class RestClient(object):
         return (resp, body)
 
     def get(self, path):
-        return self.request(self.management_url + path, "GET", headers=self.auth_headers)[1]
+        return self.request(
+            self.management_url + path,
+            "GET",
+            headers=self.auth_headers)[1]
 
     def post(self, path, body):
-        return self.request(self.management_url + path, "POST", body=body, headers=self.auth_headers)[1]
+        return self.request(
+            self.management_url + path,
+            "POST",
+            body=body,
+            headers=self.auth_headers)[1]
 
     def put(self, path, body):
-        return self.request(self.management_url + path, "PUT", body=body, headers=self.auth_headers)[1]
+        return self.request(
+            self.management_url + path,
+            "PUT",
+            body=body,
+            headers=self.auth_headers)[1]
 
     def delete(self, path):
-        return self.request(self.management_url + path, "DELETE", headers=self.auth_headers)[1]
+        return self.request(
+            self.management_url + path,
+            "DELETE",
+            headers=self.auth_headers)[1]
 
 
 class BillingHeartClient(RestClient):

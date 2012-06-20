@@ -1,35 +1,7 @@
--extends "authenticated_base.haml"
+-extends "projects_base.haml"
 -block subnav
-  %div.container
-    %header.jumbotron.subhead#overview
-      %h1
-        =g.tenant_dict['name']
-      -if project_managers:
-        %p.lead
-          Project management:
-          -for name in project_managers
-            =name
-            -if not loop.last
-              ,          
-    %div.subnav
-      %ul.nav.nav-pills
-        %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=g.project_id) %}active{% endif %}"
-          %a href="{{ url_for('project_views.show_tenant', tenant_id=g.project_id) }}"
-            Virtual Machines
-        %li class="{% if request.path == url_for('project_views.billing', tenant_id=g.project_id) %}active{% endif %}"
-          %a href="{{ url_for('project_views.billing', tenant_id=g.project_id) }}"
-            Billing
-        %li class="{% if request.path == url_for('project_views.list_users', tenant_id=g.project_id) %}active{% endif %}"
-          %a href="{{ url_for('project_views.list_users', tenant_id=g.project_id) }}"
-            Users
-        %li class="{% if request.blueprint == 'project_images' %}active{% endif %}"
-          %a href="{{ url_for('project_images.index', project_id=g.project_id) }}"
-            Images
-        %li
-          %a href="{{ url_for('project_views.get_credentials') }}"
-            Get Credentials File
+  =super()
   -include "images_bp/_subnav.haml"
-
 -block content
   %span class="label label-important"
     Important: 'delete' actions cannot be reverted 
@@ -53,7 +25,7 @@
           %td -> =image['checksum']
           %td -> =image['size']|size
           %td
-            -if image['owner'] == g.project_id:
+            -if image['owner'] == g.tenant_id:
               %div.modal.hide id="delete_image_{{ image['id'] }}"
                 %div.modal-header
                   %a.close data-dismiss="modal"

@@ -1,4 +1,4 @@
--extends "authenticated_base.haml"
+-extends "projects_base.haml"
 -block content
   %form.form-horizontal method="POST" action="."
     =form.hidden_tag()
@@ -9,7 +9,7 @@
         %label.control-label for="id_name"
           Key name
         %div.controls
-          %input.input-xlarge type="text" disabled="1" value="{{ keydata['name'] }}"        
+          %input.input-xlarge type="text" disabled="1" value="{{ keypair.name }}"        
     %div.form-actions
       %button.btn.btn-primary type="submit"
         Delete

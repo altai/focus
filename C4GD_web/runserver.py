@@ -1,9 +1,6 @@
 #!/usr/bin/python2
 # coding=utf-8
-from C4GD_web import app
-
-
 if __name__ == "__main__":
-    from C4GD_web import app
-    port = app.config['DEFAULT_APP_PORT']
-    app.run(host='0.0.0.0', port=port if port else 5000)
+    import C4GD_web
+    port = C4GD_web.app.config['DEFAULT_APP_PORT']
+    C4GD_web.app.run(host='0.0.0.0', port=port if port else 5000)

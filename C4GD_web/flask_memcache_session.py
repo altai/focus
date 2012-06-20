@@ -1,14 +1,19 @@
 # credits to https://github.com/unk2k/
-from flask.sessions import SessionInterface, SessionMixin
 import os
 
-class SessionData(dict, SessionMixin): pass
+import flask
 
-class Session(SessionInterface):
+
+class SessionData(dict, flask.sessions.SessionMixin):
+    pass
+
+
+class Session(flask.sessions.SessionInterface):
     session_class = SessionData
 
     def open_session(self, app, request):
-        self.cookie_session_id = request.cookies.get(app.session_cookie_name, None)
+        self.cookie_session_id = request.cookies.get(
+            app.session_cookie_name, None)
         self.session_new = False
         if self.cookie_session_id is None:
             self.cookie_session_id = os.urandom(40).encode('hex')
@@ -32,7 +37,9 @@ class Session(SessionInterface):
         secure = self.get_cookie_secure(app)
         app.cache.set(self.memcache_session_id, session)
         if self.session_new:
-            response.set_cookie(app.session_cookie_name, self.cookie_session_id, path=path,
-                                expires=expires, httponly=httponly,
-                                secure=secure, domain=domain)
-            app.logger.debug('Set session %s with %s', self.memcache_session_id, session)
+            response.set_cookie(
+                app.session_cookie_name, self.cookie_session_id, path=path,
+                expires=expires, httponly=httponly,
+                secure=secure, domain=domain)
+            app.logger.debug(
+                'Set session %s with %s', self.memcache_session_id, session)

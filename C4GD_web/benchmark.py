@@ -1,13 +1,13 @@
 # coding=utf-8
 import time
 
-from flask import current_app
+import flask
 
 
-class benchmark(object):
+class T(object):
     def __init__(self, name, logger=None):
         self.name = name
-        self.logger = logger or current_app.logger.info
+        self.logger = logger or flask.current_app.logger.info
 
     def __enter__(self):
         self.start = time.time()

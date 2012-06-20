@@ -66,16 +66,14 @@ for name, url_prefix, model in SHOW_ONES:
     app.register_blueprint(
         show_one.get_one(name), url_prefix=url_prefix, model=model)
 
-app.register_blueprint(
-    images.get_bp('global_images'),
-    url_prefix='/global/images/')
-app.register_blueprint(
-    images.get_bp('project_images'),
-    url_prefix='/projects/<project_id>/images/')
-app.register_blueprint(project_views.bp, url_prefix='/projects/<tenant_id>')
+app.register_blueprint(images.ABP, url_prefix='/global/images/')
+app.register_blueprint(images.PBP, url_prefix='/projects/<tenant_id>/images/')
+app.register_blueprint(project_views.bp, url_prefix='/projects/<tenant_id>/')
 app.register_blueprint(global_views.bp, url_prefix='/global/')
-app.register_blueprint(ssh_keys.bp, url_prefix='/ssh-keys')
-app.register_blueprint(users_management.bp, url_prefix='/global/users')
+app.register_blueprint(
+    ssh_keys.bp,
+    url_prefix='/projects/<tenant_id>/keypairs/')
+app.register_blueprint(users_management.bp, url_prefix='/global/users/')
 app.register_blueprint(tariffs.bp, url_prefix='/global/tariffs/')
 app.register_blueprint(projects.bp, url_prefix='/global/projects/')
 app.register_blueprint(networks.bp, url_prefix='/global/networks/')
@@ -84,7 +82,7 @@ app.register_blueprint(invitations.bp, url_prefix='/invite/')
 
 
 class ResolvingUploadSet(uploads.UploadSet):
-    '''Quick workaround for extensinless filenames.'''
+    '''Quick workaround for extensionless filenames.'''
 
     def resolve_conflict(self, target_folder, basename):
         try:

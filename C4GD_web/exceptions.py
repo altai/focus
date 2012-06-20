@@ -1,3 +1,6 @@
+# TODO(apugachev) get rid of GentleException
+
+
 class KeystoneExpiresException(Exception):
     pass
 

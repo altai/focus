@@ -13,15 +13,67 @@ import C4GD_web
 from C4GD_web import exceptions
 # TODO(apugachev) try put all clients in one module "api_clients"
 from C4GD_web import utils
-from C4GD_web.views.authentication import register_user
 from C4GD_web.models import row_mysql_queries
 # TODO(apugachev) look where register_user() is used,
 # try to move it here in section "utils"
-from C4GD_web.views import authentication
 from C4GD_web.views import forms
 
 
 bp = blueprints.Blueprint('invitations', __name__)
+
+
+def register_user(username, email, password, role):
+    """
+        Temporary have to register user in ODB and add a user into
+        keystone db using keystoneclient
+    """
+    def register_in_keystone():
+        """
+        """
+        try:
+            new_keystone_user = clients.clients.keystone.users.create(
+                username, password, email)
+
+            if role != 'user':
+                all_roles = clients.clients.keystone.roles.list()
+                for r in all_roles:
+                    if r.name == role:
+                        clients.clients.keystone.roles.add_user_role(
+                            new_keystone_user, r,
+                            tenant=flask.current_app.config[
+                                'KEYSTONE_CONF']['admin_tenant_id'])
+                        break
+        except Exception, e:
+            raise Exception("Registration fail", e.message)
+        return True
+
+    def register_in_ODB():
+        """Register user in ODB.
+
+        API 'create_user' call to ODB, then read new user from ODB and \
+        returns it.
+        """
+        # new user
+        new_user = utils.neo4j_api_call('/users', {
+            "login": "",
+            "username": username,
+            "email": email,
+            "passwordHash": utils.create_hashed_password(password),
+        }, 'POST')
+
+        # return fresh user
+        user = utils.neo4j_api_call('/users', {
+            "email": email
+        }, 'GET')[0]
+        return user
+
+    keystone_success = register_in_keystone()
+
+    if keystone_success:
+        user = register_in_ODB()
+        return user
+    else:
+        return None
 
 
 @bp.route('finish/<invitation_hash>/', methods=['GET', 'POST'])

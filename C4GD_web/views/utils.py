@@ -1,30 +1,36 @@
 # coding=utf-8
-from flask import abort, g, request, url_for, current_app
+import flask
 
 
 def get_next_url():
+    """Defines URI to redirect to after login.
+
+    Next destination can be provided as:
+    - element "next" of request.args(GET) or request.form(POST),
+    - app config DEFAULT_NEXT_TO_LOGIN_VIEW.
     """
-    Defines URI to redirect to after login.
-    It is provided as element "next" of request.args(GET) or request.form(POST).
-    If it is not we use endpoint name from  app config DEFAULT_NEXT_TO_LOGIN_VIEW.
-    
-    Context: view.
-    """
-    if request.method == 'POST':
-        d = request.form
+    if flask.request.method == 'POST':
+        d = flask.request.form
     else:
-        d = request.args
-    return d.get('next', url_for(current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
+        d = flask.request.args
+    return d.get('next', flask.url_for(
+            flask.current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
 
 
 def get_object_or_404(klass, object_id, store=None):
-    if type(klass).__name__ == 'PropertyPublisherMeta':# model
+    """Find object or raise HTTP 404.
+
+    It can work with Storm model and reference set as klass.
+    """
+    if type(klass).__name__ == 'PropertyPublisherMeta':
+        # this is a model
         if store is None:
-            store = g.store
+            store = flask.g.store
         obj = store.get(klass, object_id)
-    else:# reference set
+    else:
+        # this is a reference set
         obj = klass.find(id=object_id).config(distinct=True).one()
     if obj is None:
-        abort(404)
+        flask.abort(404)
     else:
         return obj

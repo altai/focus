@@ -30,7 +30,7 @@ def save_invitation(email, hash_code, role):
 def get_invitation_by_hash(invitation_hash):
     return flask.g.inv_store.execute(
         'SELECT * FROM invitations.invitations '
-        'WHERE invitations.hash = ?', 
+        'WHERE invitations.hash = ?',
         (invitation_hash, )).get_one()
 
 
@@ -43,7 +43,7 @@ def update_invitation(invitation_id, email, hash_code):
         (email, hash_code, 1, invitation_id))
     flask.g.inv_store.commit()
 
-       
+
 @prepare_database_connection
 def get_masks():
     return flask.g.inv_store.execute(

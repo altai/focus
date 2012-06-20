@@ -23,8 +23,11 @@
           %a href="{{ url_for('project_views.list_users', tenant_id=g.tenant_id) }}"
             Users
         %li class="{% if request.blueprint == 'project_images' %}active{% endif %}"
-          %a href="{{ url_for('project_images.index', project_id=g.tenant_id) }}"
+          %a href="{{ url_for('project_images.index', tenant_id=g.tenant_id) }}"
             Images
+        %li class="{% if request.blueprint == 'ssh_keys' %}active{% endif %}"
+          %a href="{{ url_for('ssh_keys.index', tenant_id=g.tenant_id) }}"
+            SSH Keys                  
         %li
           %a href="{{ url_for('project_views.get_credentials') }}"
             Get Credentials File

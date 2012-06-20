@@ -1,5 +1,7 @@
 # coding=utf-8
-import csv, codecs
+import codecs
+import csv
+
 try:
     from cStringIO import StringIO
 except ImportError:
