@@ -21,70 +21,77 @@
         -for vm in vms
           %tr
             %td
-              %a href="{{ url_for('.show_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+              -if vm['id'] in session.get('removed_vms', []):
+                [DELETE OPERATION REQUESTED]
                 =vm['name']
+              -else
+                %a href="{{ url_for('.show_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+                  =vm['name']
             %td
               =vm['status']
             %td
               =vm['user_id']
             %td
-              %div.modal.hide id="remove_vm-{{ vm['id'] }}"
-                %div.modal-header
-                  %a.close data-dismiss="modal"
-                    ×
-                  %h3
-                    Confirmation request
-                %div.modal-body
-                  %p
-                    Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                %div.modal-footer
-                  %form method="post" action="{{ url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
-                    %input type="hidden" name="next" value="{{ request.path }}"
-                    %button.btn
-                      Yes, remove it
-                    %a.btn.btn-primary href="#" data-dismiss="modal"
-                      No                  
-              %a data-toggle="modal" href="#remove_vm-{{ vm['id'] }}" 
-                %i.icon-remove
-                remove
-              
-              reboot:
-              %div.modal.hide id="reboot_vm-{{ vm['id'] }}-soft"
-                %div.modal-header
-                  %a.close data-dismiss="modal"
-                    ×
-                  %h3
-                    Confirmation request
-                %div.modal-body
-                  %p
-                    Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                %div.modal-footer
-                  %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft') }}"
-                    %input type="hidden" name="next" value="{{ request.path }}"
-                    %button.btn
-                      Reboot
-                    %a.btn.btn-primary href="#" data-dismiss="modal"
-                      No 
-              %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-soft" 
-                soft
-                
-              %div.modal.hide id="reboot_vm-{{ vm['id'] }}-hard"
-                %div.modal-header
-                  %a.close data-dismiss="modal"
-                    ×
-                  %h3
-                    Confirmation request
-                %div.modal-body
-                  %p
-                    Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                %div.modal-footer
-                  %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard') }}"
-                    %input type="hidden" name="next" value="{{ request.path }}"
-                    %button.btn
-                      Reboot
-                    %a.btn.btn-primary href="#" data-dismiss="modal"
-                      No 
-              %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-hard" 
-                hard
+              -if vm['id'] in session.get('removed_vms', []):
+                &nbsp;
+              -else:
+                %div.modal.hide id="remove_vm-{{ vm['id'] }}"
+                  %div.modal-header
+                    %a.close data-dismiss="modal"
+                      ×
+                    %h3
+                      Confirmation request
+                  %div.modal-body
+                    %p
+                      Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
+                  %div.modal-footer
+                    %form method="post" action="{{ url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
+                      %input type="hidden" name="next" value="{{ request.path }}"
+                      %button.btn
+                        Yes, remove it
+                      %a.btn.btn-primary href="#" data-dismiss="modal"
+                        No                  
+                %a data-toggle="modal" href="#remove_vm-{{ vm['id'] }}" 
+                  %i.icon-remove
+                  remove
+
+                reboot:
+                %div.modal.hide id="reboot_vm-{{ vm['id'] }}-soft"
+                  %div.modal-header
+                    %a.close data-dismiss="modal"
+                      ×
+                    %h3
+                      Confirmation request
+                  %div.modal-body
+                    %p
+                      Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
+                  %div.modal-footer
+                    %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft') }}"
+                      %input type="hidden" name="next" value="{{ request.path }}"
+                      %button.btn
+                        Reboot
+                      %a.btn.btn-primary href="#" data-dismiss="modal"
+                        No 
+                %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-soft" 
+                  soft
+
+                %div.modal.hide id="reboot_vm-{{ vm['id'] }}-hard"
+                  %div.modal-header
+                    %a.close data-dismiss="modal"
+                      ×
+                    %h3
+                      Confirmation request
+                  %div.modal-body
+                    %p
+                      Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
+                  %div.modal-footer
+                    %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard') }}"
+                      %input type="hidden" name="next" value="{{ request.path }}"
+                      %button.btn
+                        Reboot
+                      %a.btn.btn-primary href="#" data-dismiss="modal"
+                        No 
+                %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-hard" 
+                  hard
             
   -include "pagination.haml"

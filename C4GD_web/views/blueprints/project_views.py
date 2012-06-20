@@ -113,7 +113,12 @@ def remove_vm(vm_id):
     No checks because currently OpenStack performs authorization checks.
     '''
     abstract.VirtualMachine.delete(vm_id, flask.g.tenant_id)
-    flask.flash('Virtual machine removed successfully.', 'success')
+    flask.flash('Delete operation requested for VM.', 'success')
+    # NOT(apugachev)openstack can be slow; make a note to reflect the fact
+    # of removing the VM on the next step
+    if 'removed_vms' not in flask.session:
+        flask.session['removed_vms'] = []
+    flask.session['removed_vms'].append(vm_id)
     return flask.redirect(views_utils.get_next_url())
 
 
