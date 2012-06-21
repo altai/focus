@@ -81,9 +81,13 @@ def show(user_id):
 
     Name, username, email, roles in tenants.
     '''
+    def is_non_admin(tenant):
+        return tenant.id != \
+            flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
     user = clients.clients.keystone.users.get(user_id)
-    user_roles = utils.user_tenants_with_roles_list(user)
-
+    user_roles = filter(
+        lambda x: is_non_admin(x[0]),
+        utils.user_tenants_with_roles_list(user))
     add_user_to_project = forms.AddUserToProject()
     add_user_to_project.user.data = user_id
     remove_user_from_project = forms.RemoveUserFromProject()
@@ -92,12 +96,13 @@ def show(user_id):
     users_projects_choices = []
     not_user_projects_choices = []
     for tenant, role in user_roles:
-        users_projects_choices.append((tenant.id, tenant.name))
-        user_projects.append(tenant.id)
+        if is_non_admin(tenant):
+            users_projects_choices.append((tenant.id, tenant.name))
+            user_projects.append(tenant.id)
     remove_user_from_project.project.choices = users_projects_choices
     all_tenants = clients.clients.keystone.tenants.list()
     for tenant in all_tenants:
-        if not tenant.id in user_projects:
+        if not tenant.id in user_projects and is_non_admin(tenant):
             not_user_projects_choices.append((tenant.id, tenant.name))
     add_user_to_project.project.choices = not_user_projects_choices
     return {
