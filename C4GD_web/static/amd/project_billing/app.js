@@ -9,7 +9,7 @@ define([
       $(function(){
         $('.change-tenant').change(function(){
           var tenant_id = $('.change-tenant option:selected').val();
-          window.location = '/g/billing/' + tenant_id  + '/';
+          window.location = '/global/billing/' + tenant_id  + '/';
         })
 
         new Router;
