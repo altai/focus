@@ -9,7 +9,18 @@
           %td
             {{ rtype }}
           %td
-            ${{ tariffs[rtype] }}/hour
+            ${{ tariffs[rtype] }}
+            /
+            -if rtype == "glance/image":
+              year * GB
+            -if rtype == "memory_mb":
+              year * MB
+            -if rtype == "vcpus":
+              year * processor
+            -if rtype == "nova/volume":
+              year * GB
+            -if rtype == "local_gb":
+              year * GB
         {% endfor %}
         {% if not loop.last %}
         %tr

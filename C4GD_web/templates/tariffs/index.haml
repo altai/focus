@@ -15,6 +15,16 @@
           %tr
             %td
               =name
+              -if name == "glance/image":
+                (year * GB)
+              -if name == "memory_mb":
+                (year * MB)
+              -if name == "vcpus":
+                (year * processor)
+              -if name == "nova/volume":
+                (year * GB)
+              -if name == "local_gb":
+                (year * GB)
             %td
               =price
             %td
