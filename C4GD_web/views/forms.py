@@ -101,8 +101,7 @@ class TariffEditForm(wtf.Form):
         [
             wtf.Required()
             ],
-        places=None,
-        description="USD/hour")
+        places=None)
     migrate = wtf.BooleanField(
         'Migrate Resources',
         description='''
