@@ -15,6 +15,6 @@ You'll need to:
  * admin_user - usually 'admin'
  * admin_password - Keystone password for admin_user
  * admin_tenant_id - ID of admin_tenant_name tenant
-- set SMTP server configuration (MAIL_SERVER, MAIL_PORT)
+- set SMTP server configuration (MAIL_SERVER, MAIL_PORT, DEFAULT_MAIL_SENDER)
 - set default uploads destination (UPLOADS_DEFAULT_DEST)
 - set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
