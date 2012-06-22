@@ -1,6 +1,4 @@
 # coding=utf-8
-import flask
-
 from flaskext import principal
 
 import C4GD_web

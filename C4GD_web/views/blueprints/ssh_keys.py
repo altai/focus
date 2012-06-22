@@ -1,11 +1,8 @@
 # coding=utf-8
-import novaclient
-
 import flask
 from flask import blueprints
 
 from C4GD_web import clients
-from C4GD_web import exceptions
 from C4GD_web.views import forms
 from C4GD_web.views import environments
 
@@ -43,7 +40,7 @@ def delete(name):
             lambda x: x.name == name,
             clients.get_my_clients(flask.g.tenant_id).nova.keypairs.list())[0]
     except IndexError:
-        abort(404)
+        flask.abort(404)
     form = forms.DeleteForm()
     if form.validate_on_submit():
         keypair.delete()

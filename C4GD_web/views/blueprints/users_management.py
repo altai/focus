@@ -7,7 +7,6 @@ TODO(apugachev) Add navigation inside this blueprint's pages.
 """
 import flask
 from flask import blueprints
-from flaskext import principal
 
 from C4GD_web import clients
 from C4GD_web import utils
@@ -50,7 +49,6 @@ def index():
     TODO(apugachev): find way to count users without fetching all users.
     This would allow to use marker and limit to fetch one page only.
     """
-    page = int(flask.request.args.get('page', 1))
     users = sorted(
         clients.clients.keystone.users.list(limit=1000000),
         key=lambda x: x.name)

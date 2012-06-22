@@ -5,11 +5,8 @@ Admins are allowed to create project, list them all, delete project.
 
 TODO(apugachev) finish process of project deletion
 """
-import sys
-
 import flask
 from flask import blueprints
-from flaskext import principal
 
 from C4GD_web import clients
 from C4GD_web import utils
@@ -47,7 +44,7 @@ def delete(object_id):
     """
     try:
         tenant = clients.clients.keystone.tenants.get(object_id)
-    except Exception, e:
+    except Exception:
         flask.abort(404)
 
     form = forms.DeleteForm()
@@ -103,7 +100,7 @@ def new():
                 'WHERE id = ? AND project_id IS NULL LIMIT 1',
                 (tenant.id, tenant.name, form.network.data))
             store.commit()
-        except Exception, e:
+        except Exception:
             tenant.delete()
             raise
         flask.flash('Project created.', 'success')

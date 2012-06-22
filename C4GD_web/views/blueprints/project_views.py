@@ -1,16 +1,11 @@
 # coding=utf-8
 import json
-import functools
 
 import flask
 from flask import blueprints
-from flaskext import principal
 
 from C4GD_web import clients
-from C4GD_web import exceptions
-from C4GD_web import utils
 from C4GD_web.models import abstract
-from C4GD_web.models import orm
 from C4GD_web.views import forms
 from C4GD_web.views import generic_billing
 from C4GD_web.views import pagination
@@ -30,7 +25,7 @@ def show_tenant():
         lambda x: x['tenant_id'] == flask.g.tenant_id,
         abstract.VirtualMachine.list(tenant_id=flask.g.tenant_id)
         )
-    vms = enumerate(sorted(vms_data, key=lambda x: x['name']))
+    vms_data = sorted(vms_data, key=lambda x: x['name'])
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
     for x in data:
@@ -92,12 +87,12 @@ def show_vm(vm_id):
     server = clients.clients.nova.servers.get(vm_id)
     try:
         flavor = clients.clients.nova.flavors.get(server.flavor['id'])
-    except Exception, e:
+    except Exception:
         # TODO(apugachev) look for NotFound exception from nova
         flavor = None
     try:
         image = clients.clients.nova.images.get(server.image['id'])
-    except Exception, e:
+    except Exception:
         # TODO(apugachev) look for NotFound exception from nova
         image = None
     return {

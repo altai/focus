@@ -8,7 +8,7 @@ def get_one(name):
 
     @bp.route('<obj_id>/')
     def show(obj_id):
-        blueprint = flask.current_app.blueprints[request.blueprint]
+        blueprint = flask.current_app.blueprints[flask.request.blueprint]
         model = blueprint._register_options['model']
         try:
             result = model.get(obj_id)

@@ -3,7 +3,6 @@ import functools
 
 import flask
 
-from C4GD_web import app
 from C4GD_web.models import orm
 
 

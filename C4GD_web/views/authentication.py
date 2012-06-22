@@ -1,8 +1,5 @@
 # coding=utf-8
 # TODO(apugachev) to 'main' blueprint
-import json
-import datetime
-import requests
 import uuid
 
 import flask
@@ -146,7 +143,7 @@ def password_recovery_request():
     if form.validate_on_submit():
         # check if user exasts in database
         try:
-            user = utils.neo4j_api_call(
+            utils.neo4j_api_call(
                 '/users', {"email": form.email.data}, 'GET')[0]
         except (KeyError, exceptions.GentleException):
             flask.flash(

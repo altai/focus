@@ -1,4 +1,5 @@
 import flask
+from  C4GD_web import nova_billing_heart_client
 
 
 class ClientsSingleton(object):
@@ -29,7 +30,7 @@ class ClientsSingleton(object):
             return c
 
     def _client_heart(self):
-        return BillingHeartClient(
+        return nova_billing_heart_client.BillingHeartClient(
             management_url=self.conf["billing_heart_url"])
 
     def _client_nova(self):
@@ -50,7 +51,6 @@ class ClientsSingleton(object):
 
     def _client_glance(self):
         from glanceclient.v1.client import Client
-        from keystoneclient import service_catalog
         keystone = self.keystone
         endpoint = keystone.service_catalog.url_for(
             service_type="image")
@@ -145,7 +145,7 @@ class ClientSet(object):
     @property
     def billing(self):
         keystone = self.keystone
-        return BillingHeartClient(
+        return nova_billing_heart_client.BillingHeartClient(
             management_url=keystone.service_catalog.url_for(
                 service_type="nova-billing"))
 

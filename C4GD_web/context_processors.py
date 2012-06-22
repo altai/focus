@@ -3,12 +3,10 @@
 # and log exceptions because we want template blank.html to render always.
 import sys
 import urllib
-import urlparse
 
 import flask
 
 import C4GD_web
-from C4GD_web import clients
 from C4GD_web import utils
 
 
@@ -20,12 +18,8 @@ def navigation_bar_tenant_data():
             # keystone user id
             user_id = flask.session[
                 'keystone_unscoped']['access']['user']['id']
-            # TODO(apugachev) use simpler way when keystone works correctly
+            # NOTE(apugachev) use simpler way when keystone works correctly
             # now use simple iteration through all tenants and users
-            #  user = clients.clients.keystone.users.get(user_id)
-            #  roles = user.list_roles()
-
-            # dont' count systenant as a project, do not list it
             tenants = utils.get_visible_tenants()
             for tenant in tenants:
                 users = tenant.list_users()

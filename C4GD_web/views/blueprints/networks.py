@@ -5,7 +5,6 @@ import uuid
 
 import flask
 from flask import blueprints
-from flaskext import principal
 
 from C4GD_web.models import orm
 from C4GD_web.views import environments

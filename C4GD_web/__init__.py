@@ -7,10 +7,7 @@ from gevent import monkey
 monkey.patch_all()
 
 
-from flask import Flask
 from flaskext import uploads
-
-from werkzeug import ImmutableDict
 from werkzeug.contrib import cache
 from flaskext import mail as mail_module
 

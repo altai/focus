@@ -9,7 +9,6 @@ from flaskext import principal
 from C4GD_web import clients
 from C4GD_web import exceptions
 from C4GD_web.models import abstract
-from C4GD_web.models import orm
 from C4GD_web.views import dataset
 from C4GD_web.views import environments
 from C4GD_web.views import exporter
@@ -80,7 +79,6 @@ def list_vms():
                 return '[deleted] %s' % x.tenant_id
             else:
                 return tenant.name
-    page = int(flask.request.args.get('page', 1))
     default_columns = ['id', 'name', 'project_name', 'ram']
     #creating and adjusting columns vector, columns ordering
     columns = dataset.ColumnKeeper({

@@ -1,14 +1,13 @@
 # coding=utf-8
-import datetime
 import uuid
 
 import flask
 from flask import blueprints
 from flaskext import mail
-from flaskext import principal
 from flaskext import wtf
 
 import C4GD_web
+from C4GD_web import clients
 # TODO(apugachev) look if possible to get rid of GentleException
 from C4GD_web import exceptions
 # TODO(apugachev) try put all clients in one module "api_clients"
@@ -54,7 +53,7 @@ def register_user(username, email, password, role):
         returns it.
         """
         # new user
-        new_user = utils.neo4j_api_call('/users', {
+        utils.neo4j_api_call('/users', {
             "login": "",
             "username": username,
             "email": email,
@@ -101,7 +100,7 @@ def finish(invitation_hash):
     form.email.data = email
     username_is_taken = False
     try:
-        user = utils.neo4j_api_call('/users', {
+        utils.neo4j_api_call('/users', {
             "email": email
         }, 'GET')[0]
         flask.flash(
@@ -115,11 +114,11 @@ def finish(invitation_hash):
         form.username = username_field
         form._fields['username'] = username_field
         username_is_taken = True
-    except Exception, e:
+    except Exception:
         # NOTE(apugachev) user not found, success;
         # TODO(apugachev) find out what exceptions can occur and what to do
         if form.validate_on_submit():
-            new_odb_user = authentication.register_user(
+            new_odb_user = register_user(
                 form.username.data, form.email.data, form.password.data, role)
             if new_odb_user is not None:
                 row_mysql_queries.update_invitation(
@@ -146,7 +145,7 @@ def invite():
     if form.validate_on_submit():
         user_email = form.email.data
         try:
-            user = utils.neo4j_api_call('/users', {
+            utils.neo4j_api_call('/users', {
                 "email": user_email
             }, 'GET')[0]
             flask.flash(
