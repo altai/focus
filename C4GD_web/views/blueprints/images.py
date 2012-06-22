@@ -13,6 +13,7 @@ from flaskext import principal
 
 import C4GD_web
 from C4GD_web import clients
+from C4GD_web import utils
 from C4GD_web.models import abstract
 from C4GD_web.views import environments
 from C4GD_web.views import forms
@@ -56,6 +57,10 @@ def get_bp(name):
         systenant. Project members should see images for projects only.
         """
         images = get_images_list()
+        if not hasattr(flask.g, 'tenant_id'):
+            images = filter(
+                lambda x: getattr(x, 'is_public', False),
+                images)
         p = pagination.Pagination(images)
         data = p.slice(images)
         return {
@@ -91,6 +96,8 @@ def get_bp(name):
             path = C4GD_web.files_uploads.path(
                     flask.request.form['uploaded_filename'])
             try:
+                if get_tenant_id() not in flask.session['keystone_scoped']:
+                    utils.obtain_scoped(get_tenant_id())
                 response = abstract.Image.create(
                     get_tenant_id(),
                     flask.request.form['name'],
