@@ -1,5 +1,6 @@
 # coding=utf-8
 # TODO(apugachev) to 'main' blueprint
+import sys
 import uuid
 
 import flask
@@ -152,16 +153,20 @@ def password_recovery_request():
                 'User with that email "%s" is not registered.' %\
                     form.email.data,
                 'error')
-            return {}
-        hash_code = str(uuid.uuid4())
-        recovery_link = "http://%s%s" % (flask.request.host,
-            flask.url_for('password_recovery_finish', recovery_hash=hash_code))
-        row_mysql_queries.save_recovery(form.email.data, hash_code, 0)
-        msg = mail.Message('Password recovery', recipients=[form.email.data])
-        msg.body = flask.render_template('RecoveryPasswordEmail/body.txt',
-                                   recovery_link=recovery_link)
-        C4GD_web.mail.send(msg)
-        flask.flash('Recovery request was sent successfully', 'info')
+            exc_type, exc_value, traceback = sys.exc_info()
+            flask.current_app.log_exception((exc_type, exc_value, traceback))
+        else:
+            hash_code = str(uuid.uuid4())
+            recovery_link = "http://%s%s" % (flask.request.host,
+                flask.url_for(
+                    'password_recovery_finish', recovery_hash=hash_code))
+            row_mysql_queries.save_recovery(form.email.data, hash_code, 0)
+            msg = mail.Message(
+                'Password recovery', recipients=[form.email.data])
+            msg.body = flask.render_template('RecoveryPasswordEmail/body.txt',
+                                       recovery_link=recovery_link)
+            C4GD_web.mail.send(msg)
+            flask.flash('Recovery request was sent successfully', 'info')
     return {'form': form}
 
 
