@@ -1,11 +1,7 @@
 # coding=utf-8
 import codecs
 import csv
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import StringIO
 
 
 class UTF8Recoder:
@@ -48,7 +44,7 @@ class UnicodeWriter:
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = StringIO()
+        self.queue = StringIO.StrinIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()

@@ -1,10 +1,6 @@
 # coding=utf-8
 import contextlib
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import StringIO
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -47,7 +43,7 @@ class CSVExporter(BaseExporter):
     mime = 'text/csv'
 
     def __call__(self):
-        with contextlib.closing(StringIO()) as f:
+        with contextlib.closing(StringIO.StringIO()) as f:
             w = csv_staff.UnicodeWriter(f)
             w.writerow(
                 map(
@@ -80,7 +76,7 @@ class XMLExporter(BaseExporter):
                         'type': type(x).__name__
                         #'picled':
                         })
-        with contextlib.closing(StringIO()) as f:
+        with contextlib.closing(StringIO.StringIO()) as f:
             ET.ElementTree(r).write(f)
             result = self.wrap(f.getvalue())
         return result
