@@ -28,8 +28,6 @@ def gentle_exception(error):
     flask.flash(error.args[0], 'error')
     exc_type, exc_value, traceback = sys.exc_info()
     flask.current_app.log_exception((exc_type, exc_value, traceback))
-    flask.current_app.logger.error(error.args[1].status_code)
-    flask.current_app.logger.error(error.args[1].content)
     if flask.request.is_xhr:
         return flask.jsonify({'status': 'error', 'message': error.args[0]})
     else:

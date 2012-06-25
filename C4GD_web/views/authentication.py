@@ -88,8 +88,10 @@ def logout():
 
     Instead of removing authentication marker only clear whole session.
     """
-    flask.session.clear()
     flask.flash('You were logged out', 'success')
+    for key in flask.session.keys():
+        if key != '_flashes':
+            del(flask.session[key])
     return flask.redirect(flask.url_for(
             flask.current_app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))
 
