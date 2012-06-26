@@ -24,3 +24,6 @@ DEFAULT_TENANT_ID = KEYSTONE_CONF['admin_tenant_id']
 MAIL_SERVER = ''
 MAIL_PORT = 25
 DEFAULT_MAIL_SENDER = ('RobotName', 'robot_email@fake.to')
+KEYSTONECLIENT_DEBUG = False
+ADMINS = []
+LOG_FILE = '/var/log/focus/focus-tor.log'

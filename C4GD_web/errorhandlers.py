@@ -2,6 +2,7 @@
 import sys
 
 import flask
+import keystoneclient.exceptions
 
 import C4GD_web
 from C4GD_web import exceptions
@@ -49,4 +50,15 @@ if not C4GD_web.app.debug:
         # referrer is None if header is missing
         if (flask.request.referrer or '').startswith(flask.request.host_url):
             return flask.redirect(flask.request.referrer)
+        return flask.render_template('blank.haml')
+
+    @C4GD_web.app.errorhandler(keystoneclient.exceptions.ClientException)
+    def handle_keystoneclient_exceptions(error):
+        """Handle Keystone client exceptions.
+
+        These exceptions have 2 args (message and description).
+        """
+        flask.flash(error.message, 'error')
+        exc_type, exc_value, traceback = sys.exc_info()
+        flask.current_app.log_exception((exc_type, exc_value, traceback))
         return flask.render_template('blank.haml')
