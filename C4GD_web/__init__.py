@@ -40,9 +40,7 @@ app.cache = cache.MemcachedCache(
 app.session_interface = flask_memcache_session.Session()
 
 if not app.debug:
-    print app.config['ADMINS']
     if len(app.config['ADMINS']):
-        print "here"
         mail_handler = handlers.SMTPHandler(
             app.config['MAIL_SERVER'],
             app.config['DEFAULT_MAIL_SENDER'][1] \

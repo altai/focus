@@ -56,9 +56,10 @@ if not C4GD_web.app.debug:
     def handle_keystoneclient_exceptions(error):
         """Handle Keystone client exceptions.
 
-        These exceptions have 2 args (message and description).
+        These exceptions can have 2 args (message and description).
         """
         flask.flash(error.message, 'error')
+        C4GD_web.app.logger(error.code)
         exc_type, exc_value, traceback = sys.exc_info()
         flask.current_app.log_exception((exc_type, exc_value, traceback))
         return flask.render_template('blank.haml')

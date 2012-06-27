@@ -11,7 +11,7 @@ from setuptools import setup, find_packages, findall
 setup(
     name='Focus',
     version='1.0',
-    license='Apache 2.0',
+    license='',
     author='Alexander Pugachev, Alessio Ababilov, Stanislav Pugachev',
     author_email='apugachev@griddynamics.com',
     description='Web interface to OpenStack',
@@ -40,5 +40,6 @@ setup(
         'gevent',
         'storm',
         'netaddr'
-    ]
+    ],
+    test_suite='C4GD_web.tests'
 )

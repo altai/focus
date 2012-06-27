@@ -136,7 +136,7 @@ class ClientSet(object):
     def glance(self):
         keystone = self.keystone
         from glanceclient.v1.client import Client as GlanceClient
-        self.glance = GlanceClient(
+        return GlanceClient(
             endpoint=self.strip_version(
                 keystone.service_catalog.url_for(
                     service_type="image")),
