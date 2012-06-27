@@ -25,6 +25,10 @@ class ImagesTestCase(unittest.TestCase):
                 images_list
             result = images.get_images_list()
             self.assertEqual(len(result), 33)
+            global_images = filter(
+                lambda x: x.owner == '1',
+                result)
+            self.assertEqual(len(global_images), 3)
             g.tenant_id = '13'
             get_my_clients.return_value.glance.images.list.return_value = \
                 images_list
