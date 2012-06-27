@@ -15,6 +15,53 @@ from C4GD_web import utils
 from C4GD_web.views import forms
 
 
+def _login(username, password):
+    try:
+        odb_user = utils.neo4j_api_call('/users', {
+            "email": username
+        }, 'GET')[0]
+    except KeyError:
+        # NOTE(apugachev)odb does not the email
+        pass
+    else:
+        try:
+            print password, odb_user['passwordHash'], utils.create_hashed_password(password)
+            is_password_valid = odb_user['passwordHash'] == \
+                utils.create_hashed_password(password)
+        except UnicodeEncodeError:
+            # NOTE(apugachev) md5 digest does not work with unicode
+            # and the password can't be unicode right now
+            pass
+        else:
+            if is_password_valid:
+                # NOTE(apugachev)
+                # odb username is Keystone user name
+                # password is the same as Keystone password
+                success, unscoped_token = \
+                    utils.keystone_obtain_unscoped(
+                    odb_user['username'], password)
+                if success:
+                    flask.session['user'] = odb_user
+                    flask.g.is_authenticated = True
+                    flask.flash(
+                        'You were logged in successfully.',
+                        'success')
+                    flask.session['keystone_unscoped'] = unscoped_token
+                    user_tenants = utils.user_tenants_list(
+                        utils.get_keystone_user_by_username(
+                            odb_user['username']))
+                    flask.session['tenants'] = user_tenants
+                    # NOTE(apugachev)
+                    # Principal identity name is Keystone user id
+                    principal.identity_changed.send(
+                        C4GD_web.app,
+                        identity=principal.Identity(
+                            flask.session['keystone_unscoped'][
+                                'access']['user']['id']))
+                    return True
+    return False
+
+
 @C4GD_web.app.route('/login/', methods=['GET', 'POST'])
 def login():
     """
@@ -34,48 +81,9 @@ def login():
     if form.validate_on_submit():
         # TODO(apugachev) inline authenticate_user here
         # it must not be used anywhere else
-        try:
-            odb_user = utils.neo4j_api_call('/users', {
-                "email": form.email.data
-            }, 'GET')[0]
-        except KeyError:
-            # NOTE(apugachev)odb does not the email
-            pass
-        else:
-            try:
-                is_password_valid = odb_user['passwordHash'] == \
-                    utils.create_hashed_password(form.password.data)
-            except UnicodeEncodeError:
-                # NOTE(apugachev) md5 digest does not work with unicode
-                # and the password can't be unicode right now
-                pass
-            else:
-                if is_password_valid:
-                    # NOTE(apugachev)
-                    # odb username is Keystone user name
-                    # password is the same as Keystone password
-                    success, unscoped_token = \
-                        utils.keystone_obtain_unscoped(
-                        odb_user['username'], form.password.data)
-                    if success:
-                        flask.session['user'] = odb_user
-                        flask.g.is_authenticated = True
-                        flask.flash(
-                            'You were logged in successfully.',
-                            'success')
-                        flask.session['keystone_unscoped'] = unscoped_token
-                        user_tenants = utils.user_tenants_list(
-                            utils.get_keystone_user_by_username(
-                                odb_user['username']))
-                        flask.session['tenants'] = user_tenants
-                        # NOTE(apugachev)
-                        # Principal identity name is Keystone user id
-                        principal.identity_changed.send(
-                            C4GD_web.app,
-                            identity=principal.Identity(
-                                flask.session['keystone_unscoped'][
-                                    'access']['user']['id']))
-                        return flask.redirect(form.next.data)
+        logged_successfully = _login(form.email.data, form.password.data)
+        if logged_successfully:
+            return flask.redirect(form.next.data)
         # required to wipe artifacts of unsuccessful attempts
         flask.session.clear()
         flask.flash('Wrong email/password.', 'error')
