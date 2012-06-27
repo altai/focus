@@ -304,8 +304,11 @@ billing_post = functools.partial(billing_api_call, http_method=requests.post)
 
 
 def create_hashed_password(password):
+    """
+    Creates unique hash based on users password
+    """
     m = hashlib.md5()
-    m.update(password)
+    m.update(password.encode('utf-8'))
     return "{MD5}%s" % base64.standard_b64encode(m.digest())
 
 
