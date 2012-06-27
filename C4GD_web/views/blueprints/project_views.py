@@ -24,7 +24,7 @@ def show_tenant():
     vms_data = filter(
         lambda x: x['tenant_id'] == flask.g.tenant_id,
         abstract.VirtualMachine.list(tenant_id=flask.g.tenant_id)
-        )
+    )
     vms_data = sorted(vms_data, key=lambda x: x['name'])
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
@@ -35,7 +35,7 @@ def show_tenant():
     return {
         'vms': data,
         'pagination': p
-        }
+    }
 
 
 @bp.route('vms/spawn/', methods=['GET', 'POST'])
@@ -61,13 +61,13 @@ def spawn_vm():
             security_groups=form.security_groups.data)
         flask.flash('Virtual machine spawned.', 'success')
         return flask.redirect(flask.url_for(
-                '.show_tenant', tenant_id=flask.g.tenant_id))
+            '.show_tenant', tenant_id=flask.g.tenant_id))
     return {
         'form': form,
         'tenant': flask.g.tenant,
         'images': json.dumps([x._info for x in images_list]),
         'flavors': json.dumps([x._info for x in flavors])
-        }
+    }
 
 
 @bp.route('vms/<vm_id>/')
@@ -130,7 +130,7 @@ def list_users():
     return {
         'pagination': p,
         'objects': p.slice(users)
-        }
+    }
 
 
 @bp.route('get-credentials/')

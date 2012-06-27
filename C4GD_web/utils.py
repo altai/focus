@@ -46,20 +46,20 @@ def select_keys(d, keys, strict_order=True):
 
 def keystone_obtain_unscoped(user_name, password):
     request_data = json.dumps({
-            'auth': {
-                'passwordCredentials': {
-                    'username': user_name,
-                    'password': password
-                    },
-                }
-            })
+        'auth': {
+            'passwordCredentials': {
+                'username': user_name,
+                'password': password
+            },
+        }
+    })
     response = requests.post(
         '%s/tokens' % flask.current_app.config[
             'KEYSTONE_CONF']['auth_uri'],
         data=request_data,
         headers={
             'content-type': 'application/json'
-            })
+        })
     if response_ok(response):
         return True, unjson(response)
     return False, ""
@@ -70,10 +70,10 @@ def keystone_get(path, params={}, is_admin=False):
     if is_admin:
         url = url.replace('5000', '35357')
     headers = {
-            'X-Auth-Token': flask.session[
-            'keystone_unscoped']['access']['token']['id'],
-            'Content-Type': 'application/json'
-            }
+        'X-Auth-Token': flask.session[
+        'keystone_unscoped']['access']['token']['id'],
+        'Content-Type': 'application/json'
+    }
 
     response = requests.get(
         url,
@@ -85,8 +85,8 @@ def keystone_get(path, params={}, is_admin=False):
             raise exceptions.GentleException('Access denied', response, params)
         else:
             raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' % \
-                    response.status_code, response)
+                'Identity server responded with status %d' %
+                response.status_code, response)
 
     return unjson(response)
 
@@ -96,10 +96,10 @@ def keystone_post(path, data={}, is_admin=False):
     if is_admin:
         url = url.replace('5000', '35357')
     headers = {
-            'X-Auth-Token': flask.session[
-            'keystone_unscoped']['access']['token']['id'],
-            'Content-Type': 'application/json'
-            }
+        'X-Auth-Token': flask.session[
+        'keystone_unscoped']['access']['token']['id'],
+        'Content-Type': 'application/json'
+    }
 
     response = requests.post(
         url,
@@ -110,8 +110,8 @@ def keystone_post(path, data={}, is_admin=False):
             raise exceptions.GentleException('Access denied', response, data)
         else:
             raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' % \
-                    response.status_code, response)
+                'Identity server responded with status %d' %
+                response.status_code, response)
 
     return unjson(response)
 
@@ -120,10 +120,10 @@ def keystone_delete(path):
     url = flask.current_app.config['KEYSTONE_CONF']['auth_uri'] + path
     url = url.replace('5000', '35357')
     headers = {
-            'X-Auth-Token': flask.session[
-            'keystone_unscoped']['access']['token']['id'],
-            'Content-Type': 'application/json'
-            }
+        'X-Auth-Token': flask.session[
+        'keystone_unscoped']['access']['token']['id'],
+        'Content-Type': 'application/json'
+    }
 
     response = requests.delete(
         url,
@@ -134,8 +134,8 @@ def keystone_delete(path):
             raise exceptions.GentleException('Access denied', response, {})
         else:
             raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' % \
-                    response.status_code, response)
+                'Identity server responded with status %d' %
+                response.status_code, response)
 
 
 def get_public_url(tenant_id, service_type):
@@ -149,7 +149,7 @@ def get_public_url(tenant_id, service_type):
         obtain_scoped(tenant_id)
     catalog = flask.session[
         'keystone_scoped'][tenant_id]['access']['serviceCatalog']
-    for endpoint  in catalog:
+    for endpoint in catalog:
         if endpoint['type'] == service_type:
             return endpoint['endpoints'][0]['publicURL']
     raise exceptions.GentleException(
@@ -157,8 +157,8 @@ def get_public_url(tenant_id, service_type):
             service_type, tenant_id))
 
 
-def openstack_api_call(
-    service_type, tenant_id, path, params={}, http_method=False):
+def openstack_api_call(service_type, tenant_id, path, params={},
+                       http_method=False):
     '''
     Perform call to Nova API. Manage tokens yourself.
     Return unserialized data or raise an exception.
@@ -185,7 +185,7 @@ def openstack_api_call(
             'X-Auth-Token': flask.session[
                 'keystone_scoped'][tenant_id]['access']['token']['id'],
             'Content-Type': 'application/json'
-            }
+        }
 
         if http_method in [requests.post, requests.put, requests.patch]:
             kw = {'data': json.dumps(params)}
@@ -202,7 +202,7 @@ def openstack_api_call(
             headers=headers,
             config=config,
             **kw
-            )
+        )
 
         if flask.current_app.debug:
             flask.current_app.logger.info(headers)
@@ -212,20 +212,20 @@ def openstack_api_call(
         return response
 
     response = perform(tenant_id, path, params)
-    if  not response_ok(response):
+    if not response_ok(response):
         obtain_scoped(tenant_id)
         response = perform(tenant_id, path, params)
-        if  not response_ok(response):
+        if not response_ok(response):
             try:
                 r = unjson(response)
                 if 'cloudServersFault' in r:
                     raise exceptions.GentleException(
-                        'API response was: %s' % \
-                            r['cloudServersFault']['message'], response)
+                        'API response was: %s' %
+                        r['cloudServersFault']['message'], response)
                 elif 'itemNotFound' in r:
                     raise exceptions.GentleException(
-                        'API response was: %s' % \
-                            r['itemNotFound']['message'], response)
+                        'API response was: %s' %
+                        r['itemNotFound']['message'], response)
                 else:
                     raise exceptions.GentleException(
                         'API response was: %s' % r, response)
@@ -246,10 +246,10 @@ def obtain_scoped(tenant_id, is_admin=True):
                 'token': {
                     'id': flask.session[
                         'keystone_unscoped']['access']['token']['id']
-                    },
+                },
                 'tenantId': tenant_id,
-                }
-            }, is_admin=True)
+            }
+        }, is_admin=True)
     if 'keystone_scoped' not in flask.session:
         flask.session['keystone_scoped'] = {}
     flask.session['keystone_scoped'][tenant_id] = data
@@ -265,12 +265,13 @@ def billing_api_call(path, params={}, http_method=False):
             lambda x: x['type'] == 'nova-billing',
             flask.session['keystone_scoped'].values()[0][
                 'access']['serviceCatalog']
-            ))[0] + path
+        )
+    )[0] + path
     headers = {
         'X-Auth-Token': flask.session[
             'keystone_unscoped']['access']['token']['id'],
         'Content-Type': 'application/json'
-        }
+    }
 
     if http_method in [requests.post, requests.put, requests.patch]:
         kw = {'data': json.dumps(params)}

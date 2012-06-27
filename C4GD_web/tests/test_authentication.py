@@ -7,36 +7,36 @@ from C4GD_web.utils import create_hashed_password
 
 
 class AuthenticationTestCase(unittest.TestCase):
-
     def setUp(self):
-        self.ODB_GET_USER_RESPONSE = [{
-            u'username': u'testaccount',
-            u'login': u'test',
-            u'passwordHash': u'',
-            u'id': 277,
-            u'email': u'testaccount@griddynamics.com'
-        }]
-
+        self.ODB_GET_USER_RESPONSE = [
+            {
+                u'username': u'testaccount',
+                u'login': u'test',
+                u'passwordHash': u'',
+                u'id': 277,
+                u'email': u'testaccount@griddynamics.com'
+            }
+        ]
         self.KEYSTONE_OBTAIN_UNSCOPED_RESPONSE = (
             True,
             {
-             u'access':
-             {
-              u'token':
-              {
-               u'expires': u'2013-06-28T08:56:10Z',
-               u'id': u'd0e6b839b3ac49e09f1c5b7bbe47f7e1'
-              },
-              u'serviceCatalog': {},
-              u'user':
+                u'access':
                 {
-                 u'username': u'testaccount',
-                 u'roles_links': [],
-                 u'id': u'295',
-                 u'roles': [],
-                 u'name': u'testaccount'
+                    u'token':
+                    {
+                        u'expires': u'2013-06-28T08:56:10Z',
+                        u'id': u'd0e6b839b3ac49e09f1c5b7bbe47f7e1'
+                    },
+                    u'serviceCatalog': {},
+                    u'user':
+                    {
+                        u'username': u'testaccount',
+                        u'roles_links': [],
+                        u'id': u'295',
+                        u'roles': [],
+                        u'name': u'testaccount'
+                    }
                 }
-              }
             }
         )
 

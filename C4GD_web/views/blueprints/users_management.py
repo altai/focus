@@ -63,14 +63,14 @@ def index():
         for tenant in tenants:
             user.is_global_admin = any(
                 map(
-                    lambda x: x.name == \
-                        flask.current_app.config['ADMIN_ROLE_NAME'],
+                    lambda x: x.name ==
+                    flask.current_app.config['ADMIN_ROLE_NAME'],
                     user.list_roles(tenant)))
             break
     return {
         'pagination': p,
         'data': data
-        }
+    }
 
 
 @bp.route('<user_id>/', methods=['GET'])
