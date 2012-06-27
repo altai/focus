@@ -20,6 +20,32 @@ from C4GD_web.views import forms
 from C4GD_web.views import pagination
 
 
+def get_images_list():
+    """Return list of images visible for given condigions.
+
+    If g.tenant_id is not set it is admin blueprint.
+    We have to show only images owned by admin_tenant_id, which are also
+    public (can be protected as well (we set it so, but other tools can 
+    change this attribute or set it to a wrong value from the beginning).
+    
+    If g.tenant_id is set it is project blueprint.
+    We have to show the same images as for admin blueprint _and_
+    images owned by current project (attribute "owner" must be equal to
+    g.tenant_id) no matter if image is public/protected.
+    """
+    admin_id = flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+    is_global = lambda x: x.owner == admin_id and x.is_public
+    if getattr(flask.g, 'tenant_id', None):
+        images = filter(
+            lambda x: is_global(x) or x.owner == flask.g.tenant_id,
+            clients.get_my_clients(flask.g.tenant_id).glance.images.list())
+    else:
+        images = filter(
+            is_global,
+            clients.clients.glance.images.list())
+    return images
+
+
 def get_bp(name):
     """Return blueprint for Image management."""
     bp = blueprints.Blueprint(name, __name__)
@@ -39,15 +65,6 @@ def get_bp(name):
     def get_tenant_id():
         return getattr(flask.g, 'tenant_id', None) or \
             flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
-
-    def get_images_list():
-        ids = [flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']]
-        if hasattr(flask.g, 'tenant_id'):
-            ids.append(flask.g.tenant_id)
-        images = filter(
-            lambda x: x.owner in ids,
-            clients.clients.glance.images.list())
-        return images
 
     @bp.route('')
     def index():

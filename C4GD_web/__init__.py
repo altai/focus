@@ -1,11 +1,13 @@
 # coding=utf-8
-import logging
-import sys
 from gevent import monkey
-
-
 monkey.patch_all()
 
+import logging
+import os
+import socket
+import sys
+
+from logging import handlers
 
 from flaskext import uploads
 from werkzeug.contrib import cache
@@ -28,14 +30,47 @@ try:
 except IOError:
     pass
 
+if app.config['KEYSTONECLIENT_DEBUG']:
+    os.environ['KEYSTONECLIENT_DEBUG'] = '1'
 app.jinja_env.hamlish_mode = 'indented'
 app.cache = cache.MemcachedCache(
     [app.config['MEMCACHED_HOST']],
     default_timeout=300000,
     key_prefix='focus')
 app.session_interface = flask_memcache_session.Session()
+
 if not app.debug:
-    logging.basicConfig(stream=sys.stderr)
+    if len(app.config['ADMINS']):
+        mail_handler = handlers.SMTPHandler(
+            app.config['MAIL_SERVER'],
+            app.config['DEFAULT_MAIL_SENDER'][1] \
+                if len(app.config['DEFAULT_MAIL_SENDER']) == 2 \
+                else app.config['DEFAULT_MAIL_SENDER'],
+            app.config['ADMINS'],
+            'Focus At %s Failed' % socket.getfqdn())
+        mail_handler.setFormatter(logging.Formatter('''
+Message type:       %(levelname)s
+Location:           %(pathname)s:%(lineno)d
+Module:             %(module)s
+Function:           %(funcName)s
+Time:               %(asctime)s
+
+Message:
+
+%(message)s
+'''))
+        mail_handler.setLevel(logging.ERROR)
+        app.logger.addHandler(mail_handler)
+    rotating_file_handler = handlers.RotatingFileHandler(
+        app.config['LOG_FILE'],
+        maxBytes=app.config['LOG_MAX_SIZE'],
+        backupCount=app.config['LOG_BACKUPS'])
+    rotating_file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s '
+    '[in %(pathname)s:%(lineno)d]'
+    ))
+    rotating_file_handler.setLevel(logging.WARNING)
+    app.logger.addHandler(rotating_file_handler)
 
 # SMTP
 mail = mail_module.Mail(app)

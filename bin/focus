@@ -1,2 +1,2 @@
 #!/bin/bash
-exec python -m C4GD_web.tor &>> /var/log/focus/focus-tor.log
+exec python -m C4GD_web.tor
