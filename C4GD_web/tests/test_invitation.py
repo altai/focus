@@ -1,5 +1,4 @@
 # coding=utf-8
-import mock
 import unittest
 
 from C4GD_web.utils import create_hashed_password

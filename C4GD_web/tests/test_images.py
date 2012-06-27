@@ -1,9 +1,6 @@
 import mock
 import unittest
 
-import flask
-
-import C4GD_web.clients
 from C4GD_web.views.blueprints import images
 
 

@@ -47,12 +47,11 @@ class AuthenticationTestCase(unittest.TestCase):
                 mock.patch('C4GD_web.utils.keystone_obtain_unscoped')\
                 as keystone_obtain_unscoped, \
                 mock.patch('flask.current_app') as current_app,\
-                mock.patch('flask.g') as g,\
-                mock.patch('C4GD_web.clients.clients') as clients, \
-                mock.patch('flask.flash') as flash, \
-                mock.patch('flaskext.principal.identity_changed')\
-                as identity_changed, \
-                mock.patch('flask.session') as session:
+                mock.patch('flask.g'),\
+                mock.patch('C4GD_web.clients.clients'), \
+                mock.patch('flask.flash'), \
+                mock.patch('flaskext.principal.identity_changed'), \
+                mock.patch('flask.session'):
             current_app.config = {
                 'KEYSTONE_CONF': {
                     'admin_tenant_id': '1'}}
