@@ -7,8 +7,8 @@ from C4GD_web.models import abstract
 
 
 class Dataset(object):
-    def __init__(
-        self, params=None, delayed=False, user_id=None, tenant_id=None):
+    def __init__(self, params=None, delayed=False, user_id=None,
+                 tenant_id=None):
         self.data = account_bill_show(
             params.account_id, user_id, tenant_id,
             period_start=params.period_start,
@@ -120,12 +120,12 @@ def _concentrate_resources(resources, tenant_id):
         return filter(
             lambda x: x['rtype'] == resource_type and x['parent_id'] is None,
             resources
-            )
+        )
     processors = (
         ('nova/instance', abstract.VirtualMachine, 'virtual_machines.show'),
         ('glance/image', abstract.Image, 'images.show'),
         ('nova/volume', abstract.Volume, 'volumes.show')
-        )
+    )
     d = {}
     for rtype, model, endpoint in processors:
         d.update(process(filter_type(rtype), model, endpoint))
@@ -161,9 +161,9 @@ def generic_billing(tenant, user, tenants=None):
         context = {
             'tenant_id': tenant.id,
             'tariffs': tariffs
-            }
+        }
         if tenants is not None:
             context.update({
                 'tenants': tenants
-                })
+            })
         return context

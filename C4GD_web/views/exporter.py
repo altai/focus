@@ -32,10 +32,10 @@ class JSONExporter(BaseExporter):
     def __call__(self):
         return self.wrap(flask.jsonify(
             {
-                'header': [(x.attr_name, x.verbose_name) for x in \
-                               self.columns.selected],
+                'header': [(x.attr_name, x.verbose_name) for x in
+                           self.columns.selected],
                 'body': self.data
-                }))
+            }))
 
 
 class CSVExporter(BaseExporter):
@@ -75,7 +75,7 @@ class XMLExporter(BaseExporter):
                         'value': repr(x),
                         'type': type(x).__name__
                         #'picled':
-                        })
+                    })
         with contextlib.closing(StringIO.StringIO()) as f:
             ET.ElementTree(r).write(f)
             result = self.wrap(f.getvalue())

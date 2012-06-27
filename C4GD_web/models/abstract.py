@@ -101,8 +101,8 @@ class OpenstackMixinBase(object):
         raise cls.NotFound, '%s with ID %s not found.' % (cls.__name__, obj_id)
 
     @staticmethod
-    def _snap(
-        tenant_id, path, success=None, tolerate404=True, api_func=False, **kw):
+    def _snap(tenant_id, path, success=None, tolerate404=True, api_func=False,
+              **kw):
         """
         Used when we uncertain what tenant is correct for an object
         """
@@ -165,12 +165,8 @@ class OpenstackGetMixin(object):
         return cls._call(obj_id, tenant_id, 'get_prefix', requests.get)
 
 
-class OpenstackAPI(
-    OpenstackMixinBase,
-    OpenstackListMixin,
-    OpenstackGetMixin,
-    OpenstackDeleteMixin,
-    Base):
+class OpenstackAPI(OpenstackMixinBase, OpenstackListMixin, OpenstackGetMixin,
+                   OpenstackDeleteMixin, Base):
     pass
 
 
@@ -191,9 +187,9 @@ class Image(GlanceAPI):
         return obj['images']
 
     @classmethod
-    def create(
-        cls, tenant_id, name, container_format, disk_format, path,
-        public=True, architecture='x86_64', kernel_id=None, ramdisk_id=None):
+    def create(cls, tenant_id, name, container_format, disk_format, path,
+               public=True, architecture='x86_64', kernel_id=None,
+               ramdisk_id=None):
         """Upload image to Glance API.
 
         Prepare headers.
@@ -217,7 +213,7 @@ class Image(GlanceAPI):
             'x-image-meta-property-project_id': tenant_id,
             'x-image-meta-property-architecture': architecture,
             'x-image-meta-property-image_location': 'local'
-            }
+        }
         if kernel_id:
             headers['x-image-meta-property-kernel_id'] = int(kernel_id)
         if ramdisk_id:
@@ -239,10 +235,8 @@ class Image(GlanceAPI):
         connection.send('0\r\n\r\n')
         response = connection.getresponse()
         status_code = get_status_code(response)
-        if status_code not in (httplib.OK,
-                           httplib.CREATED,
-                           httplib.ACCEPTED,
-                           httplib.NO_CONTENT):
+        if status_code not in (httplib.OK, httplib.CREATED, httplib.ACCEPTED,
+                               httplib.NO_CONTENT):
             flask.current_app.logger.info(
                 'Abnormal request result: %s' % response.read())
             if status_code == httplib.UNAUTHORIZED:
@@ -309,8 +303,9 @@ class VirtualMachine(NovaAPI):
         image = NovaImage.get(image_id)
         try:
             imageRef = [
-                x['href'] for x in image['image']['links'] if \
-                    x['rel'] == u'self'][0]
+                x['href'] for x in image['image']['links'] if
+                x['rel'] == u'self'
+            ][0]
         except KeyError:
             raise RuntimeError('API returns image without link `self`', image)
         request_data = {
@@ -318,16 +313,17 @@ class VirtualMachine(NovaAPI):
                 'name': name,
                 'imageRef': imageRef,
                 'flavorRef': flavor_id
-                }
             }
+        }
         if password:
             request_data['server']['adminPass'] = password
         if keypair:
             request_data['server']['key_name'] = keypair
         if len(security_groups):
             request_data['server']['security_groups'] = [
-                {'name': x['name']} for x in SecurityGroup.list() \
-                    if x['id'] in security_groups]
+                {'name': x['name']} for x in SecurityGroup.list()
+                if x['id'] in security_groups
+            ]
         utils.openstack_api_call(
             cls.service_type, tenant_id, cls.base, request_data,
             http_method=requests.post)
@@ -378,7 +374,7 @@ class AccountBill(Base):
     @classmethod
     def get(cls, account_id, **kwargs):
         request_data = {
-                'account_name': account_id,
+            'account_name': account_id,
         }
 
         for x in 'time_period', 'period_start', 'period_end':
@@ -408,8 +404,8 @@ class Tariff(Base):
             'migrate': migrate,
             'values': {
                 name: float(price),
-                }
             }
+        }
         return utils.billing_post('/tariff', request_data)
 
 
@@ -448,7 +444,7 @@ class SSHKey(NovaAPI):
                     cls.service_type,
                     http_method=requests.post),
                 params=request)
-            if result != None:
+            if result is not None:
                 # some tenant allowed to post, we can return
                 return
         raise RuntimeError('No tenant to post')
@@ -469,7 +465,7 @@ class SSHKey(NovaAPI):
                     cls.service_type,
                     http_method=requests.post),
                 params=request)
-            if result != None:
+            if result is not None:
                 return result['keypair']
         raise RuntimeError('No tenant to post')
 

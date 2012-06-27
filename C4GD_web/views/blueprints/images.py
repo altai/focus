@@ -84,7 +84,7 @@ def get_bp(name):
             'images': data,
             'pagination': p,
             'delete_form': forms.DeleteForm()
-            }
+        }
 
     @bp.route('new/', methods=['GET', 'POST'])
     def new():
@@ -111,7 +111,7 @@ def get_bp(name):
                 kw['is_public'] = not hasattr(flask.g, 'tenant_id')
                 kw['protected'] = True
             path = C4GD_web.files_uploads.path(
-                    flask.request.form['uploaded_filename'])
+                flask.request.form['uploaded_filename'])
             try:
                 if get_tenant_id() not in flask.session['keystone_scoped']:
                     utils.obtain_scoped(get_tenant_id())
@@ -122,7 +122,7 @@ def get_bp(name):
                     flask.request.form['disk'],
                     path,
                     **kw
-                    )
+                )
             except RuntimeError, e:
                 flask.flash(e.message, 'error')
             else:
@@ -149,7 +149,7 @@ def get_bp(name):
         return {
             'kernel_list': json.dumps([x.properties for x in kernels]),
             'initrd_list': json.dumps([x.properties for x in initrds])
-            }
+        }
 
     @bp.route('new/upload/', methods=['POST'])
     def upload():
@@ -166,8 +166,9 @@ def get_bp(name):
     def delete(image_id):
         image = clients.clients.glance.images.get(image_id)
         owner = getattr(image, 'owner')
-        if owner == flask.current_app.config[
-            'KEYSTONE_CONF']['admin_tenant_id']:
+        if owner == flask.current_app.config['KEYSTONE_CONF'][
+            'admin_tenant_id'
+        ]:
             principal.Permission(('role', 'admin')).test()
         else:
             principal.Permission(('role', 'member', owner)).test()

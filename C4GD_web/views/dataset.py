@@ -44,7 +44,7 @@ class ColumnKeeper(object):
     def adjust(self, names):
         self.selected = list(utils.select_keys(self.mapping, names, True))
         self.spare = list(utils.select_keys(
-                self.mapping, set(self.mapping) - set(names)))
+            self.mapping, set(self.mapping) - set(names)))
         if names != self.default_names:
             self.is_changed = True
         self.current_names = names
@@ -113,7 +113,8 @@ class DataSet(object):
                     hashed_data = {last_group: [self.data[1]]}
                     for row in self.data[2:]:
                         if type(row) is list and row[
-                            self.columns.index(attr_name)] == last_group:
+                            self.columns.index(attr_name)
+                        ] == last_group:
                             hashed_data[last_group].append(row)
                         else:
                             if 'value' in row:
@@ -155,7 +156,7 @@ class DataSet(object):
 
     def get_distinct_values(self, attr_name):
         return list(set(
-                [x[self.columns.index(attr_name)] for x in self.flat_data]))
+            [x[self.columns.index(attr_name)] for x in self.flat_data]))
 
     def get_group_for(self, attr_name, value):
         index = self.columns.index(attr_name)
@@ -165,6 +166,6 @@ class DataSet(object):
                     attr_name,
                     value),
                 'value': value
-                }
-            ] + [x for x in self.flat_data if x[index] == value]
+            }
+        ] + [x for x in self.flat_data if x[index] == value]
         return result

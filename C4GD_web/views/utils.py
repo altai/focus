@@ -14,7 +14,7 @@ def get_next_url():
     else:
         d = flask.request.args
     return d.get('next', flask.url_for(
-            flask.current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
+        flask.current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
 
 
 def get_object_or_404(klass, object_id, store=None):

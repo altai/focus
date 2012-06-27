@@ -27,8 +27,10 @@ def on_identity_loaded(sender, identity):
             identity.name,
             flask.current_app.config[
                 'KEYSTONE_CONF']['admin_tenant_id'])
-        if any([x.name == flask.current_app.config['ADMIN_ROLE_NAME'] \
-                    for x in roles]):
+        if any([
+            x.name == flask.current_app.config['ADMIN_ROLE_NAME']
+            for x in roles
+        ]):
             identity.provides.add(('role', 'admin'))
         # TODO(apugachev): use list_roles() when server implemented it
         for tenant in clients.clients.keystone.tenants.list():

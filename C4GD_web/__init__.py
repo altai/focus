@@ -42,9 +42,9 @@ if not app.debug:
     if len(app.config['ADMINS']):
         mail_handler = handlers.SMTPHandler(
             app.config['MAIL_SERVER'],
-            app.config['DEFAULT_MAIL_SENDER'][1] \
-                if len(app.config['DEFAULT_MAIL_SENDER']) == 2 \
-                else app.config['DEFAULT_MAIL_SENDER'],
+            app.config['DEFAULT_MAIL_SENDER'][1]
+            if len(app.config['DEFAULT_MAIL_SENDER']) == 2
+            else app.config['DEFAULT_MAIL_SENDER'],
             app.config['ADMINS'],
             'Focus At %s Failed' % socket.getfqdn())
         mail_handler.setFormatter(logging.Formatter('''
@@ -65,8 +65,8 @@ Message:
         maxBytes=app.config['LOG_MAX_SIZE'],
         backupCount=app.config['LOG_BACKUPS'])
     rotating_file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s '
-    '[in %(pathname)s:%(lineno)d]'
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]'
     ))
     rotating_file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(rotating_file_handler)

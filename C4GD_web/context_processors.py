@@ -33,8 +33,8 @@ def navigation_bar_tenant_data():
                     tenants_with_roles.append(
                         (tenant._info,
                          flask.session[
-                                'keystone_scoped'][tenant.id][
-                                'access']['user']['roles']))
+                             'keystone_scoped'][tenant.id]['access'][
+                                 'user']['roles']))
             return {'tenants_with_roles': tenants_with_roles}
 
     except Exception:

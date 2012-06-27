@@ -98,9 +98,7 @@ class DeleteForm(wtf.Form):
 class TariffEditForm(wtf.Form):
     price = wtf.DecimalField(
         'Price',
-        [
-            wtf.Required()
-            ],
+        [wtf.Required()],
         places=None)
     migrate = wtf.BooleanField(
         'Migrate Resources',

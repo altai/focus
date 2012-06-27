@@ -21,11 +21,11 @@ class Session(flask.sessions.SessionInterface):
             self.cookie_session_id = os.urandom(40).encode('hex')
             self.session_new = True
         self.memcache_session_id = '@'.join(
-                    [
-                        request.remote_addr,
-                        self.cookie_session_id
-                    ]
-                )
+            [
+                request.remote_addr,
+                self.cookie_session_id
+            ]
+        )
         app.logger.debug('Open session %s', self.memcache_session_id)
         session = app.cache.get(self.memcache_session_id) or {}
         app.cache.set(self.memcache_session_id, session)

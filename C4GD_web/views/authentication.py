@@ -38,7 +38,7 @@ def _login(username, password):
                 # password is the same as Keystone password
                 success, unscoped_token = \
                     utils.keystone_obtain_unscoped(
-                    odb_user['username'], password)
+                        odb_user['username'], password)
                 if success:
                     flask.session['user'] = odb_user
                     flask.g.is_authenticated = True
@@ -101,7 +101,7 @@ def logout():
         if key != '_flashes':
             del(flask.session[key])
     return flask.redirect(flask.url_for(
-            flask.current_app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))
+        flask.current_app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))
 
 
 @C4GD_web.app.route(
@@ -135,7 +135,7 @@ def password_recovery_finish(recovery_hash):
     # send trash password back to user
     msg = mail.Message('Password recovery', recipients=[odb_user['email']])
     msg.body = flask.render_template('RecoveryPasswordFinishEmail/body.txt',
-                               new_pass=new_hash)
+                                     new_pass=new_hash)
     C4GD_web.mail.send(msg)
     flask.flash('New password was sent to you', 'success')
     return flask.redirect(flask.url_for('dashboard'))
@@ -157,21 +157,23 @@ def password_recovery_request():
                 '/users', {"email": form.email.data}, 'GET')[0]
         except (KeyError, exceptions.GentleException):
             flask.flash(
-                'User with that email "%s" is not registered.' %\
-                    form.email.data,
+                'User with that email "%s" is not registered.' %
+                form.email.data,
                 'error')
             exc_type, exc_value, traceback = sys.exc_info()
             flask.current_app.log_exception((exc_type, exc_value, traceback))
         else:
             hash_code = str(uuid.uuid4())
-            recovery_link = "http://%s%s" % (flask.request.host,
-                flask.url_for(
-                    'password_recovery_finish', recovery_hash=hash_code))
+            recovery_link = "http://%s%s" % (
+                flask.request.host, flask.url_for(
+                    'password_recovery_finish', recovery_hash=hash_code
+                )
+            )
             row_mysql_queries.save_recovery(form.email.data, hash_code, 0)
             msg = mail.Message(
                 'Password recovery', recipients=[form.email.data])
             msg.body = flask.render_template('RecoveryPasswordEmail/body.txt',
-                                       recovery_link=recovery_link)
+                                             recovery_link=recovery_link)
             C4GD_web.mail.send(msg)
             flask.flash('Recovery request was sent successfully', 'info')
     return {'form': form}

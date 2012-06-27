@@ -14,8 +14,8 @@ def project(bp):
     def substitute_tenant_id(endpoint, values):
         if 'tenant_id' in values or not flask.g.tenant_id:
             return
-        if flask.current_app.url_map.is_endpoint_expecting(
-            endpoint, 'tenant_id'):
+        if flask.current_app.url_map.is_endpoint_expecting(endpoint,
+                                                           'tenant_id'):
             values['tenant_id'] = flask.g.tenant_id
 
     @bp.before_request

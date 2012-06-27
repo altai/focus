@@ -155,5 +155,5 @@ def get_my_clients(tenant_id):
         'token': flask.session['keystone_unscoped']['access']['token']['id'],
         'auth_uri': flask.current_app.config['KEYSTONE_CONF']['auth_uri'],
         'tenant_id': tenant_id,
-        }
+    }
     return ClientSet(**conf)

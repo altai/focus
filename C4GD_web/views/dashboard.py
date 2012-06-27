@@ -22,7 +22,7 @@ def dashboard():
             lambda x: x.tenant_id in project_ids,
             clients.clients.nova.servers.list(search_opts={'all_tenants': 1}))
         context.update(dict(
-                total_users=len(users),
-                total_projects=len(projects),
-                total_vms=len(servers)))
+            total_users=len(users),
+            total_projects=len(projects),
+            total_vms=len(servers)))
     return context
