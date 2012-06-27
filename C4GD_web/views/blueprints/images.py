@@ -25,9 +25,9 @@ def get_images_list():
 
     If g.tenant_id is not set it is admin blueprint.
     We have to show only images owned by admin_tenant_id, which are also
-    public (can be protected as well (we set it so, but other tools can 
+    public (can be protected as well (we set it so, but other tools can
     change this attribute or set it to a wrong value from the beginning).
-    
+
     If g.tenant_id is set it is project blueprint.
     We have to show the same images as for admin blueprint _and_
     images owned by current project (attribute "owner" must be equal to
