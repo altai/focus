@@ -5,7 +5,6 @@ monkey.patch_all()
 import logging
 import os
 import socket
-import sys
 
 from logging import handlers
 

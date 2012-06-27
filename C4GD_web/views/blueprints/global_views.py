@@ -87,10 +87,10 @@ def list_vms():
         'user_id': dataset.StrColumn('user_id', 'User'),
         'tenant_id': dataset.StrColumn('tenant_id', 'Project ID'),
         'project_name': ProjectNameColumn(
-                'project_name', 'Project Name'),
+            'project_name', 'Project Name'),
         'ram': dataset.IntColumn('ram', 'RAM'),
         'vcpus': dataset.IntColumn('vcpus', 'Number of CPUs')
-        }, default_columns)
+    }, default_columns)
     if 'columns' in flask.request.args:
         columns.adjust(
             [x for x in flask.request.args['columns'].split(',') if x])
@@ -122,8 +122,8 @@ def list_vms():
             d = flask.request.args.copy()
             d.pop('export')
             query = '&'.join((
-                    ['%s=%s' % (k, v) for k, v in \
-                         datastructures.iter_multi_items(d)]))
+                    ['%s=%s' % (k, v) for k, v in
+                     datastructures.iter_multi_items(d)]))
             url = flask.request.path + '?' + query
             return flask.redirect(url)
         response = export()

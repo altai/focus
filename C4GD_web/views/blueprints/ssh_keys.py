@@ -16,7 +16,7 @@ def index():
     context = {
         'keys': c.nova.keypairs.list(),
         'delete_form': forms.DeleteForm()
-        }
+    }
     return context
 
 
@@ -49,4 +49,4 @@ def delete(name):
     return {
         'keypair': keypair,
         'form': form
-        }
+    }

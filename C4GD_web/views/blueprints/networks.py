@@ -151,7 +151,7 @@ def new():
                     form.host.data,  # host
                     form.bridge_interface.data,  # bridge_interface
                     str(uuid.uuid4())  # uuid
-                    ))
+                ))
             store.commit()
             network_id = store.execute('SELECT last_insert_id()').get_one()[0]
             num_ips = len(project_net)
@@ -171,9 +171,9 @@ def new():
                             'address': address,
                             'reserved': reserved})
             values = itertools.chain(*[(
-                        x['address'],
-                        x['network_id'],
-                        x['reserved']) for x in ips])
+                x['address'],
+                x['network_id'],
+                x['reserved']) for x in ips])
             sql_tmpl = (
                 'INSERT INTO fixed_ips (address, network_id, reserved, '
                 'created_at, deleted, allocated, leased) VALUES %s'
@@ -181,8 +181,8 @@ def new():
             store.execute(sql_tmpl, values)
             store.commit()
             flask.flash(
-                'Network %s created, %s fixed IPs populated.' % \
-                    (network_id, len(ips)), 'success')
+                'Network %s created, %s fixed IPs populated.' %
+                (network_id, len(ips)), 'success')
             return flask.redirect(flask.url_for('.index'))
     return {'form': form}
 

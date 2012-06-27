@@ -131,7 +131,7 @@ def finish(invitation_hash):
         'email': email,
         'username': username,
         'username_is_taken': username_is_taken
-        }
+    }
 
 
 @bp.route('', methods=['GET', 'POST'])
@@ -171,4 +171,4 @@ def invite():
     return {
         'form': form,
         'masks': masks
-        }
+    }
