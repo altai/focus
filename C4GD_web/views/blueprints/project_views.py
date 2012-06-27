@@ -11,7 +11,7 @@ from C4GD_web.views import generic_billing
 from C4GD_web.views import pagination
 from C4GD_web.views import utils as views_utils
 from C4GD_web.views import environments
-
+from C4GD_web.views.blueprints import images
 
 bp = environments.project(blueprints.Blueprint('project_views', __name__))
 
@@ -45,16 +45,13 @@ def spawn_vm():
 
     '''
     c = clients.get_my_clients(flask.g.tenant_id)
-    images = clients.clients.glance.images.list()
-    ids = [
-        flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'],
-        flask.g.tenant_id]
-    images = [x for x in images if getattr(x, 'owner') in ids]
-    flavors = clients.clients.nova.flavors.list()
-    security_groups = clients.clients.nova.security_groups.list()
+    images_list = images.get_images_list()
+    flavors = c.nova.flavors.list()
+    security_groups = c.nova.security_groups.list()
     key_pairs = c.nova.keypairs.list()
 
-    form = forms.get_spawn_form(images, flavors, security_groups, key_pairs)()
+    form = forms.get_spawn_form(
+        images_list, flavors, security_groups, key_pairs)()
     if form.validate_on_submit():
         c.nova.servers.create(
             form.name.data,
@@ -62,22 +59,13 @@ def spawn_vm():
             form.flavor.data,
             key_name=form.keypair.data,
             security_groups=form.security_groups.data)
-
-        # abstract.VirtualMachine.create(
-        #     flask.g.tenant_id,
-        #     form.name.data,
-        #     form.image.data,
-        #     form.flavor.data,
-        #     form.password.data,
-        #     form.keypair.data,
-        #     form.security_groups.data)
         flask.flash('Virtual machine spawned.', 'success')
         return flask.redirect(flask.url_for(
             '.show_tenant', tenant_id=flask.g.tenant_id))
     return {
         'form': form,
         'tenant': flask.g.tenant,
-        'images': json.dumps([x._info for x in images]),
+        'images': json.dumps([x._info for x in images_list]),
         'flavors': json.dumps([x._info for x in flavors])
     }
 
