@@ -1,19 +1,183 @@
 -extends "projects_base.haml"
 -block content
-  %h2
-    Server
-    =server.name
-  -if flavor:
-      %p
-        Flavor
-        =flavor.name
-        %br
-        RAM:
-        =flavor.ram|size
-        %br
-        CPUs:
-        =flavor.vcpus
-  -if image:
-      %p
-        Image
-        =image.name
+  %div
+    %h2
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+      %thead
+        %tr
+          %td
+            %h3
+              Server
+          %td
+            &nbsp;
+        %tr
+          %td
+            Name
+          %td
+            =server.name
+        %tr
+          %td
+            IP
+          %td
+            -for project, addresses in server.addresses.items():
+              {{ project }}:
+              -for address in addresses:
+                =address['addr']
+                -if not loop.is_last:
+                  %br
+        %tr
+          %td
+            Created
+          %td
+            =server.created
+        %tr
+          %td
+            Id
+          %td
+            =server.id
+        %tr
+          %td
+            Is loaded
+          %td
+            =server.is_loaded()
+        %tr
+          %td
+            Links
+          %td
+            -for link in server.links
+              =link['href']
+              -if not loop.is_last:
+                %br
+        %tr
+          %td
+            Tenant id
+          %td
+            =server.tenant_id
+        %tr
+          %td
+            Updated
+          %td
+            =server.updated
+        %tr
+          %td
+            User id
+          %td
+            =server.user_id
+        %tr
+          %td
+            %h3
+              Image
+          %td
+            &nbsp;
+        %tr
+          %td
+            Name
+          %td
+            =image.name
+        %tr
+          %td
+            Id
+          %td
+            =image.id
+        %tr
+          %td
+            Status
+          %td
+           =image.status
+        %tr
+          %td
+            Created
+          %td
+            =image.created
+        %tr
+          %td
+            Links
+          %td
+            -for link in image.links
+              =link['href']
+              -if not loop.is_last:
+                %br
+        %tr
+          %td
+            Is loaded
+          %td
+            =image.is_loaded()
+        %tr
+          %td
+            Min disk
+          %td
+            =image.minDisk
+        %tr
+          %td
+            Min RAM
+          %td
+            =image.minRam
+        %tr
+          %td
+            Updated
+          %td
+            =image.updated
+        %tr
+          %td
+            Progress
+          %td
+            =image.progress
+        %tr
+          %td
+            %h3
+              Flavor
+          %td
+            &nbsp;
+        %tr
+          %td
+            Name
+          %td
+            =flavor.name
+        %tr
+          %td
+            Links
+          %td
+            -for link in image.links
+              =link['href']
+              -if not loop.is_last:
+                %br
+        %tr
+          %td
+            Ram
+          %td
+            =flavor.ram
+        %tr
+          %td
+            Disk
+          %td
+            =flavor.disk
+        %tr
+          %td
+            Ephemeral
+          %td
+            =flavor.ephemeral
+        %tr
+          %td
+            Id
+          %td
+            =flavor.id
+        %tr
+          %td
+            Human id
+          %td
+            =flavor.human_id
+        %tr
+          %td
+            Is loaded
+          %td
+            =flavor.is_loaded()
+        %tr
+          %td
+            RXTX factor
+          %td
+            =flavor.rxtx_factor
+        %tr
+          %td
+            vcpus
+          %td
+            =flavor.vcpus
