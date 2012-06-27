@@ -32,7 +32,6 @@ def get_images_list():
     We have to show the same images as for admin blueprint _and_
     images owned by current project (attribute "owner" must be equal to
     g.tenant_id) no matter if image is public/protected.
-    
     NOTE(apugachev):
     Currently for some reason Glance does not return list of images owned
     by tenant with id '1' even if they are public - if they are requested
