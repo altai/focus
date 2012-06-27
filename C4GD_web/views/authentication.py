@@ -25,7 +25,6 @@ def _login(username, password):
         pass
     else:
         try:
-            print password, odb_user['passwordHash'], utils.create_hashed_password(password)
             is_password_valid = odb_user['passwordHash'] == \
                 utils.create_hashed_password(password)
         except UnicodeEncodeError:
