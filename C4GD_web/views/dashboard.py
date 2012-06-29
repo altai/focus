@@ -17,10 +17,10 @@ def dashboard():
     if principal.Permission(('role', 'admin')).can():
         projects = utils.get_visible_tenants()
         project_ids = [x.id for x in projects]
-        users = clients.clients.keystone.users.list()
+        users = clients.admin_clients().keystone.users.list()
         servers = filter(
             lambda x: x.tenant_id in project_ids,
-            clients.clients.nova.servers.list(search_opts={'all_tenants': 1}))
+            clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1}))
         context.update(dict(
             total_users=len(users),
             total_projects=len(projects),

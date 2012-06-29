@@ -12,7 +12,7 @@ class ImagesTestCase(unittest.TestCase):
                 mock.patch('flask.g') as g,\
                 mock.patch('C4GD_web.clients.get_my_clients')\
                 as get_my_clients,\
-                mock.patch('C4GD_web.clients.clients') as clients:
+                mock.patch('C4GD_web.clients.admin_clients()') as clients:
             current_app.config = {
                 'KEYSTONE_CONF': {
                     'admin_tenant_id': '1'}}

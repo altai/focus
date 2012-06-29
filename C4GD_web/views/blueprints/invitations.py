@@ -30,17 +30,16 @@ def register_user(username, email, password, role):
         """
         """
         try:
-            new_keystone_user = clients.clients.keystone.users.create(
+            new_keystone_user = clients.admin_clients().keystone.users.create(
                 username, password, email)
 
             if role != 'user':
-                all_roles = clients.clients.keystone.roles.list()
+                all_roles = clients.admin_clients().keystone.roles.list()
                 for r in all_roles:
                     if r.name == role:
-                        clients.clients.keystone.roles.add_user_role(
+                        clients.admin_clients().keystone.roles.add_user_role(
                             new_keystone_user, r,
-                            tenant=flask.current_app.config[
-                                'KEYSTONE_CONF']['admin_tenant_id'])
+                            tenant=flask.current_app.config['DEFAULT_TENANT_ID'])
                         break
         except Exception, e:
             raise Exception("Registration fail", e.message)

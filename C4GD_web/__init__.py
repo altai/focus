@@ -71,6 +71,11 @@ Message:
     rotating_file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(rotating_file_handler)
 
+ch = logging.StreamHandler()
+_logger = logging.getLogger()
+_logger.setLevel(logging.DEBUG)
+_logger.addHandler(ch)
+
 # SMTP
 mail = mail_module.Mail(app)
 

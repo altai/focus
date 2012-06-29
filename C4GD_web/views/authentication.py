@@ -123,7 +123,7 @@ def password_recovery_finish(recovery_hash):
     new_hash = str(uuid.uuid4())
     # set trash password in keystone
     keystone_user = utils.get_keystone_user_by_username(odb_user['username'])
-    clients.clients.keystone.users.update_password(keystone_user, new_hash)
+    clients.admin_clients().keystone.users.update_password(keystone_user, new_hash)
     # set trash password in odb
     utils.neo4j_api_call('/users', {
         'id': odb_user['id'],

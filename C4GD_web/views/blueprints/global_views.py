@@ -50,14 +50,14 @@ def billing_details(tenant_id):
     for x in abstract.AccountBill.list():
         try:
             # Billing API calls "ID" - "name"
-            t = clients.clients.keystone.tenants.get(x['name'])
+            t = clients.admin_clients().keystone.tenants.get(x['name'])
         except keystoneclient_exceptions.NotFound:
             # sometimes Billing API returns non-existing tenant IDs
             # there is nothing in particular we can do about it
             pass
         else:
             tenants_in_billing.append(t)
-    tenant = clients.clients.keystone.tenants.get(tenant_id)
+    tenant = clients.admin_clients().keystone.tenants.get(tenant_id)
     return generic_billing.generic_billing(
         tenant, flask.g.user, tenants=tenants_in_billing)
 
@@ -69,7 +69,7 @@ def list_vms():
     '''
     # not in visible tenants, but in all tenants
     tenants = dict(
-        [(x.id, x) for x in clients.clients.keystone.tenants.list()])
+        [(x.id, x) for x in clients.admin_clients().keystone.tenants.list()])
 
     class ProjectNameColumn(dataset.StrColumn):
         def __call__(self, x):
@@ -100,13 +100,13 @@ def list_vms():
             flask.request.args.getlist('desc'))
     if 'groupby' in flask.request.args:
         columns.adjust_groupby(flask.request.args['groupby'])
-    vms = clients.clients.nova.servers.list(search_opts={'all_tenants': 1})
-    flavors = dict([(x.id, x) for x in clients.clients.nova.flavors.list()])
+    vms = clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1})
+    flavors = dict([(x.id, x) for x in clients.admin_clients().nova.flavors.list()])
     for server in vms:
         try:
             flavor = flavors[server.flavor['id']]
         except KeyError:
-            flavor = clients.clients.nova.flavors.get(server.flavor['id'])
+            flavor = clients.admin_clients().nova.flavors.get(server.flavor['id'])
             flavors[server.flavor['id']] = flavor
         server.ram = flavor.ram
         server.vcpus = flavor.vcpus

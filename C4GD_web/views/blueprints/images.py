@@ -24,7 +24,7 @@ def get_images_list():
     """Return list of images visible for given condigions.
 
     If g.tenant_id is not set it is admin blueprint.
-    We have to show only images owned by admin_tenant_id, which are also
+    We have to show only images owned by DEFAULT_TENANT_ID, which are also
     public (can be protected as well (we set it so, but other tools can
     change this attribute or set it to a wrong value from the beginning).
 
@@ -39,11 +39,11 @@ def get_images_list():
 
     That's why we combine image lists here in case if list is for project.
     """
-    admin_id = flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+    admin_id = flask.current_app.config['DEFAULT_TENANT_ID']
     is_global = lambda x: x.owner == admin_id and x.is_public
     result = filter(
         is_global,
-        clients.clients.glance.images.list())
+        clients.admin_clients().glance.images.list())
     if getattr(flask.g, 'tenant_id', None):
         result.extend(filter(
             lambda x: x.owner == flask.g.tenant_id and x not in result,
@@ -63,14 +63,14 @@ def get_bp(name):
         Tries using both Glance and Nova services because they provide
         different info set about an image.
         """
-        glance_image = clients.clients.glance.images.get(image_id)
-        nova_image = clients.clients.nova.images.get(image_id)
+        glance_image = clients.admin_clients().glance.images.get(image_id)
+        nova_image = clients.admin_clients().nova.images.get(image_id)
         return {'glance_image': glance_image,
                 'nova_image': nova_image}
 
     def get_tenant_id():
         return getattr(flask.g, 'tenant_id', None) or \
-            flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+            flask.current_app.config['DEFAULT_TENANT_ID']
 
     @bp.route('')
     def index():
@@ -170,11 +170,9 @@ def get_bp(name):
 
     @bp.route('<image_id>/delete/', methods=['POST'])
     def delete(image_id):
-        image = clients.clients.glance.images.get(image_id)
+        image = clients.admin_clients().glance.images.get(image_id)
         owner = getattr(image, 'owner')
-        if owner == flask.current_app.config['KEYSTONE_CONF'][
-            'admin_tenant_id'
-        ]:
+        if owner == flask.current_app.config['DEFAULT_TENANT_ID']:
             principal.Permission(('role', 'admin')).test()
         else:
             principal.Permission(('role', 'member', owner)).test()

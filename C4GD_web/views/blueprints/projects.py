@@ -43,7 +43,7 @@ def delete(object_id):
     TODO(apugachev) remove images
     """
     try:
-        tenant = clients.clients.keystone.tenants.get(object_id)
+        tenant = clients.admin_clients().keystone.tenants.get(object_id)
     except Exception:
         flask.abort(404)
 
@@ -53,7 +53,7 @@ def delete(object_id):
         # kill vms
         vms = filter(
             lambda x: x.tenant_id == object_id,
-            clients.clients.nova.servers.list(search_opts={'all_tenants': 1}))
+            clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1}))
         for x in vms:
             x.delete()
         # detach network
@@ -93,7 +93,7 @@ def new():
             args = (form.name.data, form.description.data)
         else:
             args = (form.name.data, )
-        tenant = clients.clients.keystone.tenants.create(*args)
+        tenant = clients.admin_clients().keystone.tenants.create(*args)
         try:
             store.execute(
                 'UPDATE networks SET project_id = ?, label = ? '

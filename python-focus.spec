@@ -34,6 +34,7 @@ Requires:       start-stop-daemon
 Requires:       python-novaclient-essex
 Requires:       python-keystoneclient-essex
 Requires:       python-glanceclient-essex
+Requires:       python-openstackclient-base-essex
 
 %description
 

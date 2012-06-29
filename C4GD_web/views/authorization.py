@@ -22,20 +22,19 @@ def on_identity_loaded(sender, identity):
     loose_endpoints = flask.current_app.config['ANONYMOUS_ALLOWED']
     is_loose = flask.request.endpoint in loose_endpoints
     if not (is_loose or is_anon):
-        user = clients.clients.keystone.users.get(identity.name)
-        roles = clients.clients.keystone.roles.roles_for_user(
+        user = clients.admin_clients().keystone.users.get(identity.name)
+        roles = clients.admin_clients().keystone.roles.roles_for_user(
             identity.name,
-            flask.current_app.config[
-                'KEYSTONE_CONF']['admin_tenant_id'])
+            flask.current_app.config['DEFAULT_TENANT_ID'])
         if any([
             x.name == flask.current_app.config['ADMIN_ROLE_NAME']
             for x in roles
         ]):
             identity.provides.add(('role', 'admin'))
         # TODO(apugachev): use list_roles() when server implemented it
-        for tenant in clients.clients.keystone.tenants.list():
-            if len(user.list_roles(tenant)):
-                identity.provides.add(('role', 'member', tenant.id))
+        for tenant in (clients.get_my_clients(None).
+                       identity_public.tenants.list()):
+            identity.provides.add(('role', 'member', tenant.id))
 
 
 if not C4GD_web.app.debug:

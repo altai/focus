@@ -21,16 +21,15 @@ def show_tenant():
     """
     List VMs for the project
     """
-    vms_data = filter(
-        lambda x: x['tenant_id'] == flask.g.tenant_id,
-        abstract.VirtualMachine.list(tenant_id=flask.g.tenant_id)
-    )
+    c = clients.get_my_clients(flask.g.tenant_id)
+    servers = c.compute.servers.list(detailed=True)
+    vms_data = [s._info for s in servers]
     vms_data = sorted(vms_data, key=lambda x: x['name'])
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
     for x in data:
         if x['user_id'].isdigit():
-            user = clients.clients.keystone.users.get(x['user_id'])
+            user = clients.admin_clients().keystone.users.get(x['user_id'])
             x['user_id'] = user.name
     return {
         'vms': data,
@@ -72,14 +71,14 @@ def spawn_vm():
 
 @bp.route('vms/<vm_id>/')
 def show_vm(vm_id):
-    server = clients.clients.nova.servers.get(vm_id)
+    server = clients.admin_clients().nova.servers.get(vm_id)
     try:
-        flavor = clients.clients.nova.flavors.get(server.flavor['id'])
+        flavor = clients.admin_clients().nova.flavors.get(server.flavor['id'])
     except Exception:
         # TODO(apugachev) look for NotFound exception from nova
         flavor = None
     try:
-        image = clients.clients.nova.images.get(server.image['id'])
+        image = clients.admin_clients().nova.images.get(server.image['id'])
     except Exception:
         # TODO(apugachev) look for NotFound exception from nova
         image = None
@@ -137,7 +136,7 @@ def list_users():
 def get_credentials():
     if 'download' in flask.request.args:
         user = flask.session['keystone_unscoped']['access']['user']['username']
-        tenant = clients.clients.keystone.tenants.get(flask.g.tenant_id).name
+        tenant = clients.admin_clients().keystone.tenants.get(flask.g.tenant_id).name
         keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
         response = flask.make_response(
             flask.render_template(

@@ -26,7 +26,7 @@ def project(bp):
         principal.Permission(('role', 'member', flask.g.tenant_id)).test()
         flask.g.tenant_dict = flask.session[
             'keystone_scoped'][flask.g.tenant_id]['access']['token']['tenant']
-        flask.g.tenant = clients.clients.keystone.tenants.get(
+        flask.g.tenant = clients.admin_clients().keystone.tenants.get(
             flask.g.tenant_id)
         # TODO(apugachev) check with DM if it is needed to have projectmanager
         flask.g.project_managers = [

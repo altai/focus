@@ -23,7 +23,7 @@ def get_admin_role_id():
     """Return ID of Admin role.
 
     """
-    for role in clients.clients.keystone.roles.list():
+    for role in clients.admin_clients().keystone.roles.list():
         if role.name == flask.current_app.config['ADMIN_ROLE_NAME']:
             return role.id
     else:
@@ -35,7 +35,7 @@ def get_member_role_id():
 
     :raises: RuntimeError if Member roles does not exist
     """
-    for role in clients.clients.keystone.roles.list():
+    for role in clients.admin_clients().keystone.roles.list():
         if role.name == 'Member':
             return role.id
     else:
@@ -50,11 +50,11 @@ def index():
     This would allow to use marker and limit to fetch one page only.
     """
     users = sorted(
-        clients.clients.keystone.users.list(limit=1000000),
+        clients.admin_clients().keystone.users.list(limit=1000000),
         key=lambda x: x.name)
     p = pagination.Pagination(users)
     data = p.slice(users)
-    tenants = clients.clients.keystone.tenants.list(limit=1000000)
+    tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
     for user in data:
         # TODO(apugachev) modify to work with form.DeleteUser
         form = forms.DeleteUserForm()
@@ -81,8 +81,8 @@ def show(user_id):
     '''
     def is_non_admin(tenant):
         return tenant.id != \
-            flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
-    user = clients.clients.keystone.users.get(user_id)
+            flask.current_app.config['DEFAULT_TENANT_ID']
+    user = clients.admin_clients().keystone.users.get(user_id)
     user_roles = filter(
         lambda x: is_non_admin(x[0]),
         utils.user_tenants_with_roles_list(user))
@@ -98,7 +98,7 @@ def show(user_id):
             users_projects_choices.append((tenant.id, tenant.name))
             user_projects.append(tenant.id)
     remove_user_from_project.project.choices = users_projects_choices
-    all_tenants = clients.clients.keystone.tenants.list()
+    all_tenants = clients.admin_clients().keystone.tenants.list()
     for tenant in all_tenants:
         if not tenant.id in user_projects and is_non_admin(tenant):
             not_user_projects_choices.append((tenant.id, tenant.name))
@@ -116,7 +116,7 @@ def add_user_to_project():
     Giving a 'Member' role in given tenant
     """
     form = forms.AddUserToProject()
-    tenant = clients.clients.keystone.tenants.get(form.project.data)
+    tenant = clients.admin_clients().keystone.tenants.get(form.project.data)
     tenant.add_user(form.user.data, get_member_role_id())
     flask.flash('User was added to project', 'success')
     return flask.redirect(flask.url_for('.show', user_id=form.user.data))
@@ -128,10 +128,10 @@ def remove_user_from_project():
     Removes all user's roles for given tenant
     """
     form = forms.RemoveUserFromProject()
-    project = clients.clients.keystone.tenants.get(form.project.data)
-    user = clients.clients.keystone.users.get(form.user.data)
+    project = clients.admin_clients().keystone.tenants.get(form.project.data)
+    user = clients.admin_clients().keystone.users.get(form.user.data)
     user_roles_in_project = []
-    all_tenants = clients.clients.keystone.tenants.list(limit=1000000)
+    all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
     for tenant in all_tenants:
         if tenant.id == project.id:
             roles = user.list_roles(tenant)
@@ -152,10 +152,10 @@ def grant_admin(user_id):
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
     """
-    clients.clients.keystone.roles.add_user_role(
+    clients.admin_clients().keystone.roles.add_user_role(
         user_id,
         get_admin_role_id(),
-        flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
+        flask.current_app.config['DEFAULT_TENANT_ID'])
     flask.flash('Admin role granted', 'success')
     return flask.redirect(flask.url_for('.index'))
 
@@ -169,10 +169,10 @@ def revoke_admin(user_id):
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
     """
-    clients.clients.keystone.roles.remove_user_role(
+    clients.admin_clients().keystone.roles.remove_user_role(
         user_id,
         get_admin_role_id(),
-        flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id'])
+        flask.current_app.config['DEFAULT_TENANT_ID'])
     flask.flash('Admin role removed', 'success')
     return flask.redirect(flask.url_for('.index'))
 
@@ -188,7 +188,7 @@ def delete():
     """
     form = forms.DeleteUserForm()
     if form.validate_on_submit():
-        keystone_user = clients.clients.keystone.users.get(form.user_id.data)
+        keystone_user = clients.admin_clients().keystone.users.get(form.user_id.data)
         if keystone_user.email:
             odb_user = utils.neo4j_api_call('/users', {
                 "email": keystone_user.email

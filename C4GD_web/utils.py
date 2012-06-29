@@ -353,8 +353,10 @@ def user_tenants_list(keystone_user):
     because this value will be stored in session and cannot be normally
     serialized.
     """
+#    user_tenants = clients.get_my_clients(None).identity_public.tenants.list()
+#    user_tenants = [t._info for t in user_tenants]
     user_tenants = []
-    all_tenants = clients.clients.keystone.tenants.list(limit=1000000)
+    all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
     for tenant in all_tenants:
         roles = keystone_user.list_roles(tenant)
         if len(roles):
@@ -371,7 +373,7 @@ def user_tenants_with_roles_list(keystone_user):
     Returns a list with user's roles in it
     """
     user_roles = []
-    all_tenants = clients.clients.keystone.tenants.list(limit=1000000)
+    all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
     for tenant in all_tenants:
         roles = keystone_user.list_roles(tenant)
         if len(roles):
@@ -387,7 +389,7 @@ def get_keystone_user_by_username(username):
     Important:
     Hardcore iteration through all existing users in keystone db
     """
-    users = clients.clients.keystone.users.list()
+    users = clients.admin_clients().keystone.users.list()
     for user in users:
         if user.name == username:
             return user
@@ -398,9 +400,7 @@ def get_visible_tenants():
 
     Exclude systenants and tenants which are not enabled.
     """
-    systenant_id = flask.current_app.config['KEYSTONE_CONF']['admin_tenant_id']
+    systenant_id = flask.current_app.config['DEFAULT_TENANT_ID']
     return filter(
-        lambda x: x.enabled,
-        filter(
-            lambda x: x.id != systenant_id,
-            clients.clients.keystone.tenants.list()))
+        lambda x: x.enabled and x.id != systenant_id,
+            clients.admin_clients().keystone.tenants.list())

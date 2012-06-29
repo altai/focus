@@ -27,14 +27,13 @@ ANONYMOUS_ALLOWED = [
 DEFAULT_APP_PORT = 8080
 # for keystone/nova/glance client
 KEYSTONE_CONF = {
-    'admin_user': 'admin',
-    'admin_password': 'admin',
+    'username': 'admin',
+    'password': 'admin',
     'auth_uri': 'http://:5000/v2.0',
-    'admin_tenant_name': 'systenant',
-    'admin_tenant_id': '1'
+    'tenant_name': 'systenant',
 }
 # id of systenant, as string
-DEFAULT_TENANT_ID = KEYSTONE_CONF['admin_tenant_id']
+DEFAULT_TENANT_ID = '1'
 ADMIN_ROLE_NAME = 'Admin'
 MEMCACHED_HOST = '127.0.0.1:11211'
 KEYSTONECLIENT_DEBUG = False
