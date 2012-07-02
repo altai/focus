@@ -53,7 +53,8 @@ def delete(object_id):
         # kill vms
         vms = filter(
             lambda x: x.tenant_id == object_id,
-            clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1}))
+            clients.admin_clients().nova.servers.list(
+                search_opts={'all_tenants': 1}))
         for x in vms:
             x.delete()
         # detach network

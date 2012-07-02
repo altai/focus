@@ -20,7 +20,8 @@ def dashboard():
         users = clients.admin_clients().keystone.users.list()
         servers = filter(
             lambda x: x.tenant_id in project_ids,
-            clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1}))
+            clients.admin_clients().nova.servers.list(search_opts={
+                'all_tenants': 1}))
         context.update(dict(
             total_users=len(users),
             total_projects=len(projects),

@@ -188,7 +188,8 @@ def delete():
     """
     form = forms.DeleteUserForm()
     if form.validate_on_submit():
-        keystone_user = clients.admin_clients().keystone.users.get(form.user_id.data)
+        keystone_user = clients.admin_clients().keystone.users.get(
+            form.user_id.data)
         if keystone_user.email:
             odb_user = utils.neo4j_api_call('/users', {
                 "email": keystone_user.email

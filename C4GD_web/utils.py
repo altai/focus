@@ -403,4 +403,30 @@ def get_visible_tenants():
     systenant_id = flask.current_app.config['DEFAULT_TENANT_ID']
     return filter(
         lambda x: x.enabled and x.id != systenant_id,
-            clients.admin_clients().keystone.tenants.list())
+        clients.admin_clients().keystone.tenants.list())
+
+
+def username_is_taken(email):
+    """
+    Checks both Keystone and ODB if user with given email is already
+    registered.
+    """
+    try:
+        neo4j_api_call('/users', {
+            "email": email
+        }, 'GET')[0]
+        username_is_taken = True
+    except (KeyError, exceptions.GentleException):
+        username_is_taken = False
+    else:
+        try:
+            user = get_keystone_user_by_username(email.split('@')[0])
+            if user is None:
+                username_is_taken = False
+        except RuntimeError:
+            username_is_taken = True
+    if username_is_taken:
+        flask.flash(
+            'User with email "%s" is already registered' % email,
+            'error')
+    return username_is_taken

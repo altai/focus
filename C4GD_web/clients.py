@@ -32,7 +32,7 @@ def get_access():
     except KeyError:
         access = None
     client_set = ClientSet(access=access,
-        **flask.current_app.config["KEYSTONE_CONF"])
+                           **flask.current_app.config["KEYSTONE_CONF"])
     flask.g.keystone_admin = client_set
 
     try:

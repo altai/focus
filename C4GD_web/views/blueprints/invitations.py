@@ -21,6 +21,27 @@ from C4GD_web.views import forms
 bp = blueprints.Blueprint('invitations', __name__)
 
 
+def _register_in_ODB(username, email, password):
+    """Register user in ODB.
+
+    API 'create_user' call to ODB, then read new user from ODB and \
+    returns it.
+    """
+    # new user
+    utils.neo4j_api_call('/users', {
+        "login": "",
+        "username": username,
+        "email": email,
+        "passwordHash": utils.create_hashed_password(password),
+    }, 'POST')
+
+    # return fresh user
+    user = utils.neo4j_api_call('/users', {
+        "email": email
+    }, 'GET')[0]
+    return user
+
+
 def register_user(username, email, password, role):
     """
         Temporary have to register user in ODB and add a user into
@@ -39,39 +60,27 @@ def register_user(username, email, password, role):
                     if r.name == role:
                         clients.admin_clients().keystone.roles.add_user_role(
                             new_keystone_user, r,
-                            tenant=flask.current_app.config['DEFAULT_TENANT_ID'])
+                            tenant=flask.current_app.config['DEFAULT_TENANT_ID']
+                        )
                         break
+            return new_keystone_user
         except Exception, e:
             raise Exception("Registration fail", e.message)
-        return True
 
-    def register_in_ODB():
-        """Register user in ODB.
+    if utils.username_is_taken(email):
+        raise Exception('Username is already taken')
 
-        API 'create_user' call to ODB, then read new user from ODB and \
-        returns it.
-        """
-        # new user
-        utils.neo4j_api_call('/users', {
-            "login": "",
-            "username": username,
-            "email": email,
-            "passwordHash": utils.create_hashed_password(password),
-        }, 'POST')
+    keystone_user = register_in_keystone()
 
-        # return fresh user
-        user = utils.neo4j_api_call('/users', {
-            "email": email
-        }, 'GET')[0]
-        return user
-
-    keystone_success = register_in_keystone()
-
-    if keystone_success:
-        user = register_in_ODB()
-        return user
-    else:
-        return None
+    if keystone_user is not None:
+        try:
+            user = _register_in_ODB(username, email, password)
+            return user
+        except Exception, e:
+            # revert new user creation in Keystone
+            clients.admin_clients().keystone.users.delete(keystone_user)
+            raise Exception('Registration was interrupted, please try again')
+    return None
 
 
 @bp.route('finish/<invitation_hash>/', methods=['GET', 'POST'])
@@ -142,31 +151,37 @@ def invite():
     masks = row_mysql_queries.get_masks()
     form = forms.Invite()
     if form.validate_on_submit():
+        # Check if required conf setting exists
+        if not 'KEYSTONE_CONF' in flask.current_app.config or \
+            not 'NEO4J_API_URL' in flask.current_app.config:
+            raise Exception("""No required settings:
+            KEYSTONE_CONF or NEO4J_API_URL, invitations wasn't sent""", "")
         user_email = form.email.data
-        try:
-            utils.neo4j_api_call('/users', {
-                "email": user_email
-            }, 'GET')[0]
-            flask.flash(
-                'User with email "%s" is already registered' % user_email,
-                'error')
-        except (KeyError, exceptions.GentleException):
-            # NOTE(apugachev) success, user does not exist
-            hash_code = str(uuid.uuid4())
-            domain = user_email.split('@')[-1]
-            if (domain,) not in masks:
-                flask.flash('Not allowed email mask')
-            else:
-                row_mysql_queries.save_invitation(
-                    user_email, hash_code, form.role.data)
-                invite_link = "http://%s%s" % (
-                    flask.request.host,
-                    flask.url_for('.finish', invitation_hash=hash_code))
-                msg = mail.Message('Invitation', recipients=[user_email])
-                msg.body = flask.render_template(
-                    'invitations/email_body.txt', invite_link=invite_link)
-                C4GD_web.mail.send(msg)
-                flask.flash('Invitation sent successfully', 'info')
+        if not utils.username_is_taken(user_email):
+            try:
+                utils.neo4j_api_call('/users', {
+                    "email": user_email
+                }, 'GET')[0]
+                flask.flash(
+                    'User with email "%s" is already registered' % user_email,
+                    'error')
+            except (KeyError, exceptions.GentleException):
+                # NOTE(apugachev) success, user does not exist
+                hash_code = str(uuid.uuid4())
+                domain = user_email.split('@')[-1]
+                if (domain,) not in masks:
+                    flask.flash('Not allowed email mask')
+                else:
+                    row_mysql_queries.save_invitation(
+                        user_email, hash_code, form.role.data)
+                    invite_link = "http://%s%s" % (
+                        flask.request.host,
+                        flask.url_for('.finish', invitation_hash=hash_code))
+                    msg = mail.Message('Invitation', recipients=[user_email])
+                    msg.body = flask.render_template(
+                        'invitations/email_body.txt', invite_link=invite_link)
+                    C4GD_web.mail.send(msg)
+                    flask.flash('Invitation sent successfully', 'info')
     return {
         'form': form,
         'masks': masks

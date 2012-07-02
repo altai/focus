@@ -149,7 +149,8 @@ def list_users():
 def get_credentials():
     if 'download' in flask.request.args:
         user = flask.session['keystone_unscoped']['access']['user']['username']
-        tenant = clients.admin_clients().keystone.tenants.get(flask.g.tenant_id).name
+        tenant = clients.admin_clients().keystone.tenants.get(
+            flask.g.tenant_id).name
         keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
         response = flask.make_response(
             flask.render_template(
