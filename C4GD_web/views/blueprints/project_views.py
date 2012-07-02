@@ -1,5 +1,6 @@
 # coding=utf-8
 import json
+import re
 
 import flask
 from flask import blueprints
@@ -21,16 +22,28 @@ def show_tenant():
     """
     List VMs for the project
     """
-    c = clients.get_my_clients(flask.g.tenant_id)
+    c = clients.user_clients(flask.g.tenant_id)
     servers = c.compute.servers.list(detailed=True)
     vms_data = [s._info for s in servers]
     vms_data = sorted(vms_data, key=lambda x: x['name'])
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
+    user_id2name = {}
+    uuid_regex = re.compile(
+        r'[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-[a-f0-9]{4}-?[a-f0-9]{12}')
     for x in data:
-        if x['user_id'].isdigit():
-            user = clients.admin_clients().keystone.users.get(x['user_id'])
-            x['user_id'] = user.name
+        user_id = x['user_id']
+        try:
+            x['user_id'] = user_id2name[user_id]
+            pass
+        except KeyError:
+            if user_id.isdigit() or uuid_regex.match(user_id):
+                try:
+                    user = clients.admin_clients().keystone.users.get(user_id)
+                    user_id2name[user_id] = user.name
+                    x['user_id'] = user.name
+                except:
+                    pass
     return {
         'vms': data,
         'pagination': p
@@ -43,7 +56,7 @@ def spawn_vm():
     Spawn VM in the tenant.
 
     '''
-    c = clients.get_my_clients(flask.g.tenant_id)
+    c = clients.user_clients(flask.g.tenant_id)
     images_list = images.get_images_list()
     flavors = c.nova.flavors.list()
     security_groups = c.nova.security_groups.list()

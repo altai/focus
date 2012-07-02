@@ -47,7 +47,7 @@ def get_images_list():
     if getattr(flask.g, 'tenant_id', None):
         result.extend(filter(
             lambda x: x.owner == flask.g.tenant_id and x not in result,
-            clients.get_my_clients(flask.g.tenant_id).glance.images.list()))
+            clients.user_clients(flask.g.tenant_id).glance.images.list()))
     result = sorted(result, key=lambda x: x.name)
     return result
 

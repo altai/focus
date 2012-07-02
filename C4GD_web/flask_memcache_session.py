@@ -12,8 +12,6 @@ class Session(flask.sessions.SessionInterface):
     session_class = SessionData
 
     def open_session(self, app, request):
-        if request.path.startswith('/static'):
-            return None
         self.cookie_session_id = request.cookies.get(
             app.session_cookie_name, None)
         self.session_new = False
@@ -32,8 +30,6 @@ class Session(flask.sessions.SessionInterface):
         return self.session_class(session)
 
     def save_session(self, app, session, response):
-        if not session:
-            return None
         expires = self.get_expiration_time(app, session)
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)

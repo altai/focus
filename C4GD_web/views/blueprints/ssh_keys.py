@@ -12,7 +12,7 @@ bp = environments.project(blueprints.Blueprint('ssh_keys', __name__))
 
 @bp.route('')
 def index():
-    c = clients.get_my_clients(flask.g.tenant_id)
+    c = clients.user_clients(flask.g.tenant_id)
     context = {
         'keys': c.nova.keypairs.list(),
         'delete_form': forms.DeleteForm()
@@ -24,7 +24,7 @@ def index():
 def new():
     form = forms.CreateSSHKey()
     if form.validate_on_submit():
-        c = clients.get_my_clients(flask.g.tenant_id).nova.keypairs.create
+        c = clients.user_clients(flask.g.tenant_id).nova.keypairs.create
         if form.public_key.data:
             c(form.name.data, form.public_key.data)
         else:
@@ -38,7 +38,7 @@ def delete(name):
     try:
         keypair = filter(
             lambda x: x.name == name,
-            clients.get_my_clients(flask.g.tenant_id).nova.keypairs.list())[0]
+            clients.user_clients(flask.g.tenant_id).nova.keypairs.list())[0]
     except IndexError:
         flask.abort(404)
     form = forms.DeleteForm()

@@ -353,7 +353,7 @@ def user_tenants_list(keystone_user):
     because this value will be stored in session and cannot be normally
     serialized.
     """
-#    user_tenants = clients.get_my_clients(None).identity_public.tenants.list()
+#    user_tenants = clients.user_clients(None).identity_public.tenants.list()
 #    user_tenants = [t._info for t in user_tenants]
     user_tenants = []
     all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)

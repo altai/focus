@@ -32,7 +32,7 @@ def on_identity_loaded(sender, identity):
         ]):
             identity.provides.add(('role', 'admin'))
         # TODO(apugachev): use list_roles() when server implemented it
-        for tenant in (clients.get_my_clients(None).
+        for tenant in (clients.user_clients(None).
                        identity_public.tenants.list()):
             identity.provides.add(('role', 'member', tenant.id))
 

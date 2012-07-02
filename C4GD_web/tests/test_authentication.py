@@ -48,7 +48,7 @@ class AuthenticationTestCase(unittest.TestCase):
                 as keystone_obtain_unscoped, \
                 mock.patch('flask.current_app') as current_app,\
                 mock.patch('flask.g'),\
-                mock.patch('C4GD_web.clients.admin_clients()'), \
+                mock.patch('C4GD_web.clients.admin_clients'), \
                 mock.patch('flask.flash'), \
                 mock.patch('flaskext.principal.identity_changed'), \
                 mock.patch('flask.session'):

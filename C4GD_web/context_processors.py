@@ -8,6 +8,7 @@ import flask
 
 import C4GD_web
 from C4GD_web import utils
+from C4GD_web import clients
 
 
 @C4GD_web.app.context_processor
@@ -20,21 +21,20 @@ def navigation_bar_tenant_data():
                 'keystone_unscoped']['access']['user']['id']
             # NOTE(apugachev) use simpler way when keystone works correctly
             # now use simple iteration through all tenants and users
-            tenants = utils.get_visible_tenants()
+            tenants = clients.user_clients(None).identity_public.tenants.list()
+            scoped = flask.session.get('keystone_scoped', {}).keys()
             for tenant in tenants:
-                users = tenant.list_users()
-                if filter(lambda x: x.id == user_id, users):
-                    # TODO(apugachev) take roles from keystone API
-                    # when list_roles() works instead of obtain_scoped
-                    scoped = flask.session.get('keystone_scoped', {}).keys()
-                    if tenant.id not in scoped:
-                        utils.obtain_scoped(tenant.id)
-                    # NOTE(apugachev) templates expect dicts
-                    tenants_with_roles.append(
-                        (tenant._info,
-                         flask.session[
-                             'keystone_scoped'][tenant.id]['access'][
-                                 'user']['roles']))
+                # TODO(apugachev) take roles from keystone API
+                # when list_roles() works instead of obtain_scoped
+                if tenant.id not in scoped:
+                    utils.obtain_scoped(tenant.id)
+                # NOTE(apugachev) templates expect dicts
+                tenants_with_roles.append(
+                    (tenant._info,
+                     flask.session[
+                         'keystone_scoped'][tenant.id]['access'][
+                             'user']['roles']))
+
             return {'tenants_with_roles': tenants_with_roles}
 
     except Exception:

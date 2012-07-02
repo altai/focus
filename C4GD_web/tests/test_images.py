@@ -10,18 +10,20 @@ class ImagesTestCase(unittest.TestCase):
         with \
                 mock.patch('flask.current_app') as current_app,\
                 mock.patch('flask.g') as g,\
-                mock.patch('C4GD_web.clients.get_my_clients')\
-                as get_my_clients,\
-                mock.patch('C4GD_web.clients.admin_clients()') as clients:
+                mock.patch('C4GD_web.clients.user_clients')\
+                as user_clients,\
+                mock.patch('C4GD_web.clients.admin_clients') as clients:
             current_app.config = {
                 'KEYSTONE_CONF': {
-                    'admin_tenant_id': '1'}}
+                    'admin_tenant_id': '1',
+                },
+                'DEFAULT_TENANT_ID': '1'}
             g.tenant_id = None
-            clients.glance.images.list.return_value = images_list
+            clients().glance.images.list.return_value = images_list
             result = images.get_images_list()
             self.assertEqual(len(result), 3)
             g.tenant_id = '6'
-            get_my_clients.return_value.glance.images.list.return_value = \
+            user_clients.return_value.glance.images.list.return_value = \
                 images_list
             result = images.get_images_list()
             self.assertEqual(len(result), 33)
@@ -30,7 +32,7 @@ class ImagesTestCase(unittest.TestCase):
                 result)
             self.assertEqual(len(global_images), 3)
             g.tenant_id = '13'
-            get_my_clients.return_value.glance.images.list.return_value = \
+            user_clients.return_value.glance.images.list.return_value = \
                 images_list
             result = images.get_images_list()
             self.assertEqual(len(result), 15)

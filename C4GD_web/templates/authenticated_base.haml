@@ -28,7 +28,7 @@
                     Select project
                   %b.caret
                 %ul.dropdown-menu
-                  -for tenant, roles in  tenants_with_roles
+                  -for tenant, _ in tenants_with_roles
                     %li
                       %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                         =tenant['name']
