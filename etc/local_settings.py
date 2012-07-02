@@ -12,14 +12,13 @@ NOVA_RO_DATABASE_URI = ''
 NOVA_RW_DATABASE_URI = ''
 
 KEYSTONE_CONF = {
-    'auth_uri': 'http://localhost:5000/v2.0/',
-    'admin_tenant_name': 'systenant',
-    'admin_user': 'admin',
-    'admin_password': '999888777666',
-    'admin_tenant_id': '1'
+    'username': 'admin',
+    'password': 'admin',
+    'auth_uri': 'http://:5000/v2.0',
+    'tenant_name': 'systenant',
 }
 
-DEFAULT_TENANT_ID = KEYSTONE_CONF['admin_tenant_id']
+DEFAULT_TENANT_ID = '1'
 
 MAIL_SERVER = ''
 MAIL_PORT = 25
