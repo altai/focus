@@ -22,7 +22,6 @@ Requires:       MySQL-python
 Requires:       python-wtforms
 Requires:       python-hamlish-jinja
 Requires:       python-requests
-Requires:       python-gevent
 Requires:       python-storm
 Requires:       python-storm-mysql
 Requires:       python-tornado
@@ -50,6 +49,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
+rm -rf %{buildroot}%{python_sitelib}/*/tests
 
 cd redhat
 for script in *.init; do
@@ -95,15 +95,11 @@ exit 0
 %{_usr}/bin/*
 %{_initrddir}/*
 
-%defattr(0775,focus,focus,-)
-%dir %{_sharedstatedir}/focus
-%dir %{_localstatedir}/log/focus
-%dir %{_localstatedir}/run/focus
+%attr(775,focus,focus) %dir %{_localstatedir}/*/focus
 
 %defattr(-,focus,focus,-)
 %dir /etc/focus
 %config(noreplace) /etc/focus/*
-
 
 %changelog
 * Fri May 11 2012 Alessio Ababilov <aababilov@griddynamics.com> - 1.0-0

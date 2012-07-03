@@ -24,8 +24,6 @@ def project(bp):
         if flask.g.tenant_id not in visible_ids:
             flask.abort(404)
         principal.Permission(('role', 'member', flask.g.tenant_id)).test()
-        flask.g.tenant_dict = flask.session[
-            'keystone_scoped'][flask.g.tenant_id]['access']['token']['tenant']
         flask.g.tenant = clients.admin_clients().keystone.tenants.get(
             flask.g.tenant_id)
     return bp

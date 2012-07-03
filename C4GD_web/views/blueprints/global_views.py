@@ -8,7 +8,6 @@ from flaskext import principal
 
 from C4GD_web import clients
 from C4GD_web import exceptions
-from C4GD_web.models import abstract
 from C4GD_web.views import dataset
 from C4GD_web.views import environments
 from C4GD_web.views import exporter
@@ -31,7 +30,7 @@ def billing():
 
     Not all tenants are accessible! Check '11' (pmo)
     '''
-    billing_accounts = abstract.AccountBill.list()
+    billing_accounts = clients.admin_clients().billing.account.list()
     if len(billing_accounts):
         return flask.redirect(
             flask.url_for(
@@ -47,7 +46,7 @@ def billing_details(tenant_id):
     Present billing info for tenant.
     '''
     tenants_in_billing = []
-    for x in abstract.AccountBill.list():
+    for x in clients.admin_clients().billing.account.list():
         try:
             # Billing API calls "ID" - "name"
             t = clients.admin_clients().keystone.tenants.get(x['name'])

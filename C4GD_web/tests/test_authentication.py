@@ -44,8 +44,6 @@ class AuthenticationTestCase(unittest.TestCase):
         with \
                 mock.patch('C4GD_web.utils.neo4j_api_call')\
                 as neo4j_api_call, \
-                mock.patch('C4GD_web.utils.keystone_obtain_unscoped')\
-                as keystone_obtain_unscoped, \
                 mock.patch('flask.current_app') as current_app,\
                 mock.patch('flask.g'),\
                 mock.patch('C4GD_web.clients.admin_clients'), \
@@ -56,8 +54,6 @@ class AuthenticationTestCase(unittest.TestCase):
                 'KEYSTONE_CONF': {
                     'admin_tenant_id': '1'}}
             neo4j_api_call.return_value = self.ODB_GET_USER_RESPONSE
-            keystone_obtain_unscoped.return_value = \
-                self.KEYSTONE_OBTAIN_UNSCOPED_RESPONSE
 
             self.ODB_GET_USER_RESPONSE[0]['passwordHash'] = \
                 create_hashed_password(u'correctpassword')

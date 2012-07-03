@@ -60,7 +60,7 @@ def register_user(username, email, password, role):
                     if r.name == role:
                         clients.admin_clients().keystone.roles.add_user_role(
                             new_keystone_user, r,
-                            tenant=flask.current_app.config['DEFAULT_TENANT_ID']
+                            tenant=clients.get_systenant_id()
                         )
                         break
             return new_keystone_user

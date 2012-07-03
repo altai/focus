@@ -44,117 +44,20 @@ def select_keys(d, keys, strict_order=True):
                 yield v
 
 
-def keystone_obtain_unscoped(user_name, password):
-    request_data = json.dumps({
-        'auth': {
-            'passwordCredentials': {
-                'username': user_name,
-                'password': password
-            },
-        }
-    })
-    response = requests.post(
-        '%s/tokens' % flask.current_app.config[
-            'KEYSTONE_CONF']['auth_uri'],
-        data=request_data,
-        headers={
-            'content-type': 'application/json'
-        })
-    if response_ok(response):
-        return True, unjson(response)
-    return False, ""
-
-
-def keystone_get(path, params={}, is_admin=False):
-    url = flask.current_app.config['KEYSTONE_CONF']['auth_uri'] + path
-    if is_admin:
-        url = url.replace('5000', '35357')
-    headers = {
-        'X-Auth-Token': flask.session[
-        'keystone_unscoped']['access']['token']['id'],
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.get(
-        url,
-        params=params,
-        headers=headers)
-
-    if not response_ok(response):
-        if response.status_code == 401:
-            raise exceptions.GentleException('Access denied', response, params)
-        else:
-            raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' %
-                response.status_code, response)
-
-    return unjson(response)
-
-
-def keystone_post(path, data={}, is_admin=False):
-    url = flask.current_app.config['KEYSTONE_CONF']['auth_uri'] + path
-    if is_admin:
-        url = url.replace('5000', '35357')
-    headers = {
-        'X-Auth-Token': flask.session[
-        'keystone_unscoped']['access']['token']['id'],
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.post(
-        url,
-        data=json.dumps(data),
-        headers=headers)
-    if not response_ok(response):
-        if response.status_code == 401:
-            raise exceptions.GentleException('Access denied', response, data)
-        else:
-            raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' %
-                response.status_code, response)
-
-    return unjson(response)
-
-
-def keystone_delete(path):
-    url = flask.current_app.config['KEYSTONE_CONF']['auth_uri'] + path
-    url = url.replace('5000', '35357')
-    headers = {
-        'X-Auth-Token': flask.session[
-        'keystone_unscoped']['access']['token']['id'],
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.delete(
-        url,
-        headers=headers)
-
-    if not response_ok(response):
-        if response.status_code == 401:
-            raise exceptions.GentleException('Access denied', response, {})
-        else:
-            raise exceptions.KeystoneExpiresException(
-                'Identity server responded with status %d' %
-                response.status_code, response)
-
-
-def get_public_url(tenant_id, service_type):
+def get_public_url_token(tenant_id, service_type, path):
     """
-    Return public url for Openstack service of a given type.
+    Return public url and token for Openstack service of a given type.
 
     Can raise exception if url can't be found.
-    This function depends on scoped token for tenant_id in the session.
+    This function depends on an unscoped token for tenant_id in the session.
     """
-    if tenant_id not in flask.session.get('keystone_scoped', {}):
-        obtain_scoped(tenant_id)
-    catalog = flask.session[
-        'keystone_scoped'][tenant_id]['access']['serviceCatalog']
-    for endpoint in catalog:
-        if endpoint['type'] == service_type:
-            return endpoint['endpoints'][0]['publicURL']
-    raise exceptions.GentleException(
-        'No public URL for %s for tenant "%s"' % (
-            service_type, tenant_id))
+    http_client = clients.user_clients(tenant_id).http_client
+    if not http_client.access:
+        http_client.authenticate()
+    url = http_client.concat_url(
+        http_client.url_for('publicURL', service_type),
+        path)
+    return url, http_client.access["token"]["id"],
 
 
 def openstack_api_call(service_type, tenant_id, path, params={},
@@ -180,10 +83,9 @@ def openstack_api_call(service_type, tenant_id, path, params={},
 
         Separate function is easy to retry.
         '''
-        url = get_public_url(tenant_id, service_type) + path
+        url, token = get_public_url_token(tenant_id, service_type, path)
         headers = {
-            'X-Auth-Token': flask.session[
-                'keystone_scoped'][tenant_id]['access']['token']['id'],
+            'X-Auth-Token': token,
             'Content-Type': 'application/json'
         }
 
@@ -213,95 +115,27 @@ def openstack_api_call(service_type, tenant_id, path, params={},
 
     response = perform(tenant_id, path, params)
     if not response_ok(response):
-        obtain_scoped(tenant_id)
-        response = perform(tenant_id, path, params)
-        if not response_ok(response):
-            try:
-                r = unjson(response)
-                if 'cloudServersFault' in r:
-                    raise exceptions.GentleException(
-                        'API response was: %s' %
-                        r['cloudServersFault']['message'], response)
-                elif 'itemNotFound' in r:
-                    raise exceptions.GentleException(
-                        'API response was: %s' %
-                        r['itemNotFound']['message'], response)
-                else:
-                    raise exceptions.GentleException(
-                        'API response was: %s' % r, response)
-            except Exception:
-                raise
+        try:
+            r = unjson(response)
+            if 'cloudServersFault' in r:
+                raise exceptions.GentleException(
+                    'API response was: %s' %
+                    r['cloudServersFault']['message'], response)
+            elif 'itemNotFound' in r:
+                raise exceptions.GentleException(
+                    'API response was: %s' %
+                    r['itemNotFound']['message'], response)
             else:
                 raise exceptions.GentleException(
-                    'Can\'t make API call for %s for tenant "%s"' % (
-                        service_type, tenant_id), response)
+                    'API response was: %s' % r, response)
+        except Exception:
+            raise
+        else:
+            raise exceptions.GentleException(
+                'Can\'t make API call for %s for tenant "%s"' % (
+                    service_type, tenant_id), response)
     return unjson(response)
 
-
-def obtain_scoped(tenant_id, is_admin=True):
-    data = keystone_post(
-        'tokens',
-        data={
-            'auth': {
-                'token': {
-                    'id': flask.session[
-                        'keystone_unscoped']['access']['token']['id']
-                },
-                'tenantId': tenant_id,
-            }
-        }, is_admin=True)
-    if 'keystone_scoped' not in flask.session:
-        flask.session['keystone_scoped'] = {}
-    flask.session['keystone_scoped'][tenant_id] = data
-
-
-def billing_api_call(path, params={}, http_method=False):
-    assert http_method, 'Use billing API functions wrapped'
-    # TODO(apugachev) use BillingHeartClient
-    # we have at least 1 scoped token, serviceCatalog exists.
-    url = map(
-        lambda x: x['endpoints'][0]['publicURL'],
-        filter(
-            lambda x: x['type'] == 'nova-billing',
-            flask.session['keystone_scoped'].values()[0][
-                'access']['serviceCatalog']
-        )
-    )[0] + path
-    headers = {
-        'X-Auth-Token': flask.session[
-            'keystone_unscoped']['access']['token']['id'],
-        'Content-Type': 'application/json'
-    }
-
-    if http_method in [requests.post, requests.put, requests.patch]:
-        kw = {'data': json.dumps(params)}
-    else:
-        kw = {'params': params}
-    if flask.current_app.debug:
-        config = {'verbose': sys.stdout}
-    else:
-        config = {}
-    response = http_method(
-        url,
-        headers=headers,
-        config=config,
-        **kw)
-
-    if flask.current_app.debug:
-        flask.current_app.logger.info(headers)
-        flask.current_app.logger.info(kw)
-        flask.current_app.logger.info(response.content)
-
-    if not response_ok(response):
-        raise exceptions.BillingAPIError(
-            'Billing API responds with code %s' % response.status_code,
-            response)
-
-    return unjson(response)
-
-
-billing_get = functools.partial(billing_api_call, http_method=requests.get)
-billing_post = functools.partial(billing_api_call, http_method=requests.post)
 
 
 def create_hashed_password(password):
@@ -346,27 +180,24 @@ def neo4j_api_call(path, params={}, method='GET'):
 
 def user_tenants_list(keystone_user):
     """
-    Not implemented in Keystone API feature
-    Returns a list of tenants keystone_user belongs to.
+    Returns a list of tenants in which keystone_user has
+    admin or member role.
 
-    Important: Should return dicts instead of Keystone client internal objects,
+    Important: Should return dicts instead of Keystone client internal objects
     because this value will be stored in session and cannot be normally
     serialized.
     """
-#    user_tenants = clients.user_clients(None).identity_public.tenants.list()
-#    user_tenants = [t._info for t in user_tenants]
-    user_tenants = []
-    all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
-    for tenant in all_tenants:
-        roles = keystone_user.list_roles(tenant)
-        if len(roles):
-            user_tenants.append({u'id': tenant.id,
-                                u'enabled': tenant.enabled,
-                                u'description': tenant.description,
-                                u'name': tenant.name})
-    return user_tenants
+    roles = (clients.admin_clients().identity_admin.roles.
+             roles_for_user(keystone_user))
+    user_tenants = {}
+    for role_tenant in roles:
+        if (clients.role_is_admin(role_tenant.role["name"]) or
+            clients.role_is_member(role_tenant.role["name"])):
+            user_tenants[role_tenant.tenant["id"]] = role_tenant.tenant
+    return user_tenants.values()
 
 
+# TODO: get rid of these inefficient calls
 def user_tenants_with_roles_list(keystone_user):
     """
     Not implemented in Keystone API feature
@@ -400,7 +231,7 @@ def get_visible_tenants():
 
     Exclude systenants and tenants which are not enabled.
     """
-    systenant_id = flask.current_app.config['DEFAULT_TENANT_ID']
+    systenant_id = clients.get_systenant_id()
     return filter(
         lambda x: x.enabled and x.id != systenant_id,
         clients.admin_clients().keystone.tenants.list())

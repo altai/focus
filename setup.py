@@ -37,7 +37,6 @@ setup(
         'Werkzeug',
         'Hamlish-Jinja',
         'requests',
-        'gevent',
         'storm',
         'netaddr'
     ],

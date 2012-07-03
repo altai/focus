@@ -7,7 +7,7 @@ import sys
 import flask
 from flask import blueprints
 
-from C4GD_web.models import abstract
+from C4GD_web import clients
 from C4GD_web.views import environments
 from C4GD_web.views import forms
 
@@ -18,19 +18,19 @@ bp = environments.admin(blueprints.Blueprint('tariffs', __name__))
 @bp.route('')
 def index():
     """List tariffs"""
-    tariffs = abstract.Tariff.list()
+    tariffs = clients.admin_clients().billing.tariff.list()
     return {'tariffs': tariffs}
 
 
 @bp.route('<path:name>/', methods=['GET', 'POST'])
 def edit(name):
     """Edit tariff"""
-    tariffs = abstract.Tariff.list()
+    tariffs = clients.admin_clients().billing.tariff.list()
     # TODO(apugachev) - handle nonexisting tariff, KeyError in next line
     form = forms.TariffEditForm(price=tariffs[name])
     if form.validate_on_submit():
         try:
-            response = abstract.Tariff.update(
+            response = clients.admin_clients().billing.tariff.update(
                 name,
                 form.price.data,
                 form.migrate.data)

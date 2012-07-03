@@ -18,8 +18,6 @@ KEYSTONE_CONF = {
     'tenant_name': 'systenant',
 }
 
-DEFAULT_TENANT_ID = '1'
-
 MAIL_SERVER = ''
 MAIL_PORT = 25
 DEFAULT_MAIL_SENDER = ('RobotName', 'robot_email@fake.to')

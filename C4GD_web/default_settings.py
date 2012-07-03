@@ -32,9 +32,8 @@ KEYSTONE_CONF = {
     'auth_uri': 'http://:5000/v2.0',
     'tenant_name': 'systenant',
 }
-# id of systenant, as string
-DEFAULT_TENANT_ID = '1'
-ADMIN_ROLE_NAME = 'Admin'
+SYSTENANT_NAME = 'systenant'
+
 MEMCACHED_HOST = '127.0.0.1:11211'
 KEYSTONECLIENT_DEBUG = False
 ADMINS = []

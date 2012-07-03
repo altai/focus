@@ -39,7 +39,7 @@ def get_images_list():
 
     That's why we combine image lists here in case if list is for project.
     """
-    admin_id = flask.current_app.config['DEFAULT_TENANT_ID']
+    admin_id = clients.get_systenant_id()
     is_global = lambda x: x.owner == admin_id and x.is_public
     result = filter(
         is_global,
@@ -69,8 +69,7 @@ def get_bp(name):
                 'nova_image': nova_image}
 
     def get_tenant_id():
-        return getattr(flask.g, 'tenant_id', None) or \
-            flask.current_app.config['DEFAULT_TENANT_ID']
+        return getattr(flask.g, 'tenant_id', clients.get_systenant_id())
 
     @bp.route('')
     def index():
@@ -119,8 +118,6 @@ def get_bp(name):
             path = C4GD_web.files_uploads.path(
                 flask.request.form['uploaded_filename'])
             try:
-                if get_tenant_id() not in flask.session['keystone_scoped']:
-                    utils.obtain_scoped(get_tenant_id())
                 response = abstract.Image.create(
                     get_tenant_id(),
                     flask.request.form['name'],
@@ -172,7 +169,7 @@ def get_bp(name):
     def delete(image_id):
         image = clients.admin_clients().glance.images.get(image_id)
         owner = getattr(image, 'owner')
-        if owner == flask.current_app.config['DEFAULT_TENANT_ID']:
+        if owner == clients.get_systenant_id():
             principal.Permission(('role', 'admin')).test()
         else:
             principal.Permission(('role', 'member', owner)).test()

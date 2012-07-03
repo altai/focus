@@ -19,29 +19,6 @@ bp = environments.admin(
     blueprints.Blueprint('global_user_management', __name__))
 
 
-def get_admin_role_id():
-    """Return ID of Admin role.
-
-    """
-    for role in clients.admin_clients().keystone.roles.list():
-        if role.name == flask.current_app.config['ADMIN_ROLE_NAME']:
-            return role.id
-    else:
-        raise RuntimeError('Admin role does not exist')
-
-
-def get_member_role_id():
-    """Return ID of Member role.
-
-    :raises: RuntimeError if Member roles does not exist
-    """
-    for role in clients.admin_clients().keystone.roles.list():
-        if role.name == 'Member':
-            return role.id
-    else:
-        raise RuntimeError('Member role does not exist')
-
-
 @bp.route('', methods=['GET'])
 def index():
     """List users.
@@ -49,30 +26,33 @@ def index():
     TODO(apugachev): find way to count users without fetching all users.
     This would allow to use marker and limit to fetch one page only.
     """
+    identity_admin = clients.admin_clients().identity_admin
     users = sorted(
-        clients.admin_clients().keystone.users.list(limit=1000000),
+        identity_admin.users.list(limit=1000000),
         key=lambda x: x.name)
     p = pagination.Pagination(users)
     data = p.slice(users)
-    tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
+    potential_admins = set([
+            user.id
+            for user in (identity_admin.users.list(
+                    clients.get_systenant_id()))])
     for user in data:
         # TODO(apugachev) modify to work with form.DeleteUser
         form = forms.DeleteUserForm()
         form.user_id.data = user.id
         user.delete_form = form
-        for tenant in tenants:
-            user.is_global_admin = any(
-                map(
-                    lambda x: x.name ==
-                    flask.current_app.config['ADMIN_ROLE_NAME'],
-                    user.list_roles(tenant)))
-            break
+        if user.id in potential_admins:
+            for role in (identity_admin.roles.
+                         roles_for_user(user.id)):
+                if clients.role_tenant_is_admin(role):
+                    user.is_global_admin = True
+                    break
     return {
         'pagination': p,
         'data': data
     }
 
-
+# TODO: rewrite this function in a more efficient way
 @bp.route('<user_id>/', methods=['GET'])
 def show(user_id):
     '''Show user details.
@@ -81,7 +61,7 @@ def show(user_id):
     '''
     def is_non_admin(tenant):
         return tenant.id != \
-            flask.current_app.config['DEFAULT_TENANT_ID']
+            clients.get_systenant_id()
     user = clients.admin_clients().keystone.users.get(user_id)
     user_roles = filter(
         lambda x: is_non_admin(x[0]),
@@ -117,7 +97,7 @@ def add_user_to_project():
     """
     form = forms.AddUserToProject()
     tenant = clients.admin_clients().keystone.tenants.get(form.project.data)
-    tenant.add_user(form.user.data, get_member_role_id())
+    tenant.add_user(form.user.data, clients.get_role_id("member"))
     flask.flash('User was added to project', 'success')
     return flask.redirect(flask.url_for('.show', user_id=form.user.data))
 
@@ -154,8 +134,8 @@ def grant_admin(user_id):
     """
     clients.admin_clients().keystone.roles.add_user_role(
         user_id,
-        get_admin_role_id(),
-        flask.current_app.config['DEFAULT_TENANT_ID'])
+        clients.get_role_id("member"),
+        clients.get_systenant_id())
     flask.flash('Admin role granted', 'success')
     return flask.redirect(flask.url_for('.index'))
 
@@ -171,8 +151,8 @@ def revoke_admin(user_id):
     """
     clients.admin_clients().keystone.roles.remove_user_role(
         user_id,
-        get_admin_role_id(),
-        flask.current_app.config['DEFAULT_TENANT_ID'])
+        clients.get_role_id("admin"),
+        clients.get_systenant_id())
     flask.flash('Admin role removed', 'success')
     return flask.redirect(flask.url_for('.index'))
 

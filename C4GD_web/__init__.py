@@ -1,7 +1,4 @@
 # coding=utf-8
-from gevent import monkey
-monkey.patch_all()
-
 import logging
 import os
 import socket
@@ -71,7 +68,7 @@ Message:
     rotating_file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(rotating_file_handler)
 
-ch = logging.StreamHandler()
+ch = logging.FileHandler(app.config['LOG_FILE'])
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 _logger.addHandler(ch)

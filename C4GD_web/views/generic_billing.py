@@ -3,14 +3,17 @@ import datetime
 
 import flask
 
+from C4GD_web import clients
 from C4GD_web.models import abstract
+
+from openstackclient_base.exceptions import NotFound
 
 
 class Dataset(object):
     def __init__(self, params=None, delayed=False, user_id=None,
                  tenant_id=None):
         self.data = account_bill_show(
-            params.account_id, user_id, tenant_id,
+            user_id, tenant_id,
             period_start=params.period_start,
             period_end=params.period_end,
             time_period=params.time_period)
@@ -134,9 +137,13 @@ def _concentrate_resources(resources, tenant_id):
         resources)
 
 
-def account_bill_show(account_id, user_id, tenant_id, **kw):
+def account_bill_show(user_id, tenant_id, **kw):
     # list with tenant_id as ['name']
-    bill = abstract.AccountBill.get(account_id, **kw)[0]
+    try:
+        bill = clients.admin_clients().billing.report.list(
+            account_name=tenant_id, **kw)["accounts"][0]
+    except NotFound:
+        return {'resources': []}
     bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
     bill['resources'] = _compact_bill(bill['resources'])
     return bill
@@ -157,7 +164,7 @@ def generic_billing(tenant, user, tenants=None):
             'data': d.data
         })
     else:
-        tariffs = abstract.Tariff.list()
+        tariffs = clients.admin_clients().billing.tariff.list()
         context = {
             'tenant_id': tenant.id,
             'tariffs': tariffs

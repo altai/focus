@@ -3,7 +3,7 @@
   %div.container
     %header.jumbotron.subhead#overview
       %h1
-        =g.tenant_dict['name']
+        =g.tenant.name
     %div.subnav
       %ul.nav.nav-pills
         %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=g.tenant_id) %}active{% endif %}"

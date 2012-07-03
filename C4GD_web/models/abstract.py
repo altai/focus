@@ -8,6 +8,7 @@ import requests
 
 import flask
 
+from C4GD_web import clients
 from C4GD_web import exceptions
 from C4GD_web import utils
 
@@ -140,7 +141,7 @@ class OpenstackMixinBase(object):
             tenants = [x['id'] for x in flask.session['tenants']]
             if len(tenants):
                 return tenants
-        return [flask.current_app.config['DEFAULT_TENANT_ID']]
+        return [clients.get_systenant_id()]
 
 
 class OpenstackDeleteMixin(object):
@@ -196,66 +197,27 @@ class Image(GlanceAPI):
         - content type application/octet-stream
         - image size
         Post request with file content as body.
-        Return key 'image' from unjsoned response.
+        Return image dict.
         """
-        size_in_bytes = os.path.getsize(path)
-        headers = {
-            'X-Auth-Token': flask.session['keystone_scoped'][tenant_id][
-                'access']['token']['id'],
-            'content-type': 'application/octet-stream',
-            'x-image-meta-size': unicode(size_in_bytes),
-            'content-length': unicode(size_in_bytes),
-            'x-image-meta-is_public': unicode(public),
-            'x-image-meta-name': name,
-            'x-image-meta-container_format': container_format,
-            'x-image-meta-disk_format': disk_format,
-            'x-image-meta-property-image_state': 'available',
-            'x-image-meta-property-project_id': tenant_id,
-            'x-image-meta-property-architecture': architecture,
-            'x-image-meta-property-image_location': 'local'
-        }
+        properties = {
+                'image_state': 'available',
+                'project_id': tenant_id,
+                'architecture': architecture,
+                'image_location': 'local'}
         if kernel_id:
-            headers['x-image-meta-property-kernel_id'] = int(kernel_id)
+            properties['kernel_id'] = int(kernel_id)
         if ramdisk_id:
-            headers['x-image-meta-property-ramdisk_id'] = int(ramdisk_id)
-        url = utils.get_public_url(tenant_id, cls.service_type) + cls.base
-        t = urlparse.urlparse(url)
-        connection_type = get_connection_type(t.scheme)
-        connection = connection_type(t.hostname, t.port or 80)
-        connection.putrequest('POST', t.path)
-        for header, value in headers.items():
-            connection.putheader(header, value)
-        connection.endheaders()
-        CHUNKSIZE = 65536
-        with open(path) as fp:
-            chunk = fp.read(CHUNKSIZE)
-            while chunk:
-                connection.send('%x\r\n%s\r\n' % (len(chunk), chunk))
-                chunk = fp.read(CHUNKSIZE)
-        connection.send('0\r\n\r\n')
-        response = connection.getresponse()
-        status_code = get_status_code(response)
-        if status_code not in (httplib.OK, httplib.CREATED, httplib.ACCEPTED,
-                               httplib.NO_CONTENT):
-            flask.current_app.logger.info(
-                'Abnormal request result: %s' % response.read())
-            if status_code == httplib.UNAUTHORIZED:
-                raise RuntimeError('Glance: User not authorized')
-            elif status_code == httplib.FORBIDDEN:
-                raise RuntimeError('Glance: User not authorized')
-            elif status_code == httplib.NOT_FOUND:
-                raise RuntimeError('Glance: Not found')
-            elif status_code == httplib.CONFLICT:
-                raise RuntimeError('Glance: Bad request. Duplicate data')
-            elif status_code == httplib.BAD_REQUEST:
-                raise RuntimeError('Glance: Bad request')
-            elif status_code == httplib.MULTIPLE_CHOICES:
-                raise RuntimeError('Glance: Multiple choices')
-            elif status_code == httplib.INTERNAL_SERVER_ERROR:
-                raise RuntimeError('Glance: Internal Server error')
-            else:
-                raise RuntimeError('Glance: Unknown error occurred')
-        return utils.unjson(response, attr='read()')['image']
+            properties['ramdisk_id'] = int(ramdisk_id)
+        kwargs = {
+            'name': name,
+            'disk_format': disk_format,
+            'container_format': container_format,
+            'size': str(os.path.getsize(path)),
+            'is_public': str(public),
+            'properties': properties}
+        image = clients.user_clients(tenant_id).image.images.create(
+            **kwargs)
+        return image._info
 
 
 def get_connection_type(scheme):
@@ -366,47 +328,12 @@ class SecurityGroup(NovaAPI):
         return obj['security_groups']
 
 
-class AccountBill(Base):
-    @classmethod
-    def list(cls):
-        return utils.billing_get('/account')
-
-    @classmethod
-    def get(cls, account_id, **kwargs):
-        request_data = {
-            'account_name': account_id,
-        }
-
-        for x in 'time_period', 'period_start', 'period_end':
-            if kwargs.get(x) is not None:
-                request_data[x] = kwargs[x]
-
-        return utils.billing_get('/report', params=request_data)['accounts']
-
-
 class Volume(NovaAPI):
     base = '/gd-local-volumes'
 
     @staticmethod
     def list_accessor(obj):
         return obj['volumes']
-
-
-class Tariff(Base):
-    @classmethod
-    def list(cls):
-        return utils.billing_get('/tariff')
-
-    @classmethod
-    def update(cls, name, price, migrate):
-        request_data = {
-            'datetime': '%sZ' % datetime.datetime.utcnow().isoformat(),
-            'migrate': migrate,
-            'values': {
-                name: float(price),
-            }
-        }
-        return utils.billing_post('/tariff', request_data)
 
 
 class SSHKey(NovaAPI):

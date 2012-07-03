@@ -14,6 +14,8 @@ from C4GD_web import utils
 
 from C4GD_web.views import forms
 
+from openstackclient_base.exceptions import Unauthorized
+
 
 def _login(username, password):
     try:
@@ -22,43 +24,38 @@ def _login(username, password):
         }, 'GET')[0]
     except KeyError:
         # NOTE(apugachev)odb does not the email
-        pass
-    else:
-        try:
-            is_password_valid = odb_user['passwordHash'] == \
-                utils.create_hashed_password(password)
-        except UnicodeEncodeError:
-            # NOTE(apugachev) md5 digest does not work with unicode
-            # and the password can't be unicode right now
-            pass
-        else:
-            if is_password_valid:
-                # NOTE(apugachev)
-                # odb username is Keystone user name
-                # password is the same as Keystone password
-                success, unscoped_token = \
-                    utils.keystone_obtain_unscoped(
-                        odb_user['username'], password)
-                if success:
-                    flask.session['user'] = odb_user
-                    flask.g.is_authenticated = True
-                    flask.flash(
-                        'You were logged in successfully.',
-                        'success')
-                    flask.session['keystone_unscoped'] = unscoped_token
-                    user_tenants = utils.user_tenants_list(
-                        utils.get_keystone_user_by_username(
-                            odb_user['username']))
-                    flask.session['tenants'] = user_tenants
-                    # NOTE(apugachev)
-                    # Principal identity name is Keystone user id
-                    principal.identity_changed.send(
-                        C4GD_web.app,
-                        identity=principal.Identity(
-                            flask.session['keystone_unscoped'][
-                                'access']['user']['id']))
-                    return True
-    return False
+        return False
+    try:
+        is_password_valid = odb_user['passwordHash'] == \
+            utils.create_hashed_password(password)
+    except UnicodeEncodeError:
+        # NOTE(apugachev) md5 digest does not work with unicode
+        # and the password can't be unicode right now
+        return False
+    if not is_password_valid:
+        return False
+    # NOTE(apugachev)
+    # odb username is Keystone user name
+    # password is the same as Keystone password
+    try:
+        clients.create_unscoped(odb_user['username'], password)
+    except Unauthorized:
+        return False
+    flask.session['user'] = odb_user
+    flask.g.is_authenticated = True
+    flask.flash('You were logged in successfully.', 'success')
+    user_tenants = utils.user_tenants_list(
+        utils.get_keystone_user_by_username(
+            odb_user['username']))
+    flask.session['tenants'] = user_tenants
+    # NOTE(apugachev)
+    # Principal identity name is Keystone user id
+    principal.identity_changed.send(
+        C4GD_web.app,
+        identity=principal.Identity(
+            flask.session['keystone_unscoped'][
+                'access']['user']['id']))
+    return True
 
 
 @C4GD_web.app.route('/login/', methods=['GET', 'POST'])

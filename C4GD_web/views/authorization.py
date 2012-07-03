@@ -13,28 +13,29 @@ principals = principal.Principal(C4GD_web.app)
 def on_identity_loaded(sender, identity):
     """Add admin and project participation roles.
 
-    If user is authenticated and user has role Admin in default admin tenant he
-    has role admin permission. If user is authenticated and user participates
-    in a tenant he has project member permission.
+    If user is authenticated and user has admin role in systenant,
+    he has role admin permission.
+    If user is authenticated and user participates in a tenant,
+    he has project member permission.
     Exclude endpoints which do not require authentication/authorization.
     """
     is_anon = identity.name == 'anon'
     loose_endpoints = flask.current_app.config['ANONYMOUS_ALLOWED']
     is_loose = flask.request.endpoint in loose_endpoints
-    if not (is_loose or is_anon):
-        user = clients.admin_clients().keystone.users.get(identity.name)
-        roles = clients.admin_clients().keystone.roles.roles_for_user(
-            identity.name,
-            flask.current_app.config['DEFAULT_TENANT_ID'])
-        if any([
-            x.name == flask.current_app.config['ADMIN_ROLE_NAME']
-            for x in roles
-        ]):
-            identity.provides.add(('role', 'admin'))
-        # TODO(apugachev): use list_roles() when server implemented it
-        for tenant in (clients.user_clients(None).
-                       identity_public.tenants.list()):
-            identity.provides.add(('role', 'member', tenant.id))
+    if is_loose or is_anon:
+        return
+    roles = (clients.admin_clients().identity_admin.roles.
+             roles_for_user(identity.name))
+    is_admin = False
+    for role_tenant in roles:
+        if clients.role_tenant_is_admin(role_tenant):
+            is_admin = True
+        if clients.role_is_member(role_tenant.role["name"]):
+            identity.provides.add(
+                ('role', 'member', role_tenant.tenant["id"]))
+
+    if is_admin:
+        identity.provides.add(('role', 'admin'))
 
 
 if not C4GD_web.app.debug:
