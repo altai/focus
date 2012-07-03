@@ -147,21 +147,21 @@ def list_users():
 
 @bp.route('get-credentials/')
 def get_credentials():
-    if 'download' in flask.request.args:
-        user = flask.session['keystone_unscoped']['access']['user']['username']
-        tenant = clients.admin_clients().keystone.tenants.get(
-            flask.g.tenant_id).name
-        keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
-        response = flask.make_response(
-            flask.render_template(
+    user = flask.session['keystone_unscoped']['access']['user']['username']
+    tenant = clients.admin_clients().keystone.tenants.get(
+        flask.g.tenant_id).name
+    keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
+    credentials_text = flask.render_template(
                 'project_views/get_credentials.txt',
                 **{
                     'user': user,
                     'tenant': tenant,
-                    'keystone_url': keystone_url}))
+                    'keystone_url': keystone_url}) 
+    if 'download' in flask.request.args:
+        response = flask.make_response(credentials_text)
         response.headers['Content-Disposition'] = \
             'attachment; filename=nova-rc-%s' % tenant
         response.headers['Content-Type'] = 'text/plain'
         return response
     else:
-        return {}
+        return {'credentials_text': credentials_text}
