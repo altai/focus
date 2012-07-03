@@ -65,7 +65,7 @@ def delete(object_id):
         store.execute(
             'UPDATE networks SET project_id = NULL, label = ? '
             'WHERE project_id = ?',
-            ('net' + vlan, object_id,))
+            ('net%s' % vlan, object_id,))
         store.commit()
         # delete tenant
         tenant.delete()
