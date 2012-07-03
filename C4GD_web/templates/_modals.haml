@@ -1,0 +1,37 @@
+-macro show_modal(obj, msg=None, action=None, extra_fields=None, add_next=True, form_action=None)
+  %div.modal.hide id="{{ action.replace(' ', '_') }}_{{ obj['id'] }}"
+    %div.modal-header
+      %a.close data-dismiss="modal"
+        ×
+      %h3
+        Confirmation request
+    %div.modal-body
+      %p
+        {% if msg %}
+          {{ msg }}
+        {% else %}
+          Sure to {{ action }} "{{ obj['name'] }}"?
+        {% endif %}
+    %div.modal-footer
+      %form method="post" action="{{ form_action }}"
+        {% if extra_fields %}
+          {% for extra_field in extra_fields %}
+            {{ extra_field }}
+          {% endfor %}
+        {% endif %}
+        {% if add_next %}
+          %input type="hidden" name="next" value="{{ request.path }}"
+        {% endif %}
+        %button.btn
+          Yes, {{ action }}
+        %a.btn.btn-primary href="#" data-dismiss="modal"
+          No                  
+  %a data-toggle="modal" href="#{{ action.replace(' ', '_') }}_{{ obj['id'] }}"
+    {% if action=='delete' %} 
+      %i.icon-remove
+    {% endif %}
+    {% if action.startswith('reboot ') %}
+      {{ action.replace('reboot ', '') }}
+    {% else %}
+      {{ action }}
+    {% endif %}

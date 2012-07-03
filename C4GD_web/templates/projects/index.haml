@@ -16,6 +16,7 @@
           Enabled
         %th
           Actions
+      -from "_modals.haml" import show_modal with context
       -for object in objects
         %tr
           %td
@@ -27,22 +28,5 @@
             -if object.enabled:
               yes
           %td
-            %div.modal.hide id="delete_{{ object.id }}"
-              %div.modal-header
-                %a.close data-dismiss="modal"
-                  ×
-                %h3
-                  Confirmation request
-              %div.modal-body
-                %p
-                  Sure to delete "{{ object.name }}"?
-              %div.modal-footer
-                %form method="post" action="{{ url_for('.delete', object_id=object.id) }}"
-                  {{ delete_form.hidden_tag() }}
-                  %button.btn
-                    Delete
-                  %a.btn.btn-primary href="#" data-dismiss="modal"
-                    No
-            %a data-toggle="modal" href="#delete_{{ object.id }}"
-              delete
+            {{ show_modal(object, msg='Sure to delete "%s"?' % object.name, action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete', object_id=object.id)) }}
   -include "pagination.haml"

@@ -18,6 +18,7 @@
           %th
             Actions
       %tbody
+        -from "_modals.haml" import show_modal with context
         -for vm in vms
           %tr
             %td
@@ -35,63 +36,9 @@
               -if vm['id'] in session.get('removed_vms', []):
                 &nbsp;
               -else:
-                %div.modal.hide id="remove_vm-{{ vm['id'] }}"
-                  %div.modal-header
-                    %a.close data-dismiss="modal"
-                      ×
-                    %h3
-                      Confirmation request
-                  %div.modal-body
-                    %p
-                      Sure to remove VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                  %div.modal-footer
-                    %form method="post" action="{{ url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id']) }}"
-                      %input type="hidden" name="next" value="{{ request.path }}"
-                      %button.btn
-                        Yes, remove it
-                      %a.btn.btn-primary href="#" data-dismiss="modal"
-                        No                  
-                %a data-toggle="modal" href="#remove_vm-{{ vm['id'] }}" 
-                  %i.icon-remove
-                  remove
-
+                {{ show_modal(vm, msg='Sure to delete VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='delete', form_action=url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'])) }}
                 reboot:
-                %div.modal.hide id="reboot_vm-{{ vm['id'] }}-soft"
-                  %div.modal-header
-                    %a.close data-dismiss="modal"
-                      ×
-                    %h3
-                      Confirmation request
-                  %div.modal-body
-                    %p
-                      Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                  %div.modal-footer
-                    %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft') }}"
-                      %input type="hidden" name="next" value="{{ request.path }}"
-                      %button.btn
-                        Reboot
-                      %a.btn.btn-primary href="#" data-dismiss="modal"
-                        No 
-                %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-soft" 
-                  soft
-
-                %div.modal.hide id="reboot_vm-{{ vm['id'] }}-hard"
-                  %div.modal-header
-                    %a.close data-dismiss="modal"
-                      ×
-                    %h3
-                      Confirmation request
-                  %div.modal-body
-                    %p
-                      Sure to reboot VM "{{ vm['name'] }}" spawned by {{ vm['user_id'] }}?
-                  %div.modal-footer
-                    %form method="post" action="{{ url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard') }}"
-                      %input type="hidden" name="next" value="{{ request.path }}"
-                      %button.btn
-                        Reboot
-                      %a.btn.btn-primary href="#" data-dismiss="modal"
-                        No 
-                %a data-toggle="modal" href="#reboot_vm-{{ vm['id'] }}-hard" 
-                  hard
+                {{ show_modal(vm, msg='Sure to reboot VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reboot soft', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft')) }}
+                {{ show_modal(vm, msg='Sure to reboot VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reboot hard', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard')) }}
             
   -include "pagination.haml"
