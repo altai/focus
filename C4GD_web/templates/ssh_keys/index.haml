@@ -21,9 +21,9 @@
       -for key in keys:
         %tr
           %td
-            "{{ key.name }}"
+            {{ key.name }}
           %td
-            "{{ key.fingerprint }}"
+            {{ key.fingerprint }}
           %td
             %div.modal.hide id="show_key_{{ key.name }}"
               %div.modal-header
