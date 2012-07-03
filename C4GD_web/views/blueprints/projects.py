@@ -58,10 +58,10 @@ def delete(object_id):
         for x in vms:
             x.delete()
         # detach network
-        store.execute(
+        rows = store.execute(
             'SELECT vlan FROM networks WHERE project_id = ?',
             (object_id,))
-        vlan = store.get_one()[0]
+        vlan = rows.get_one()[0]
         store.execute(
             'UPDATE networks SET project_id = NULL, label = ? '
             'WHERE project_id = ?',
