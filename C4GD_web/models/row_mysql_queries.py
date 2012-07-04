@@ -19,7 +19,7 @@ def prepare_database_connection(func):
 @prepare_database_connection
 def save_invitation(email, hash_code, role):
     flask.g.inv_store.execute(
-        'INSERT INTO invitations.invitations SET '
+        'INSERT INTO invitations SET '
         'email = ?, hash = ?, complete = ?, role = ?',
         (email, hash_code, 0, role))
     flask.g.inv_store.commit()
@@ -28,7 +28,7 @@ def save_invitation(email, hash_code, role):
 @prepare_database_connection
 def get_invitation_by_hash(invitation_hash):
     return flask.g.inv_store.execute(
-        'SELECT * FROM invitations.invitations '
+        'SELECT * FROM invitations '
         'WHERE invitations.hash = ?',
         (invitation_hash, )).get_one()
 
@@ -36,7 +36,7 @@ def get_invitation_by_hash(invitation_hash):
 @prepare_database_connection
 def update_invitation(invitation_id, email, hash_code):
     flask.g.inv_store.execute(
-        'UPDATE invitations.invitations SET '
+        'UPDATE invitations SET '
         'email = ?, hash = ?, complete = ? '
         'WHERE id = ?',
         (email, hash_code, 1, invitation_id))
@@ -46,13 +46,13 @@ def update_invitation(invitation_id, email, hash_code):
 @prepare_database_connection
 def get_masks():
     return flask.g.inv_store.execute(
-        'SELECT email_mask FROM invitations.email_masks').get_all()
+        'SELECT email_mask FROM email_masks').get_all()
 
 
 @prepare_database_connection
 def save_recovery(email, hash_code, complete):
     flask.g.inv_store.execute(
-        'INSERT INTO invitations.recovery_requests SET '
+        'INSERT INTO recovery_requests SET '
         'email = ?, hash = ?, complete = ?',
         (email, hash_code, complete))
     flask.g.inv_store.commit()
@@ -61,5 +61,5 @@ def save_recovery(email, hash_code, complete):
 @prepare_database_connection
 def get_recovery_request_by_hash(recovery_hash):
     return flask.g.inv_store.execute(
-        'SELECT * FROM invitations.recovery_requests '
+        'SELECT * FROM recovery_requests '
         'WHERE recovery_requests.hash = ?', (recovery_hash,)).get_one()
