@@ -30,7 +30,7 @@ def show_tenant():
     data = p.slice(vms_data)
     user_id2name = {}
     uuid_regex = re.compile(
-        r'[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-[a-f0-9]{4}-?[a-f0-9]{12}')
+        r'[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}')
     for x in data:
         user_id = x['user_id']
         try:
