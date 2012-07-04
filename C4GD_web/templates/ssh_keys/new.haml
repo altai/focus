@@ -1,4 +1,6 @@
 -extends "projects_base.haml"
+-block amdjs
+  %script src="{{ url_for('static', filename='amd/ssh_keys_add.js') }}"
 -block subnav
   =super()
   -include "ssh_keys/_subnav.haml"
