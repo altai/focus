@@ -82,6 +82,7 @@ def login():
             return flask.redirect(form.next.data)
         # required to wipe artifacts of unsuccessful attempts
         flask.session.clear()
+        flask.session['wrong_email'] = form.email.data
         flask.flash('Wrong email/password.', 'error')
     return {'form': form}
 
@@ -174,6 +175,8 @@ def password_recovery_request():
                                              recovery_link=recovery_link)
             C4GD_web.mail.send(msg)
             flask.flash('Recovery request was sent successfully', 'info')
+    if 'wrong_email' in flask.session:
+        form.email.data = flask.session['wrong_email']
     return {'form': form}
 
 
