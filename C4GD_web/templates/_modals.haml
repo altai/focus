@@ -22,6 +22,10 @@
         {% if add_next %}
           %input type="hidden" name="next" value="{{ request.path }}"
         {% endif %}
+        {% if action=='delete' %}
+          %span class="label label-important" style="float: left;"
+            Important: this action cannot be reverted 
+        {% endif %}
         %button.btn
           Yes, {{ action }}
         %a.btn.btn-primary href="#" data-dismiss="modal"
