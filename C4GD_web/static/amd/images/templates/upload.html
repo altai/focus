@@ -1,13 +1,10 @@
 <fieldset>
-  <div class="control-group name <% if ('name' in error_messages){ %>alert-error<% } %>">
+  <div class="control-group name" data-error-key="name">
     <label class="control-label">
       Name
     </label>
     <div class="controls">
       <input type="text" name="name" id="id_name" value="<%= name %>">
-      <% if ('name' in error_messages){ %>
-      <p class="help-block"><%= error_messages['name'] %></p>
-      <% } %>
     </div>
   </div>
   <div class="control-group upload-type">
@@ -25,34 +22,10 @@
       </p>
     </div>
   </div>
-  <% if (selected_upload_type == 'rootfs') { %>
-  <div class="control-group kernel <% if ('kernel' in error_messages){ %>alert-error<% } %>">
-    <label class="control-label">Kernel</label>
-    <div class="controls">
-      <select id="id_kernel" name="kernel">
-        <% _.each(kernel_list, function(x){ %>
-        <option value="<%= x.id %>"><%= x.name %></option>
-        <% }); %>
-      </select>
-      <% if ('kernel' in error_messages){ %>
-      <p class="help-block"><%= error_messages['kernel'] %></p>
-      <% } %>
-    </div>
-  </div>
-  <div class="control-group initrd <% if ('initrd' in error_messages){ %>alert-error<% } %>">
-    <label class="control-label">Initrd</label>
-    <div class="controls">
-      <select id="id_initrd" name="initrd">
-        <% _.each(initrd_list, function(x){ %>
-        <option value="<%= x.id %>"><%= x.name %></option>
-        <% }); %>
-      </select>
-      <% if ('initrd' in error_messages){ %>
-      <p class="help-block"><%= error_messages['initrd'] %></p>
-      <% } %>
-    </div>
-  </div>
-  <% } %>
+  <%= rootfs_partial({
+      kernel_list: kernel_list, 
+      initrd_list: initrd_list,
+      selected_upload_type: selected_upload_type}) %>
   <div class="control-group container">
     <label class="control-label">Container format</label>
     <div class="controls">
@@ -87,18 +60,13 @@
       </select>
     </div>
   </div>
-  <div class="control-group uploader <% if ('uploader' in error_messages){ %>alert-error<% } %>">
+  <div class="control-group uploader" data-error-key="uploader">
     <label class="control-label">File to upload</label>
     <div class="controls">
-      <div id="container">
+      <div id="container" style="padding-top: 5px;">
         <div id="filelist">No runtime found.</div>
-        <br />
-        <a id="pickfiles" href="#">[Select files]</a>
-        <a id="uploadfiles" href="#">[Upload files]</a>
+        <a id="pickfiles" href="#">Select file</a>
       </div>
-      <% if ('uploader' in error_messages){ %>
-      <p class="help-block"><%= error_messages['uploader'] %></p>
-      <% } %>
     </div>
   </div>
 </fieldset>

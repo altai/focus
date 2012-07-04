@@ -19,7 +19,7 @@ define([
     upload_type_selection: function(upload_type){
       if (_.indexOf(['combined', 'kernel', 'rootfs', 'initrd'], upload_type) != -1){
         this.view.selected_upload_type = upload_type;
-        this.view.render();
+        this.view.render_with_respect_to_upload();
       } else {
         this.navigate('', trigger=true)
       }

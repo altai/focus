@@ -1,0 +1,22 @@
+<% if (selected_upload_type == 'rootfs') { %>
+  <div class="control-group kernel rootfs-partial" data-error-key="kernel">
+    <label class="control-label">Kernel</label>
+    <div class="controls">
+      <select id="id_kernel" name="kernel">
+        <% _.each(kernel_list, function(x){ %>
+        <option value="<%= x.id %>"><%= x.name %></option>
+        <% }); %>
+      </select>
+    </div>
+  </div>
+  <div class="control-group initrd rootfs-partial" data-error-key="initrd">
+    <label class="control-label">Initrd</label>
+    <div class="controls">
+      <select id="id_initrd" name="initrd">
+        <% _.each(initrd_list, function(x){ %>
+        <option value="<%= x.id %>"><%= x.name %></option>
+        <% }); %>
+      </select>
+    </div>
+  </div>
+<% } %>
