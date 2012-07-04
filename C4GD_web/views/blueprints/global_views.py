@@ -99,13 +99,16 @@ def list_vms():
             flask.request.args.getlist('desc'))
     if 'groupby' in flask.request.args:
         columns.adjust_groupby(flask.request.args['groupby'])
-    vms = clients.admin_clients().nova.servers.list(search_opts={'all_tenants': 1})
-    flavors = dict([(x.id, x) for x in clients.admin_clients().nova.flavors.list()])
+    vms = clients.admin_clients().nova.servers.list(search_opts={
+        'all_tenants': 1})
+    flavors = dict(
+        [(x.id, x) for x in clients.admin_clients().nova.flavors.list()])
     for server in vms:
         try:
             flavor = flavors[server.flavor['id']]
         except KeyError:
-            flavor = clients.admin_clients().nova.flavors.get(server.flavor['id'])
+            flavor = clients.admin_clients().nova.flavors.get(server.flavor[
+                'id'])
             flavors[server.flavor['id']] = flavor
         server.ram = flavor.ram
         server.vcpus = flavor.vcpus

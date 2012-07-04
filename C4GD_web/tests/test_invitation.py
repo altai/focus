@@ -32,9 +32,15 @@ class InvitationsTests(unittest.TestCase):
             mock.patch('C4GD_web.clients.admin_clients') as clients,\
             mock.patch('C4GD_web.utils.username_is_taken')\
                 as username_is_taken,\
-            mock.patch('C4GD_web.views.blueprints.invitations._register_in_ODB')\
+            mock.patch(
+                'C4GD_web.views.blueprints.invitations._register_in_ODB')\
                 as _register_in_ODB:
-            user = json.loads("""{"user": {"name": "spugachev+61", "enabled": true, "email": "spugachev+61@griddynamics.com", "password": "$6$rounds=40000$1b7qabKW35/cE/iy$xD..ZBPQiSJ1/8XRSW8nA4fjWIhjHx1QRXNfK9gS6MLmDFmEuHC2XAbyKGpMezOK13ICC80bDZabOc7Cdi5xV0", "id": "673f7199fdaf4c71b4c44d7f21d954d7", "tenantId": null}}""")
+            user = json.loads("""{"user": {"name": "spugachev+61", "enabled":
+                 true, "email": "spugachev+61@griddynamics.com", "password":
+                  "$6$rounds=40000$1b7qabKW35/cE/iy$xD..ZBPQiSJ1/8XRSW8nA4fjWIh
+                 jHx1QRXNfK9gS6MLmDFmEuHC2XAbyKGpMezOK13ICC80bDZabOc7Cdi5xV0",
+                  "id": "673f7199fdaf4c71b4c44d7f21d954d7",
+                  "tenantId": null}}""")
             clients().keystone.users.create.return_value = user
             clients().keystone.users.delete.return_value = 'deleted'
             username_is_taken.return_value = False

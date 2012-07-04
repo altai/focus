@@ -33,9 +33,8 @@ def index():
     p = pagination.Pagination(users)
     data = p.slice(users)
     potential_admins = set([
-            user.id
-            for user in (identity_admin.users.list(
-                    clients.get_systenant_id()))])
+        user.id
+        for user in (identity_admin.users.list(clients.get_systenant_id()))])
     for user in data:
         # TODO(apugachev) modify to work with form.DeleteUser
         form = forms.DeleteUserForm()
@@ -51,6 +50,7 @@ def index():
         'pagination': p,
         'data': data
     }
+
 
 # TODO: rewrite this function in a more efficient way
 @bp.route('<user_id>/', methods=['GET'])

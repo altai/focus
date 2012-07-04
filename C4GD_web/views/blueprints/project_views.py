@@ -152,11 +152,11 @@ def get_credentials():
         flask.g.tenant_id).name
     keystone_url = flask.current_app.config['KEYSTONE_CONF']['auth_uri']
     credentials_text = flask.render_template(
-                'project_views/get_credentials.txt',
-                **{
-                    'user': user,
-                    'tenant': tenant,
-                    'keystone_url': keystone_url}) 
+        'project_views/get_credentials.txt',
+        **{
+            'user': user,
+            'tenant': tenant,
+            'keystone_url': keystone_url})
     if 'download' in flask.request.args:
         response = flask.make_response(credentials_text)
         response.headers['Content-Disposition'] = \

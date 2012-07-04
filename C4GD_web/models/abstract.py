@@ -200,10 +200,10 @@ class Image(GlanceAPI):
         Return image dict.
         """
         properties = {
-                'image_state': 'available',
-                'project_id': tenant_id,
-                'architecture': architecture,
-                'image_location': 'local'}
+            'image_state': 'available',
+            'project_id': tenant_id,
+            'architecture': architecture,
+            'image_location': 'local'}
         if kernel_id:
             properties['kernel_id'] = int(kernel_id)
         if ramdisk_id:

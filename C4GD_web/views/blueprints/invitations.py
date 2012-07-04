@@ -152,8 +152,8 @@ def invite():
     form = forms.Invite()
     if form.validate_on_submit():
         # Check if required conf setting exists
-        if not 'KEYSTONE_CONF' in flask.current_app.config or \
-            not 'NEO4J_API_URL' in flask.current_app.config:
+        _conf = flask.current_app.config
+        if not 'KEYSTONE_CONF' in _conf or not 'NEO4J_API_URL' in _conf:
             raise Exception("""No required settings:
             KEYSTONE_CONF or NEO4J_API_URL, invitations wasn't sent""", "")
         user_email = form.email.data

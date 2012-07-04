@@ -1,10 +1,14 @@
 # coding=utf-8
+import re
 import flask
 from flask import blueprints
+from flask import Response
 
 from C4GD_web import clients
 from C4GD_web.views import forms
 from C4GD_web.views import environments
+
+from openstackclient_base.exceptions import HttpException
 
 
 bp = environments.project(blueprints.Blueprint('ssh_keys', __name__))
@@ -24,11 +28,22 @@ def index():
 def new():
     form = forms.CreateSSHKey()
     if form.validate_on_submit():
-        c = clients.user_clients(flask.g.tenant_id).nova.keypairs.create
-        if form.public_key.data:
-            c(form.name.data, form.public_key.data)
-        else:
-            c(form.name.data)
+        create = clients.user_clients(flask.g.tenant_id).nova.keypairs.create
+        try:
+            if form.public_key.data:
+                keypair = create(form.name.data, form.public_key.data)
+            else:
+                keypair = create(form.name.data)
+        except HttpException as error:
+            flask.flash(error.message, 'error')
+            return {'form': form}
+        if hasattr(keypair, 'private_key'):
+            return Response(
+                keypair.private_key,
+                mimetype='application/binary',
+                headers={'Content-Disposition': 'attachment; filename=%s.pem' %
+                         re.sub('[^-a-zA-Z0-9]', '_', keypair.name)})
+        flask.flash('Keypair was successfully created', 'success')
         return flask.redirect(flask.url_for('.index'))
     return {'form': form}
 

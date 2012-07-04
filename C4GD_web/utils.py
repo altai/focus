@@ -137,7 +137,6 @@ def openstack_api_call(service_type, tenant_id, path, params={},
     return unjson(response)
 
 
-
 def create_hashed_password(password):
     """
     Creates unique hash based on users password
@@ -192,7 +191,7 @@ def user_tenants_list(keystone_user):
     user_tenants = {}
     for role_tenant in roles:
         if (clients.role_is_admin(role_tenant.role["name"]) or
-            clients.role_is_member(role_tenant.role["name"])):
+                clients.role_is_member(role_tenant.role["name"])):
             user_tenants[role_tenant.tenant["id"]] = role_tenant.tenant
     return user_tenants.values()
 
