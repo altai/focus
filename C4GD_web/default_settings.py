@@ -1,6 +1,4 @@
 # coding=utf-8
-# our system has 13, keystone db 14 => 1
-RELATIVE_TO_API_HOURS_SHIFT = 0
 SECRET_KEY = 'g.U(\x8cQ\xbc\xdb\\\xc3\x9a\xb2\xb6,\xec\xad(\xf8"2*\xef\x0bd'
 # GET/POST field name to store next after login URL
 NEXT_TO_LOGIN_ARG = 'next'

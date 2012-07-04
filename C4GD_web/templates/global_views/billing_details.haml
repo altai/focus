@@ -9,6 +9,6 @@
   %div
     %select.change-tenant
       -for tenant in tenants
-        %option value="{{ tenant.id }}" {% if tenant_id|int == tenant.id|int %} selected="selected"{% endif %}
+        %option value="{{ tenant.id }}" {% if tenant_id == tenant.id %} selected="selected"{% endif %}
           =tenant.name
   -include "_generic_billing.haml"

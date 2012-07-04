@@ -5,8 +5,6 @@ Jinja2
 MySQL-python
 WTForms
 Hamlish-Jinja
-requests
-gevent
 storm
 pylibmc
 Flask-Principal

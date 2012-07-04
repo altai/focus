@@ -50,7 +50,7 @@ bp = environments.admin(blueprints.Blueprint('networks', __name__))
 
 @bp.route('')
 def index():
-    store = orm.get_store('NOVA_RO')
+    store = orm.get_store('NOVA_RW')
     total_count = store.execute('SELECT count(*) FROM networks').get_one()[0]
     p = pagination.Pagination(total_count)
     data = store.execute(
@@ -65,7 +65,7 @@ def index():
 
 @bp.route('<object_id>/')
 def show(object_id):
-    store = orm.get_store('NOVA_RO')
+    store = orm.get_store('NOVA_RW')
     row = store.execute(
         'SELECT * FROM networks WHERE id = ? LIMIT 1', (object_id,)).get_one()
     obj = dict(zip(HEADERS, row))

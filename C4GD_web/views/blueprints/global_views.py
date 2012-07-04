@@ -1,13 +1,14 @@
 # coding=utf-8
+import urllib
+
 from werkzeug import datastructures
-from keystoneclient import exceptions as keystoneclient_exceptions
+from openstackclient_base.exceptions import NotFound
 
 import flask
 from flask import blueprints
 from flaskext import principal
 
 from C4GD_web import clients
-from C4GD_web import exceptions
 from C4GD_web.views import dataset
 from C4GD_web.views import environments
 from C4GD_web.views import exporter
@@ -36,8 +37,6 @@ def billing():
             flask.url_for(
                 '.billing_details',
                 tenant_id=billing_accounts[0]['name']))
-    else:
-        raise exceptions.GentleException('No billing accounts to show')
 
 
 @bp.route('billing/<tenant_id>/')
@@ -50,7 +49,7 @@ def billing_details(tenant_id):
         try:
             # Billing API calls "ID" - "name"
             t = clients.admin_clients().keystone.tenants.get(x['name'])
-        except keystoneclient_exceptions.NotFound:
+        except NotFound:
             # sometimes Billing API returns non-existing tenant IDs
             # there is nothing in particular we can do about it
             pass
@@ -120,12 +119,9 @@ def list_vms():
                 flask.request.args['export'],
                 current_dataset.data, columns, 'vms')
         except KeyError:
-
             d = flask.request.args.copy()
             d.pop('export')
-            query = '&'.join((
-                    ['%s=%s' % (k, v) for k, v in
-                     datastructures.iter_multi_items(d)]))
+            query = urllib.urlencode(datastructures.iter_multi_items(d))
             url = flask.request.path + '?' + query
             return flask.redirect(url)
         response = export()

@@ -6,13 +6,14 @@ import flask
 from flask import blueprints
 
 from C4GD_web import clients
-from C4GD_web.models import abstract
 from C4GD_web.views import forms
 from C4GD_web.views import generic_billing
 from C4GD_web.views import pagination
 from C4GD_web.views import utils as views_utils
 from C4GD_web.views import environments
 from C4GD_web.views.blueprints import images
+
+from openstackclient_base.exceptions import NotFound
 
 bp = environments.project(blueprints.Blueprint('project_views', __name__))
 
@@ -58,9 +59,9 @@ def spawn_vm():
     '''
     c = clients.user_clients(flask.g.tenant_id)
     images_list = images.get_images_list()
-    flavors = c.nova.flavors.list()
-    security_groups = c.nova.security_groups.list()
-    key_pairs = c.nova.keypairs.list()
+    flavors = c.compute.flavors.list()
+    security_groups = c.compute.security_groups.list()
+    key_pairs = c.compute.keypairs.list()
 
     form = forms.get_spawn_form(
         images_list, flavors, security_groups, key_pairs)()
@@ -87,13 +88,11 @@ def show_vm(vm_id):
     server = clients.admin_clients().nova.servers.get(vm_id)
     try:
         flavor = clients.admin_clients().nova.flavors.get(server.flavor['id'])
-    except Exception:
-        # TODO(apugachev) look for NotFound exception from nova
+    except NotFound:
         flavor = None
     try:
         image = clients.admin_clients().nova.images.get(server.image['id'])
-    except Exception:
-        # TODO(apugachev) look for NotFound exception from nova
+    except NotFound:
         image = None
     return {
         'server': server,
@@ -107,7 +106,7 @@ def remove_vm(vm_id):
     Delete VM.
     No checks because currently OpenStack performs authorization checks.
     '''
-    abstract.VirtualMachine.delete(vm_id, flask.g.tenant_id)
+    clients.user_clients(flask.g.tenant_id).compute.servers.delete(vm_id)
     flask.flash('Delete operation requested for VM.', 'success')
     # NOT(apugachev)openstack can be slow; make a note to reflect the fact
     # of removing the VM on the next step
@@ -122,7 +121,7 @@ def reboot_vm(vm_id, type):
     """
     Reboot VM
     """
-    abstract.VirtualMachine.reboot(flask.g.tenant_id, vm_id, type)
+    clients.user_clients(flask.g.tenant_id).compute.servers.reboot(vm_id, type)
     flask.flash('Virtual machine rebooted successfully.', 'success')
     return flask.redirect(views_utils.get_next_url())
 

@@ -42,6 +42,7 @@ def role_tenant_is_admin(role_tenant):
 
 
 def get_role_id(name):
+    global role_name2id
     if role_name2id is None:
         role_name2id = {}
         for role in admin_clients().keystone.roles.list():

@@ -9,13 +9,14 @@ from flaskext import wtf
 import C4GD_web
 from C4GD_web import clients
 # TODO(apugachev) look if possible to get rid of GentleException
-from C4GD_web import exceptions
 # TODO(apugachev) try put all clients in one module "api_clients"
 from C4GD_web import utils
 from C4GD_web.models import row_mysql_queries
 # TODO(apugachev) look where register_user() is used,
 # try to move it here in section "utils"
 from C4GD_web.views import forms
+
+from openstackclient_base.exceptions import NotFound
 
 
 bp = blueprints.Blueprint('invitations', __name__)
@@ -165,7 +166,7 @@ def invite():
                 flask.flash(
                     'User with email "%s" is already registered' % user_email,
                     'error')
-            except (KeyError, exceptions.GentleException):
+            except (KeyError, NotFound):
                 # NOTE(apugachev) success, user does not exist
                 hash_code = str(uuid.uuid4())
                 domain = user_email.split('@')[-1]

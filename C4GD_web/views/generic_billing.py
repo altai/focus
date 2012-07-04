@@ -4,7 +4,6 @@ import datetime
 import flask
 
 from C4GD_web import clients
-from C4GD_web.models import abstract
 
 from openstackclient_base.exceptions import NotFound
 
@@ -92,30 +91,29 @@ def _compact_bill(resources):
             reverse=True))
 
 
+# TODO: add local volume support
 def _concentrate_resources(resources, tenant_id):
     '''
     For every orphan resource add verbose name and brief info url.
     '''
-    def process(objs, model, endpoint):
-        '''
-        Nova does not return deleted servers.
-        '''
-        info = model.list()
-        ref = dict([(x['name'], x) for x in objs])
+    client_set = clients.user_clients(tenant_id)
+    processors = (
+        ('nova/instance', client_set.compute.servers.list(),
+         'project_views.show_vm', 'vm_id'),
+        ('glance/image', client_set.image.images.list(),
+         'project_images.show', 'image_id'),
+    )
+    def process(objs, info, endpoint, arg):
+        ref = dict(((x['name'], x) for x in objs))
         result = {}
         # some objs will lack detailed info. it is not a problem
         # it is solved during presentation to user
-        informative = filter(lambda x: unicode(x['id']) in ref.keys(), info)
-        if model is abstract.Volume:
-            instances_info = dict(
-                [(x['id'], x) for x in abstract.VirtualMachine.list()])
-            for x in informative:
-                x['instance_info'] = instances_info[x['instance_id']]
+        informative = [x._info for x in info if unicode(x.id) in ref.keys()]
         for x in informative:
             actual = copy.deepcopy(ref[unicode(x['id'])])
             actual['detailed'] = x
             actual['detailed']['focus_url'] = flask.url_for(
-                endpoint, obj_id=x['id'])
+                endpoint, **{arg: x['id']})
             result[(actual['id'], actual['rtype'])] = actual
         return result
 
@@ -124,14 +122,9 @@ def _concentrate_resources(resources, tenant_id):
             lambda x: x['rtype'] == resource_type and x['parent_id'] is None,
             resources
         )
-    processors = (
-        ('nova/instance', abstract.VirtualMachine, 'virtual_machines.show'),
-        ('glance/image', abstract.Image, 'images.show'),
-        ('nova/volume', abstract.Volume, 'volumes.show')
-    )
     d = {}
-    for rtype, model, endpoint in processors:
-        d.update(process(filter_type(rtype), model, endpoint))
+    for rtype, model, endpoint, arg in processors:
+        d.update(process(filter_type(rtype), model, endpoint, arg))
     return map(
         lambda x: d.get((x['id'], x['rtype']), x),
         resources)
@@ -142,9 +135,13 @@ def account_bill_show(user_id, tenant_id, **kw):
     try:
         bill = clients.admin_clients().billing.report.list(
             account_name=tenant_id, **kw)["accounts"][0]
-    except NotFound:
+    except (NotFound, IndexError):
         return {'resources': []}
-    bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
+    try:
+        if flask.g.tenant_id == tenant_id:
+            bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
+    except AttributeError:
+        pass
     bill['resources'] = _compact_bill(bill['resources'])
     return bill
 

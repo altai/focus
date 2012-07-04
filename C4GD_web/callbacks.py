@@ -7,27 +7,6 @@ from C4GD_web.models import orm
 
 
 @C4GD_web.app.before_request
-def create_storm_readonly_store():
-    if flask.request.endpoint != 'static':
-        flask.g.store = orm.get_store('RO')
-
-
-@C4GD_web.app.after_request
-def commit_storm_store(response):
-    if flask.request.endpoint != 'static':
-        if hasattr(flask.g, 'store'):
-            flask.g.store.commit()
-    return response
-
-
-@C4GD_web.app.teardown_request
-def commit_storm_store_optionally(exception):
-    if flask.request.endpoint != 'static':
-        if hasattr(flask.g, 'store'):
-            flask.g.store.commit()
-
-
-@C4GD_web.app.before_request
 def authenticate():
     if flask.request.endpoint != 'static':
         flask.g.is_authenticated = 'user' in flask.session

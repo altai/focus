@@ -9,12 +9,11 @@ from flaskext import principal
 
 import C4GD_web
 from C4GD_web import clients
-from C4GD_web import exceptions
 from C4GD_web import utils
 
 from C4GD_web.views import forms
 
-from openstackclient_base.exceptions import Unauthorized
+from openstackclient_base.exceptions import Unauthorized, NotFound
 
 
 def _login(username, password):
@@ -154,7 +153,7 @@ def password_recovery_request():
         try:
             utils.neo4j_api_call(
                 '/users', {"email": form.email.data}, 'GET')[0]
-        except (KeyError, exceptions.GentleException):
+        except (KeyError, NotFound):
             flask.flash(
                 'User with that email "%s" is not registered.' %
                 form.email.data,

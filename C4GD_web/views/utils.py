@@ -15,22 +15,3 @@ def get_next_url():
         d = flask.request.args
     return d.get('next', flask.url_for(
         flask.current_app.config['DEFAULT_NEXT_TO_LOGIN_VIEW']))
-
-
-def get_object_or_404(klass, object_id, store=None):
-    """Find object or raise HTTP 404.
-
-    It can work with Storm model and reference set as klass.
-    """
-    if type(klass).__name__ == 'PropertyPublisherMeta':
-        # this is a model
-        if store is None:
-            store = flask.g.store
-        obj = store.get(klass, object_id)
-    else:
-        # this is a reference set
-        obj = klass.find(id=object_id).config(distinct=True).one()
-    if obj is None:
-        flask.abort(404)
-    else:
-        return obj

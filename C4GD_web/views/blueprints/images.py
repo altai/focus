@@ -14,7 +14,6 @@ from flaskext import principal
 import C4GD_web
 from C4GD_web import clients
 from C4GD_web import utils
-from C4GD_web.models import abstract
 from C4GD_web.views import environments
 from C4GD_web.views import forms
 from C4GD_web.views import pagination
@@ -109,28 +108,31 @@ def get_bp(name):
         if flask.request.method == 'POST':
             # TODO(apugachev): validate thoroughly, do not rely on js to do it
 
-            kw = {}
-            if flask.request.form['upload_type'] == 'rootfs':
-                kw['kernel_id'] = flask.request.form['kernel']
-                kw['ramdisk_id'] = flask.request.form['initrd']
-                kw['is_public'] = not hasattr(flask.g, 'tenant_id')
-                kw['protected'] = True
             path = C4GD_web.files_uploads.path(
                 flask.request.form['uploaded_filename'])
+            tenant_id = get_tenant_id()
+            properties = {
+                'image_state': 'available',
+                'project_id': tenant_id,
+                'architecture': 'x86_64',
+                'image_location': 'local'}
+            if flask.request.form['upload_type'] == 'rootfs':
+                properties['kernel_id'] = flask.request.form['kernel']
+                properties['ramdisk_id'] = flask.request.form['initrd']
+            kwargs = {
+                'name': flask.request.form['name'],
+                'container_format': flask.request.form['container'],
+                'disk_format': flask.request.form['disk'],
+                'data': path,
+                'is_public': not hasattr(flask.g, 'tenant_id'),
+                'properties': properties,
+            }
             try:
-                response = abstract.Image.create(
-                    get_tenant_id(),
-                    flask.request.form['name'],
-                    flask.request.form['container'],
-                    flask.request.form['disk'],
-                    path,
-                    **kw
-                )
+                response = clients.user_clients(
+                    tenant_id).image.images.create(**kwargs)._info
             except RuntimeError, e:
                 flask.flash(e.message, 'error')
             else:
-                if flask.current_app.debug:
-                    flask.current_app.logger.info(response)
                 flask.flash(
                     'Image with ID %s was registered.' % response['id'],
                     'success')

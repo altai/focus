@@ -76,11 +76,9 @@ _logger.addHandler(ch)
 # SMTP
 mail = mail_module.Mail(app)
 
-from C4GD_web.models import abstract
 from C4GD_web.views.blueprints import global_views
 from C4GD_web.views.blueprints import images
 from C4GD_web.views.blueprints import project_views
-from C4GD_web.views.blueprints import show_one
 from C4GD_web.views.blueprints import ssh_keys
 from C4GD_web.views.blueprints import users_management
 from C4GD_web.views.blueprints import tariffs
@@ -89,15 +87,6 @@ from C4GD_web.views.blueprints import networks
 from C4GD_web.views.blueprints import invitation_domains
 from C4GD_web.views.blueprints import invitations
 
-# blueprints started
-SHOW_ONES = (
-    ('images', '/images/', abstract.Image),
-    ('virtual_machines', '/virtual-machines/', abstract.VirtualMachine),
-    ('volumes', '/volumes/', abstract.Volume)
-)
-for name, url_prefix, model in SHOW_ONES:
-    app.register_blueprint(
-        show_one.get_one(name), url_prefix=url_prefix, model=model)
 
 app.register_blueprint(images.ABP, url_prefix='/global/images/')
 app.register_blueprint(images.PBP, url_prefix='/projects/<tenant_id>/images/')

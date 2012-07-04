@@ -2,13 +2,12 @@
 import sys
 
 import flask
-import keystoneclient.exceptions
 
 import C4GD_web
-from C4GD_web import exceptions
+from openstackclient_base.exceptions import HttpException, Unauthorized
 
 
-@C4GD_web.app.errorhandler(exceptions.KeystoneExpiresException)
+@C4GD_web.app.errorhandler(Unauthorized)
 def keystone_expired(error):
     """Handles expired Keyston token.
 
@@ -18,21 +17,6 @@ def keystone_expired(error):
     exc_type, exc_value, traceback = sys.exc_info()
     flask.current_app.log_exception((exc_type, exc_value, traceback))
     return flask.redirect(flask.url_for('logout'))
-
-
-@C4GD_web.app.errorhandler(exceptions.GentleException)
-def gentle_exception(error):
-    """Handles exception raised oftenly during API calls with.
-
-    Handles situation with AJAX queries and wraps error message properly.
-    """
-    flask.flash(error.args[0], 'error')
-    exc_type, exc_value, traceback = sys.exc_info()
-    flask.current_app.log_exception((exc_type, exc_value, traceback))
-    if flask.request.is_xhr:
-        return flask.jsonify({'status': 'error', 'message': error.args[0]})
-    else:
-        return flask.render_template('blank.haml')
 
 
 if not C4GD_web.app.debug:
@@ -52,9 +36,9 @@ if not C4GD_web.app.debug:
             return flask.redirect(flask.request.referrer)
         return flask.render_template('blank.haml')
 
-    @C4GD_web.app.errorhandler(keystoneclient.exceptions.ClientException)
-    def handle_keystoneclient_exceptions(error):
-        """Handle Keystone client exceptions.
+    @C4GD_web.app.errorhandler(HttpException)
+    def handle_openstackclient_http_exceptions(error):
+        """Handle HTTP client exceptions.
 
         These exceptions can have 2 args (message and description).
         """

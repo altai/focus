@@ -21,7 +21,6 @@ Requires:       python-flask-mail
 Requires:       MySQL-python
 Requires:       python-wtforms
 Requires:       python-hamlish-jinja
-Requires:       python-requests
 Requires:       python-storm
 Requires:       python-storm-mysql
 Requires:       python-tornado
