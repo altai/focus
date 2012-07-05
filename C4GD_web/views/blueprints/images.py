@@ -107,7 +107,6 @@ def get_bp(name):
         """
         if flask.request.method == 'POST':
             # TODO(apugachev): validate thoroughly, do not rely on js to do it
-
             path = C4GD_web.files_uploads.path(
                 flask.request.form['uploaded_filename'])
             tenant_id = get_tenant_id()
@@ -123,7 +122,7 @@ def get_bp(name):
                 'name': flask.request.form['name'],
                 'container_format': flask.request.form['container'],
                 'disk_format': flask.request.form['disk'],
-                'data': path,
+                'data': open(path),
                 'is_public': not hasattr(flask.g, 'tenant_id'),
                 'properties': properties,
             }
@@ -139,6 +138,7 @@ def get_bp(name):
                 return flask.redirect(flask.url_for('.index'))
             finally:
                 try:
+                    kwargs['data'].close()
                     os.unlink(path)
                 except OSError:
                     # nothing to do, temporal file was removed by something
