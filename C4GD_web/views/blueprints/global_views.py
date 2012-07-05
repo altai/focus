@@ -32,11 +32,12 @@ def billing():
     Not all tenants are accessible! Check '11' (pmo)
     '''
     billing_accounts = clients.admin_clients().billing.account.list()
-    if len(billing_accounts):
-        return flask.redirect(
-            flask.url_for(
-                '.billing_details',
-                tenant_id=billing_accounts[0]['name']))
+    return flask.redirect(
+        flask.url_for(
+            '.billing_details',
+            tenant_id=billing_accounts[0]['name']
+            if billing_accounts
+            else clients.get_systenant_id()))
 
 
 @bp.route('billing/<tenant_id>/')
@@ -44,20 +45,14 @@ def billing_details(tenant_id):
     '''
     Present billing info for tenant.
     '''
-    tenants_in_billing = []
-    for x in clients.admin_clients().billing.account.list():
-        try:
-            # Billing API calls "ID" - "name"
-            t = clients.admin_clients().keystone.tenants.get(x['name'])
-        except NotFound:
-            # sometimes Billing API returns non-existing tenant IDs
-            # there is nothing in particular we can do about it
-            pass
-        else:
-            tenants_in_billing.append(t)
-    tenant = clients.admin_clients().keystone.tenants.get(tenant_id)
+    tenant_list = clients.user_clients(
+        clients.get_systenant_id()).identity_admin.tenants.list()
+    tenant = filter(lambda x: x.id == tenant_id, tenant_list)
+    if not tenant:
+        flask.abort(404)
+    tenant = tenant[0]
     return generic_billing.generic_billing(
-        tenant, flask.g.user, tenants=tenants_in_billing)
+        tenant, flask.g.user, tenant_list)
 
 
 @bp.route('')

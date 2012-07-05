@@ -98,11 +98,13 @@ def _concentrate_resources(resources, tenant_id):
     '''
     client_set = clients.user_clients(tenant_id)
     processors = (
-        ('nova/instance', client_set.compute.servers.list(),
+        ('nova/instance', client_set.compute.servers.list(
+            search_opts={'all_tenants': 1}),
          'project_views.show_vm', 'vm_id'),
         ('glance/image', client_set.image.images.list(),
          'project_images.show', 'image_id'),
     )
+
     def process(objs, info, endpoint, arg):
         ref = dict(((x['name'], x) for x in objs))
         result = {}
@@ -137,13 +139,23 @@ def account_bill_show(user_id, tenant_id, **kw):
             account_name=tenant_id, **kw)["accounts"][0]
     except (NotFound, IndexError):
         return {'resources': []}
-    try:
-        if flask.g.tenant_id == tenant_id:
-            bill['resources'] = _concentrate_resources(bill['resources'], tenant_id)
-    except AttributeError:
-        pass
+    if hasattr(flask.g, 'tenant_id'):
+        bill['resources'] = _concentrate_resources(
+            bill['resources'], tenant_id)
     bill['resources'] = _compact_bill(bill['resources'])
     return bill
+
+
+def get_tariff_list():
+    tariffs = {
+        "glance/image": 1.0,
+        "memory_mb": 1.0,
+        "vcpus": 1.0,
+        "nova/volume": 1.0,
+        "local_gb": 1.0,
+    }
+    tariffs.update(clients.admin_clients().billing.tariff.list())
+    return tariffs
 
 
 def generic_billing(tenant, user, tenants=None):
@@ -161,7 +173,7 @@ def generic_billing(tenant, user, tenants=None):
             'data': d.data
         })
     else:
-        tariffs = clients.admin_clients().billing.tariff.list()
+        tariffs = get_tariff_list()
         context = {
             'tenant_id': tenant.id,
             'tariffs': tariffs
