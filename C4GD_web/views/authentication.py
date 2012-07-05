@@ -19,33 +19,28 @@ from openstackclient_base.exceptions import Unauthorized, NotFound
 def _login(username, password):
     try:
         odb_user = utils.neo4j_api_call('/users', {
-            "email": username
+            "email": username,
         }, 'GET')[0]
     except KeyError:
         # NOTE(apugachev)odb does not the email
         return False
-    try:
-        is_password_valid = odb_user['passwordHash'] == \
-            utils.create_hashed_password(password)
-    except UnicodeEncodeError:
-        # NOTE(apugachev) md5 digest does not work with unicode
-        # and the password can't be unicode right now
+    if not (odb_user['passwordHash'] ==
+            utils.create_hashed_password(password)):
         return False
-    if not is_password_valid:
-        return False
+    username = odb_user['username']
     # NOTE(apugachev)
     # odb username is Keystone user name
     # password is the same as Keystone password
     try:
-        clients.create_unscoped(odb_user['username'], password)
+        clients.create_unscoped(username, password)
     except Unauthorized:
         return False
-    flask.session['user'] = odb_user
+    flask.session['user'] = (
+        flask.session['keystone_unscoped']['access']['user'])
     flask.g.is_authenticated = True
     flask.flash('You were logged in successfully.', 'success')
     user_tenants = utils.user_tenants_list(
-        utils.get_keystone_user_by_username(
-            odb_user['username']))
+        utils.get_keystone_user_by_username(username))
     flask.session['tenants'] = user_tenants
     # NOTE(apugachev)
     # Principal identity name is Keystone user id
@@ -97,6 +92,7 @@ def logout():
     for key in flask.session.keys():
         if key != '_flashes':
             del(flask.session[key])
+    clients.clear_cache()
     return flask.redirect(flask.url_for(
         flask.current_app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))
 

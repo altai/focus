@@ -89,6 +89,11 @@ def get_access():
     flask.g.keystone_scoped = {}
 
 
+def clear_cache():
+    flask.g.keystone_admin.http_client.access = None
+    flask.g.keystone_scoped = {}
+
+
 def admin_clients():
     return flask.g.keystone_admin
 
