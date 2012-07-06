@@ -5,8 +5,11 @@ Focus
 
 
 """
+import os
 from setuptools import setup, find_packages, findall
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name='Focus',
@@ -28,26 +31,6 @@ setup(
             findall("C4GD_web/templates")
         ],
     },
-    install_requires=[
-        'netaddr==0.7.5',
-        'pylibmc',
-        'python-glanceclient',
-        'python-keystoneclient',
-        'python-novaclient',
-        'storm==0.19',
-        'Flask >= 0.9',
-        'Flask-WTF==0.6',
-        'Flask-Mail==0.6.1',
-        'Flask-Principal==0.2',
-        'Flask-Uploads==0.1.3',
-        'Hamlish-Jinja',
-        'Jinja2',
-        'MySQL-python',
-        'Tornado',
-        'Werkzeug',
-        'WTForms',
-        'chardet',
-        'python-openstackclient-base'
-    ],
+    install_requires=read('requirements.txt'),
     test_suite='C4GD_web.tests'
 )
