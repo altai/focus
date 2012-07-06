@@ -24,7 +24,6 @@ class Session(flask.sessions.SessionInterface):
                 self.cookie_session_id
             ]
         )
-        app.logger.debug('Open session %s', self.memcache_session_id)
         session = app.cache.get(self.memcache_session_id) or {}
         app.cache.set(self.memcache_session_id, session)
         return self.session_class(session)
@@ -41,5 +40,3 @@ class Session(flask.sessions.SessionInterface):
                 app.session_cookie_name, self.cookie_session_id, path=path,
                 expires=expires, httponly=httponly,
                 secure=secure, domain=domain)
-            app.logger.debug(
-                'Set session %s with %s', self.memcache_session_id, session)
