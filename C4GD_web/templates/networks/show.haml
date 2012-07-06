@@ -4,24 +4,9 @@
     Network {{ object['label'] }}
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %tbody
-      -for k, v in headers.items():
+      -for k in ("ID", "Label", "Created at", "Updated at", "Deleted at", "Bridge", "Bridge interface", "Broadcast", "CIDR", "CIDR v6", "DHCP start", "DNS1", "Deleted", "Gateway", "Gateway v6", "Host",  "Injected",  "Multi host", "Netmask", "Netmask v6", "Project id", "VLAN",  "VPN private address", "VPN public address", "VPN public port"):
         %tr
           %td
-            =v
+            =k
           %td
-            =object[k]
-  %h2
-    Fixed IPS
-  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
-    %thead
-      %th
-        Address
-      %th
-        Reserved
-    %tbody
-      -for address, reserved in fixed_ips:
-        %tr
-          %td
-            =address
-          %td
-            =reserved
+            =object[k.lower().replace(" ", "_")]

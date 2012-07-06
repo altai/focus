@@ -1,5 +1,7 @@
 # coding=utf-8
 # TODO(apugachev) convert factories to plain classes where possible
+import netaddr
+
 from flaskext import wtf
 from flaskext.wtf import html5
 from C4GD_web.views import utils
@@ -115,23 +117,23 @@ class NewProject(wtf.Form):
     description = wtf.TextField('Description')
     network = wtf.SelectField(
         'Network', [wtf.Required()], choices=[],
-        description='Network label, CIDR, Vlan respectively')
+        description='Network label, CIDR, VLAN respectively')
 
 
 class CreateNetwork(wtf.Form):
     cidr = wtf.TextField('CIDR', [wtf.Required()])
-    netmask = wtf.TextField('Netmask', [wtf.Required()])
-    bridge = wtf.TextField('Bridge', [wtf.Required()])
-    gateway = wtf.TextField('Gateway', [wtf.Required()])
-    broadcast = wtf.TextField('Broadcast', [wtf.Required()])
-    vlan = wtf.TextField('Vlan', [wtf.Required()])
-    vpn_public_address = wtf.TextField('VPN public address', [wtf.Required()])
-    vpn_public_port = wtf.TextField('VPN public port', [wtf.Required()])
-    vpn_private_address = wtf.TextField(
-        'VPN private address', [wtf.Required()])
-    dhcp_start = wtf.TextField('DHCP start', [wtf.Required()])
-    host = wtf.TextField('Host', [wtf.Required()])
-    bridge_interface = wtf.TextField('Bridge interface', [wtf.Required()])
+    vlan = wtf.IntegerField(
+        'VLAN',
+        [wtf.Required(),
+         wtf.NumberRange(min=1, max=4096, message='Invalid VLAN')])
+
+    def validate_cidr(form, field):
+        try:
+            network = netaddr.IPNetwork(field.data)
+        except (UnboundLocalError, netaddr.AddrFormatError):
+            raise wtf.ValidationError('Unrecognised format of CIDR')
+        if network.size > 65536:
+            raise wtf.ValidationError('Network size is greater then 65536')
 
 
 class CreateEmailMask(wtf.Form):

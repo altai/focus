@@ -5,7 +5,6 @@ UPLOADS_DEFAULT_DEST = '/var/tmp/focus-uploads/'
 
 INVITATIONS_DATABASE_URI = ''
 NEO4J_API_URL = ''
-NOVA_RW_DATABASE_URI = ''
 
 KEYSTONE_CONF = {
     'username': 'admin',

@@ -16,6 +16,9 @@ from C4GD_web.views import forms
 from C4GD_web.views import pagination
 
 
+from openstackclient_base.exceptions import HttpException
+
+
 bp = environments.admin(blueprints.Blueprint('projects', __name__))
 
 
@@ -49,27 +52,26 @@ def delete(object_id):
 
     form = forms.DeleteForm()
     if form.validate_on_submit():
-        store = orm.get_store('NOVA_RW')
-        # kill vms
-        vms = filter(
-            lambda x: x.tenant_id == object_id,
-            clients.admin_clients().nova.servers.list(
-                search_opts={'all_tenants': 1}))
-        for x in vms:
-            x.delete()
-        # detach network
-        rows = store.execute(
-            'SELECT vlan FROM networks WHERE project_id = ?',
-            (object_id,))
-        vlan = rows.get_one()[0]
-        store.execute(
-            'UPDATE networks SET project_id = NULL, label = ? '
-            'WHERE project_id = ?',
-            ('net%s' % vlan, object_id,))
-        store.commit()
-        # delete tenant
-        tenant.delete()
-        flask.flash('Project removed successfully.', 'success')
+        try:
+            # kill vms
+            vms = filter(
+                lambda x: x.tenant_id == object_id,
+                clients.admin_clients().nova.servers.list(
+                    search_opts={'all_tenants': 1}))
+            for x in vms:
+                x.delete()
+            # detach network
+            networks_client = clients.admin_clients().compute.networks
+            networks = networks_client.list()
+            for net in networks:
+                if net.project_id == object_id:
+                    networks_client.disassociate(net)
+                    break
+            # delete tenant
+            tenant.delete()
+            flask.flash('Project removed successfully.', 'success')
+        except HttpException as ex:
+            flask.flash('Cannot remote the project. %s' % ex.message, 'error')
     else:
         flask.flash('Form is not valid.', 'error')
     return flask.redirect(flask.url_for('.index'))
@@ -81,27 +83,25 @@ def new():
 
     Bind network to the project at the same time.
     """
-    store = orm.get_store('NOVA_RW')
     form = forms.NewProject()
-    rows = store.execute(
-        'SELECT id, label, cidr, vlan FROM networks '
-        'WHERE project_id IS NULL').get_all()
-    form.network.choices = map(
-        lambda x: (str(x[0]), '%s (%s, %s)' % (x[1:4])),
-        rows)
+    admin_clients = clients.admin_clients()
+    networks = admin_clients.compute.networks.list()
+    form.network.choices = [
+        (net.id, '%s (%s, %s)' % (net.label, net.cidr, net.vlan))
+        for net in networks
+        if net.project_id is None
+    ]
     if form.validate_on_submit():
         if form.description.data:
             args = (form.name.data, form.description.data)
         else:
             args = (form.name.data, )
-        tenant = clients.admin_clients().keystone.tenants.create(*args)
+        tenant = admin_clients.keystone.tenants.create(*args)
         try:
-            store.execute(
-                'UPDATE networks SET project_id = ?, label = ? '
-                'WHERE id = ? AND project_id IS NULL LIMIT 1',
-                (tenant.id, tenant.name, form.network.data))
-            store.commit()
-        except Exception:
+            admin_clients.compute.networks.associate(
+                form.network.data,
+                tenant.id)
+        except HttpException:
             tenant.delete()
             raise
         flask.flash('Project created.', 'success')
