@@ -1,4 +1,4 @@
-%global mod_name C4GD_web
+%global mod_name focus
 
 Name:           python-focus
 Version:        1.0

@@ -8,8 +8,10 @@ Focus
 import os
 from setuptools import setup, find_packages, findall
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='Focus',
@@ -24,13 +26,13 @@ setup(
     platforms='any',
     scripts=findall("bin"),
     package_data = {
-        "C4GD_web": [
+        "focus": [
             "../" + s
             for s in
-            findall("C4GD_web/static") +
-            findall("C4GD_web/templates")
+            findall("focus/static") +
+            findall("focus/templates")
         ],
     },
     install_requires=read('requirements.txt'),
-    test_suite='C4GD_web.tests'
+    test_suite='focus.tests'
 )

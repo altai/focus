@@ -10,7 +10,7 @@ pylibmc
 Flask-Principal
 Flask-Uploads
 Tornado
--e git+https://github.com/openstack/python-glanceclient.git#egg=python-glanceclient
--e git+https://github.com/openstack/python-keystoneclient.git#egg=python-keystoneclient
--e git+https://github.com/openstack/python-novaclient.git#egg=python-novaclient
+python-glanceclient
+python-keystoneclient
+python-novaclient
 netaddr
