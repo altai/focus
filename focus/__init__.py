@@ -35,7 +35,13 @@ app.cache = cache.MemcachedCache(
     key_prefix='focus')
 app.session_interface = flask_memcache_session.Session()
 
-if not app.debug:
+if app.debug:
+    if app.config['DEV_LOG_TO_FILE']:
+        ch = logging.FileHandler(app.config['LOG_FILE'])
+        _logger = logging.getLogger()
+        _logger.setLevel(logging.DEBUG)
+        _logger.addHandler(ch)
+else:
     if len(app.config['ADMINS']):
         mail_handler = handlers.SMTPHandler(
             app.config['MAIL_SERVER'],
@@ -67,11 +73,6 @@ Message:
     ))
     rotating_file_handler.setLevel(logging.WARNING)
     app.logger.addHandler(rotating_file_handler)
-
-ch = logging.FileHandler(app.config['LOG_FILE'])
-_logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
-_logger.addHandler(ch)
 
 # SMTP
 mail = mail_module.Mail(app)

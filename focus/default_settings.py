@@ -38,3 +38,4 @@ ADMINS = []
 LOG_FILE = '/var/log/focus/focus-tor.log'
 LOG_MAX_SIZE = 1024 * 1024 * 100
 LOG_BACKUPS = 12
+DEV_LOG_TO_FILE = False
