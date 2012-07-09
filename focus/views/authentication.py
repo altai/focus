@@ -16,13 +16,20 @@ from focus.views import forms
 from openstackclient_base.exceptions import Unauthorized, NotFound
 
 
+def session_clean():
+    """Cleans session except flashes and CSRF."""
+    for key in flask.session.keys():
+        if key not in ('_flashes', 'csrf',):
+            del(flask.session[key])
+
+
 def _login(username, password):
     try:
         odb_user = utils.neo4j_api_call('/users', {
             "email": username,
         }, 'GET')[0]
-    except KeyError:
-        # NOTE(apugachev)odb does not the email
+    except NotFound:
+        # NOTE(apugachev) ODB returns 404 for non-existing email, lol.
         return False
     if not (odb_user['passwordHash'] ==
             utils.create_hashed_password(password)):
@@ -75,7 +82,7 @@ def login():
         if logged_successfully:
             return flask.redirect(form.next.data)
         # required to wipe artifacts of unsuccessful attempts
-        flask.session.clear()
+        session_clean()
         flask.session['wrong_email'] = form.email.data
         flask.flash('Wrong email/password.', 'error')
     return {'form': form}
@@ -89,9 +96,7 @@ def logout():
     Instead of removing authentication marker only clear whole session.
     """
     flask.flash('You were logged out', 'success')
-    for key in flask.session.keys():
-        if key != '_flashes':
-            del(flask.session[key])
+    session_clean()
     clients.clear_cache()
     return flask.redirect(flask.url_for(
         flask.current_app.config['DEFAULT_NEXT_TO_LOGOUT_VIEW']))

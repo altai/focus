@@ -1,6 +1,7 @@
 # coding=utf-8
 import base64
 import hashlib
+import socket
 import sys
 
 import flask
@@ -34,16 +35,27 @@ def create_hashed_password(password):
 
 
 def neo4j_api_call(path, params={}, method='GET'):
+    try:
+        api_url = flask.current_app.config['NEO4J_API_URL']
+    except KeyError:
+        flask.current_app.logger.error(
+            'Not set ODB API URL (NEO4J_API_URL).')
+        raise
     if method in ('GET', 'HEAD'):
         body = None
     else:
         body = params
         params = {}
-    return neo4j_client.request(
-        '%s%s' % (flask.current_app.config['NEO4J_API_URL'], path),
-        method,
-        params=params,
-        body=body)[1]
+    try:
+        return neo4j_client.request(
+            '%s%s' % (api_url, path),
+            method,
+            params=params,
+            body=body)[1]
+    except socket.gaierror:
+        flask.current_app.logger.error(
+            'Can\'t connect to ODB "%s".' % api_url)
+        raise
 
 
 def user_tenants_list(keystone_user):
