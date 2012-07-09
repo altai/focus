@@ -1,16 +1,17 @@
-Flask
-Flask-WTF
-Flask-Mail
+Flask >= 0.9
+Flask-WTF==0.6
+Flask-Mail==0.6.1
 Jinja2
 MySQL-python
 WTForms
 Hamlish-Jinja
-storm
+storm==0.19
 pylibmc
-Flask-Principal
-Flask-Uploads
-Tornado
+Flask-Principal==0.2
+Flask-Uploads==0.1.3
 python-glanceclient
 python-keystoneclient
 python-novaclient
-netaddr
+netaddr==0.7.5
+gunicorn
+python-openstackclient-base
