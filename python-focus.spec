@@ -6,7 +6,7 @@ Release:        0%{?dist}
 Summary:        Sample interface to OpenStack
 
 Group:          Development/Libraries
-License:        Apache 2.0
+License:        LGPL 2.1
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
@@ -88,7 +88,7 @@ fi
 exit 0
 
 %files
-%doc README*
+%doc README* COPYING
 %defattr(-,root,root,-)
 %{python_sitelib}/*
 %{_usr}/bin/*

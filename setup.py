@@ -16,7 +16,7 @@ def read(fname):
 setup(
     name='Focus',
     version='1.0',
-    license='',
+    license='GNU GPL v3',
     author='Alexander Pugachev, Alessio Ababilov, Stanislav Pugachev',
     author_email='apugachev@griddynamics.com',
     description='Web interface to OpenStack',
