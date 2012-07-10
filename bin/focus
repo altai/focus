@@ -1,2 +1,2 @@
-#!/bin/bash
-exec python -m focus.tor
+#!/bin/sh
+exec gunicorn -c /etc/focus/gunicorn_config.py focus:app

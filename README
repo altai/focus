@@ -1,24 +1,35 @@
-After installing RPM edit /etc/focus/local_settings.py.
-You'll need to:
-- have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
-- set credentials to Keystone MySQL db for read-only user (RO_DATABASE_URI)
-- set credentials to Keystone MySQL db for read-write user (RW_DATABASE_URI)
-- set credentials to Nova MySQL db for read-only user (NOVA_RO_DATABASE_URI)
-- set credentials to Nova MySQL db for read-write user (NOVA_RW_DATABASE_URI)
-- set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
- * On install Invitations MySQL db must be loaded with dump from /etc/invitations_dump.sql.
- * On update for now it does not require any actions.
-- set URL to access ODB (NEO4J_API_URL)
-- set Keystone access configuration dictionary (KEYSTONE_CONF):
- * auth_uri - Keyston authentication URL for port 5000 
- * admin_tenant_name - usually 'systenant'
- * admin_user - usually 'admin'
- * admin_password - Keystone password for admin_user
- * admin_tenant_id - ID of admin_tenant_name tenant
-- set SMTP server configuration (MAIL_SERVER, MAIL_PORT, DEFAULT_MAIL_SENDER)
-- set default uploads destination (UPLOADS_DEFAULT_DEST)
-- set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
-- set path to log (file LOG_FILE).
+After installing RPM:
+
+1) Install/start Memcached
+2) Install/start MySQL
+3) Create MySQL db for Invitations and load it with /etc/invitations_dump.sql
+4) edit /etc/focus/local_settings.py
+  - have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
+  - set credentials to Keystone MySQL db for read-only user (RO_DATABASE_URI)
+  - set credentials to Keystone MySQL db for read-write user (RW_DATABASE_URI)
+  - set credentials to Nova MySQL db for read-only user (NOVA_RO_DATABASE_URI)
+  - set credentials to Nova MySQL db for read-write user (NOVA_RW_DATABASE_URI)
+  - set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
+  - set URL to access ODB (NEO4J_API_URL)
+  - set Keystone access configuration dictionary (KEYSTONE_CONF):
+    * auth_uri - Keyston authentication URL for port 5000
+    * admin_tenant_name - usually 'systenant'
+    * admin_user - usually 'admin'
+    * admin_password - Keystone password for admin_user
+    * admin_tenant_id - ID of admin_tenant_name tenant
+  - set SMTP server configuration (MAIL_SERVER, MAIL_PORT, DEFAULT_MAIL_SENDER)
+  - set default uploads destination (UPLOADS_DEFAULT_DEST)
+  - set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
+  - set path to log (file LOG_FILE).
+
+5) edit /etc/focus/gunicorn_config.py
+  - bind: "<IP:port>"
+  - workers: integer number of workers
+  - timeout: leave as is, we require big number of seconds here
+  - accesslog: Gunicorn access log
+  - errorlog: Gunicorn error log
+
+
 
 You can turn on HTTP logging for Keystone client(KEYSTONECLIENT_DEBUG).
 To receive reports about errors on email list email addresses in ADMINS.

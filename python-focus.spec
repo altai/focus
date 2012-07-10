@@ -23,7 +23,7 @@ Requires:       python-wtforms
 Requires:       python-hamlish-jinja
 Requires:       python-storm
 Requires:       python-storm-mysql
-Requires:       python-tornado
+Requires:       python-gunicorn
 Requires:       python-pylibmc
 Requires:       python-netaddr
 
