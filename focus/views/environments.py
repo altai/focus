@@ -3,6 +3,10 @@ from flaskext import principal
 from focus import clients
 from focus import utils
 
+BARE_ENDPOINTS = [
+    'project_images.progress'
+]
+
 
 def project(bp):
     @bp.url_value_preprocessor
@@ -20,12 +24,13 @@ def project(bp):
 
     @bp.before_request
     def setup_tenant():
-        visible_ids = [x.id for x in utils.get_visible_tenants()]
-        if flask.g.tenant_id not in visible_ids:
-            flask.abort(404)
-        principal.Permission(('role', 'member', flask.g.tenant_id)).test()
-        flask.g.tenant = clients.admin_clients().keystone.tenants.get(
-            flask.g.tenant_id)
+        if flask.request.endpoint not in BARE_ENDPOINTS:
+            visible_ids = [x.id for x in utils.get_visible_tenants()]
+            if flask.g.tenant_id not in visible_ids:
+                flask.abort(404)
+            principal.Permission(('role', 'member', flask.g.tenant_id)).test()
+            flask.g.tenant = clients.admin_clients().keystone.tenants.get(
+                flask.g.tenant_id)
     return bp
 
 

@@ -19,7 +19,8 @@ ANONYMOUS_ALLOWED = [
     'password_recovery_request',
     'password_recovery_finish',
     'update_passwords_in_ODB',
-    'invitations.finish'
+    'invitations.finish',
+    'project_images.progress'
 ]
 
 DEFAULT_APP_PORT = 8080

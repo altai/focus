@@ -16,8 +16,7 @@ class ImagesTestCase(unittest.TestCase):
             current_app.config = {
                 'KEYSTONE_CONF': {
                     'admin_tenant_id': '1',
-                },
-                'DEFAULT_TENANT_ID': '1'}
+                }}
             g.tenant_id = None
             clients().glance.images.list.return_value = images_list
             result = images.get_images_list()

@@ -1,11 +1,15 @@
+# coding=utf-8
+
 """Provides factory of blueprints for image management.
 
 Currently we have only one blueprint for image management - for admins.
 Later on we'll need image management for members of tenants, Essex allows it.
 """
 
+import datetime
 import json
 import os
+import time
 
 import flask
 from flask import blueprints
@@ -19,11 +23,60 @@ from focus.views import forms
 from focus.views import pagination
 
 
+class ProgressRecorder(object):
+    """
+    This is used to measure progress of a process.
+
+    Instance works as a callback for a process to call.
+    It records progress and ETA to application cache under given key.
+    """
+    def __init__(self, http_client, key, total):
+        self.http_client = http_client
+        self.key = key
+        self.total = total
+
+    def __enter__(self):
+        self.start = time.time()
+        self.counter = 0
+        self.http_client.callback = self
+        return self
+
+    def __exit__(self, type, value, traceback):
+        flask.current_app.cache.delete(self.key)
+        self.http_client.callback = None
+
+    def __call__(self, progress):
+        self.counter += progress
+        now = time.time()
+        seconds_spent = now - self.start
+        percent = self.counter * 100.0 / self.total
+        if seconds_spent:
+            speed = self.counter / seconds_spent
+            remainder = self.total - self.counter
+            eta = now + remainder / speed
+            eta = (datetime.datetime.utcfromtimestamp(eta).
+                   isoformat().split('.')[0].replace('T', ' '))
+        else:
+            speed = 0.0
+            eta = u'∞'
+            seconds_spent = 0.0
+
+        flask.current_app.cache.set(
+            self.key, {
+                'transferred': self.counter,
+                'total': self.total,
+                'time_spent': '%0.2f' % seconds_spent,
+                'percent': percent,
+                'speed': '%0.2f' % speed,
+                'eta': eta,
+            })
+
+
 def get_images_list():
     """Return list of images visible for given condigions.
 
     If g.tenant_id is not set it is admin blueprint.
-    We have to show only images owned by DEFAULT_TENANT_ID, which are also
+    We have to show only images owned by systenant, which are also
     public (can be protected as well (we set it so, but other tools can
     change this attribute or set it to a wrong value from the beginning).
 
@@ -90,82 +143,105 @@ def get_bp(name):
             'delete_form': forms.DeleteForm()
         }
 
-    @bp.route('new/', methods=['GET', 'POST'])
+    @bp.route('new/', methods=['GET'])
     def new():
-        """Upload image.
+        """Present image upload form.
 
-        New image uploaded in tenant systenant publicly if blueprint is in
-        admin context. Otherwise image uploaded in the tenant used for the
-        project and is not public. With default Glance settigns this would
-        restrict access to the image for members of the project.
-
-        POST:
-        - validate
-        - create image
-        - cleanup tmp file
-        - return successful message
+        TODO(apugachev): remove from templ location images older then X hours
         """
-        if flask.request.method == 'POST':
-            # TODO(apugachev): validate thoroughly, do not rely on js to do it
-            path = focus.files_uploads.path(
-                flask.request.form['uploaded_filename'])
-            tenant_id = get_tenant_id()
-            properties = {
-                'image_state': 'available',
-                'project_id': tenant_id,
-                'architecture': 'x86_64',
-                'image_location': 'local'}
-            if flask.request.form['upload_type'] == 'rootfs':
-                properties['kernel_id'] = flask.request.form['kernel']
-                properties['ramdisk_id'] = flask.request.form['initrd']
-            kwargs = {
-                'name': flask.request.form['name'],
-                'container_format': flask.request.form['container'],
-                'disk_format': flask.request.form['disk'],
-                'data': open(path),
-                'is_public': not hasattr(flask.g, 'tenant_id'),
-                'properties': properties,
-            }
-            try:
-                response = clients.user_clients(
-                    tenant_id).image.images.create(**kwargs)._info
-            except RuntimeError, e:
-                flask.flash(e.message, 'error')
-            else:
-                flask.flash(
-                    'Image with ID %s was registered.' % response['id'],
-                    'success')
-                return flask.redirect(flask.url_for('.index'))
-            finally:
-                try:
-                    kwargs['data'].close()
-                    os.unlink(path)
-                except OSError:
-                    # nothing to do, temporal file was removed by something
-                    pass
         images = get_images_list()
-        kernels = filter(
-            lambda x: getattr(x, 'container_format') == 'aki',
-            images)
-        initrds = filter(
-            lambda x: getattr(x, 'container_format') == 'ari',
-            images)
-
+        check = lambda f: lambda x: getattr(x, 'container_format') == f
+        kernels = filter(check('aki'), images)
+        initrds = filter(check('ari'), images)
+        dump = lambda d: json.dumps([x.properties for x in d])
         return {
-            'kernel_list': json.dumps([x.properties for x in kernels]),
-            'initrd_list': json.dumps([x.properties for x in initrds])
+            'kernel_list': dump(kernels),
+            'initrd_list': dump(initrds)
         }
 
-    @bp.route('new/upload/', methods=['POST'])
+    @bp.route('upload/', methods=['POST'])
     def upload():
-        """
-        Saves uploaded filed.
+        """Save uploaded file.
 
-        save, return filename.
+        Handles AJAX call, saves file in temp location, returns filename.
+
+        TODO(apugachev): remove from templ location images older then X hours
         """
         storage = flask.request.files['file']
         filename = focus.files_uploads.save(storage)
+        flask.current_app.cache.set(
+            os.path.basename(filename),
+            {'transferred': -1})
         return filename
+
+    @bp.route('create/', methods=['POST'])
+    def create():
+        """Create image via Glance API.
+
+        - validates form
+        - creates image via API
+        - cleans up tmp file
+        - returns successful message
+
+        New image uploaded in tenant systenant publicly if blueprint is in
+        admin context. Otherwise image uploaded in the tenant used for the
+        project and is not public. With default Glance settings (owner means
+        tenant) this would restrict access to the image for members of the
+        project.
+
+        During the process of upload ongoing progress is memcached.
+
+        TODO(apugachev): remove from templ location images older then X hours
+        """
+        # TODO(apugachev): validate thoroughly, do not rely on js to do it
+        uploaded_filename = focus.files_uploads.path(
+            flask.request.form['uploaded_filename'])
+        tenant_id = get_tenant_id()
+        properties = {
+            'image_state': 'available',
+            'project_id': tenant_id,
+            'architecture': 'x86_64',
+            'image_location': 'local'}
+        if flask.request.form['upload_type'] == 'rootfs':
+            properties['kernel_id'] = flask.request.form['kernel']
+            properties['ramdisk_id'] = flask.request.form['initrd']
+        kwargs = {
+            'name': flask.request.form['name'],
+            'container_format': flask.request.form['container'],
+            'disk_format': flask.request.form['disk'],
+            'data': open(uploaded_filename),
+            'is_public': not hasattr(flask.g, 'tenant_id'),
+            'properties': properties,
+        }
+        try:
+            user_clients = clients.user_clients(tenant_id)
+            callback = ProgressRecorder(
+                user_clients.http_client,
+                os.path.basename(uploaded_filename),
+                os.fstat(kwargs['data'].fileno()).st_size)
+            with callback:
+                img = user_clients.image.images.create(**kwargs)
+        except RuntimeError as e:
+            flask.flash(e.message, 'error')
+        else:
+            flask.flash(
+                'Image with ID %s was registered.' % img.id,
+                'success')
+        finally:
+            try:
+                kwargs['data'].close()
+                os.unlink(uploaded_filename)
+            except OSError:
+                # nothing to do, temporal file was removed by something
+                pass
+        # NOTE(apugachev) for big this will fail to load and BrokenPipe
+        # will be raised inside Flask
+        return flask.make_response('')
+
+    @bp.route('progress/<uploaded_filename>/')
+    def progress(uploaded_filename):
+        r = flask.current_app.cache.get(uploaded_filename)
+        return flask.jsonify(r or {})
 
     @bp.route('<image_id>/delete/', methods=['POST'])
     def delete(image_id):

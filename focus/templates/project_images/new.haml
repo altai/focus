@@ -9,7 +9,7 @@
   %script src="{{ url_for('static', filename='amd/main_images.js') }}"
 -block content
   -from "_formhelpers.haml" import render_h_field
-  %form.form-horizontal method="POST" action="."
+  %form.form-horizontal.new-image method="POST" action="{{ url_for('.create') }}" data-upload-action="{{ url_for('.upload') }}"
     %legend
       Add Image    
     %div.upload-view
