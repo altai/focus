@@ -12,6 +12,7 @@ from flaskext import mail as mail_module
 from focus import application
 from focus import flask_memcache_session
 
+
 app = application.FatFlask(__name__)
 
 # config app
@@ -26,31 +27,27 @@ try:
 except IOError:
     pass
 
-if app.config['KEYSTONECLIENT_DEBUG']:
-    os.environ['KEYSTONECLIENT_DEBUG'] = '1'
+
 app.jinja_env.hamlish_mode = 'indented'
+
 app.cache = cache.MemcachedCache(
     [app.config['MEMCACHED_HOST']],
     default_timeout=300000,
     key_prefix='focus')
+
 app.session_interface = flask_memcache_session.Session()
 
-if app.debug:
-    if app.config['DEV_LOG_TO_FILE']:
-        ch = logging.FileHandler(app.config['LOG_FILE'])
-        _logger = logging.getLogger()
-        _logger.setLevel(logging.DEBUG)
-        _logger.addHandler(ch)
-else:
-    if len(app.config['ADMINS']):
-        mail_handler = handlers.SMTPHandler(
-            app.config['MAIL_SERVER'],
-            app.config['DEFAULT_MAIL_SENDER'][1]
-            if len(app.config['DEFAULT_MAIL_SENDER']) == 2
-            else app.config['DEFAULT_MAIL_SENDER'],
-            app.config['ADMINS'],
-            'Focus At %s Failed' % socket.getfqdn())
-        mail_handler.setFormatter(logging.Formatter('''
+
+LOG = logging.getLogger()
+if len(app.config['ADMINS']):
+    mail_handler = handlers.SMTPHandler(
+        app.config['MAIL_SERVER'],
+        app.config['DEFAULT_MAIL_SENDER'][1]
+        if len(app.config['DEFAULT_MAIL_SENDER']) == 2
+        else app.config['DEFAULT_MAIL_SENDER'],
+        app.config['ADMINS'],
+        'Focus At %s Failed' % socket.getfqdn())
+    mail_handler.setFormatter(logging.Formatter('''
 Message type:       %(levelname)s
 Location:           %(pathname)s:%(lineno)d
 Module:             %(module)s
@@ -61,18 +58,20 @@ Message:
 
 %(message)s
 '''))
-        mail_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(mail_handler)
-    rotating_file_handler = handlers.RotatingFileHandler(
-        app.config['LOG_FILE'],
-        maxBytes=app.config['LOG_MAX_SIZE'],
-        backupCount=app.config['LOG_BACKUPS'])
-    rotating_file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s '
-        '[in %(pathname)s:%(lineno)d]'
-    ))
-    rotating_file_handler.setLevel(logging.WARNING)
-    app.logger.addHandler(rotating_file_handler)
+    mail_handler.setLevel(logging.ERROR)
+    LOG.addHandler(mail_handler)
+
+rotating_file_handler = handlers.RotatingFileHandler(
+    app.config['LOG_FILE'],
+    maxBytes=app.config['LOG_MAX_BYTES'],
+    backupCount=app.config['LOG_BACKUP_COUNT'])
+rotating_file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s '
+    '[in %(pathname)s:%(lineno)d]'
+))
+LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
+LOG.addHandler(rotating_file_handler)
+
 
 # SMTP
 mail = mail_module.Mail(app)

@@ -52,7 +52,7 @@ def neo4j_api_call(path, params={}, method='GET'):
             method,
             params=params,
             body=body)[1]
-    except socket.gaierror:
+    except socket.error:
         flask.current_app.logger.error(
             'Can\'t connect to ODB "%s".' % api_url)
         raise
