@@ -6,7 +6,7 @@ Release:        0%{?dist}
 Summary:        Sample interface to OpenStack
 
 Group:          Development/Libraries
-License:        LGPL 2.1
+License:        GNU LGPL 2.1
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
