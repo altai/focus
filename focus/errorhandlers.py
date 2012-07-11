@@ -20,6 +20,7 @@
 
 
 """Setting error handlers."""
+import socket
 import sys
 
 import flask
@@ -49,7 +50,11 @@ if not focus.app.debug:
         If http referrer exists and belongs to our domain redirect there.
         Otherwise renders tempalte "blank.haml".
         """
-        flask.flash(error.message or error.args[0], 'error')
+        message = getattr(
+            error,
+            'public_message',
+            error.message or error.args[0])
+        flask.flash(message, 'error')
         exc_type, exc_value, traceback = sys.exc_info()
         flask.current_app.log_exception((exc_type, exc_value, traceback))
         # referrer is None if header is missing
@@ -68,3 +73,4 @@ if not focus.app.debug:
         exc_type, exc_value, traceback = sys.exc_info()
         flask.current_app.log_exception((exc_type, exc_value, traceback))
         return flask.render_template('blank.haml')
+
