@@ -18,7 +18,6 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 
-
 import flask
 from flask import blueprints
 
@@ -36,7 +35,10 @@ bp = environments.admin(blueprints.Blueprint('networks', __name__))
 
 @bp.route('')
 def index():
-    networks = clients.admin_clients().compute.networks.list()
+    try:
+        networks = clients.admin_clients().compute.networks.list()
+    except HttpException as ex:
+        networks = []
     tenants = clients.admin_clients().identity_admin.tenants.list()
     tenants = dict(((t.id, t.name) for t in tenants))
     p = pagination.Pagination(len(networks))
@@ -86,6 +88,10 @@ def delete(object_id):
     """Delete network and associated fixed IPs."""
     form = forms.DeleteForm()
     if form.validate_on_submit():
-        clients.admin_clients().compute.networks.delete(object_id)
-        flask.flash('Network deleted.', 'success')
+        try:
+            clients.admin_clients().compute.networks.delete(object_id)
+        except HttpException as ex:
+            flask.flash(ex.message, 'error')
+        else:
+            flask.flash('Network deleted.', 'success')
     return flask.redirect(flask.url_for('.index'))

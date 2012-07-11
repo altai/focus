@@ -11,6 +11,8 @@
           Netmask
         %th
           VLAN
+        %th
+          Actions
     %tbody
       -from "_modals.haml" import show_modal with context
       -for object in objects
@@ -25,6 +27,15 @@
           %td
             =object['vlan']
           %td
-            {{ show_modal(object, msg='Sure to delete "%s"?' % object['label'], action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete', object_id=object['id'])) }}
+            {% if not object['project_id'] %}
+              {{ show_modal(
+                     object, msg='Sure to delete "%s"?' % object['label'],
+                     action='delete', extra_fields=[delete_form.hidden_tag()],
+                     add_next=False,
+                     form_action=url_for('.delete', object_id=object['id']))
+              }}
+            {% else %}
+              &nbsp;
+            {% endif %}
 
   -include "pagination.haml"

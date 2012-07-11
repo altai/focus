@@ -106,12 +106,21 @@ def new():
     """
     form = forms.NewProject()
     admin_clients = clients.admin_clients()
-    networks = admin_clients.compute.networks.list()
-    form.network.choices = [
-        (net.id, '%s (%s, %s)' % (net.label, net.cidr, net.vlan))
-        for net in networks
-        if net.project_id is None
-    ]
+    try:
+        networks = admin_clients.compute.networks.list()
+    except HttpException:
+        networks = []
+    else:
+        networks = [
+            (net.id, '%s (%s, %s)' % (net.label, net.cidr, net.vlan))
+            for net in networks
+            if net.project_id is None
+        ]
+    if not networks:
+        flask.flash('No free networks available.', 'error')
+        return flask.redirect(flask.url_for('.index'))
+
+    form.network.choices = networks
     if form.validate_on_submit():
         if form.description.data:
             args = (form.name.data, form.description.data)
