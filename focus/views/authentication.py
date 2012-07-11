@@ -155,7 +155,8 @@ def password_recovery_finish(recovery_hash):
     msg = mail.Message('Password recovery', recipients=[odb_user['email']])
     msg.body = flask.render_template('RecoveryPasswordFinishEmail/body.txt',
                                      new_pass=new_hash)
-    focus.mail.send(msg)
+    
+    utils.send_msg(msg)
     flask.flash('New password was sent to you', 'success')
     return flask.redirect(flask.url_for('dashboard'))
 
@@ -193,7 +194,7 @@ def password_recovery_request():
                 'Password recovery', recipients=[form.email.data])
             msg.body = flask.render_template('RecoveryPasswordEmail/body.txt',
                                              recovery_link=recovery_link)
-            focus.mail.send(msg)
+            utils.send_msg(msg)
             flask.flash('Recovery request was sent successfully', 'info')
     if 'wrong_email' in flask.session:
         form.email.data = flask.session['wrong_email']

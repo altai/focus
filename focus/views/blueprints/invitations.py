@@ -18,7 +18,6 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 
-
 import uuid
 
 import flask
@@ -201,7 +200,7 @@ def invite():
                     msg = mail.Message('Invitation', recipients=[user_email])
                     msg.body = flask.render_template(
                         'invitations/email_body.txt', invite_link=invite_link)
-                    focus.mail.send(msg)
+                    utils.send_msg(msg)
                     flask.flash('Invitation sent successfully', 'info')
     return {
         'form': form,

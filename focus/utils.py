@@ -26,6 +26,7 @@ import sys
 
 import flask
 
+import focus
 from focus import clients
 
 from openstackclient_base.client import HttpClient
@@ -76,7 +77,6 @@ def neo4j_api_call(path, params={}, method='GET'):
         e.public_message = 'Can\'t connect to ODB "%s".' % api_url
         flask.current_app.logger.error(e.public_message)
         raise e
-
 
 
 def user_tenants_list(keystone_user):
@@ -162,3 +162,12 @@ def username_is_taken(email):
             'User with email "%s" is already registered' % email,
             'error')
     return username_is_taken
+
+
+def send_msg(msg):
+    try:
+        focus.mail.send(msg)
+    except (socket.error, socket.gaierror, socket.herror, socket.timeout), e:
+        e.message = 'Unable to send emails'
+        flask.current_app.logger.error(e.message)
+        raise e
