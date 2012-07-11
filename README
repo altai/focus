@@ -17,7 +17,15 @@ After installing RPM:
     * admin_user - usually 'admin'
     * admin_password - Keystone password for admin_user
     * admin_tenant_id - ID of admin_tenant_name tenant
-  - set SMTP server configuration (MAIL_SERVER, MAIL_PORT, DEFAULT_MAIL_SENDER)
+  - set SMTP server configuration
+    * MAIL_SERVER is SMTP server host
+    * MAIL_PORT is SMTP server port
+    * MAIL_USERNAME is required if SMTP server requires authentication (for Gmail it must be full email address, not only username)
+    * MAIL_PASSWORD is required if SMTP requires authentication
+    * DEFAULT_MAIL_SENDER:
+      = if SMTP server requires authentication (Gmail) then this variable must be equal to MAIL_USERNAME or be tuple of (<some name>, MAIL_USERNAME)
+      = if SMTP server does not require authentication then this variable can contain email address or be tuple of (name, email)
+    * MAIL_USE_TLS must be True if SMTP server requires it (e..g. Gmail)
   - set default uploads destination (UPLOADS_DEFAULT_DEST)
   - set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
   - set path to log (file LOG_FILE).
