@@ -47,19 +47,20 @@ try:
 except IOError:
     pass
 
-
-app.jinja_env.hamlish_mode = 'indented'
-
-app.cache = cache.MemcachedCache(
-    [app.config['MEMCACHED_HOST']],
-    default_timeout=300000,
-    key_prefix='focus')
-
-app.session_interface = flask_memcache_session.Session()
-
-
 LOG = logging.getLogger()
-if len(app.config['ADMINS']):
+if not app.debug:
+    if app.config.get('LOG_FILE', '') != '':
+        rotating_file_handler = handlers.RotatingFileHandler(
+            app.config['LOG_FILE'],
+            maxBytes=app.config['LOG_MAX_BYTES'],
+            backupCount=app.config['LOG_BACKUP_COUNT'])
+        rotating_file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s '
+                '[in %(pathname)s:%(lineno)d]'
+                ))
+        LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
+        LOG.addHandler(rotating_file_handler)
+if not app.debug and len(app.config['ADMINS']):
     mail_handler = handlers.SMTPHandler(
         app.config['MAIL_SERVER'],
         app.config['DEFAULT_MAIL_SENDER'][1]
@@ -81,16 +82,14 @@ Message:
     mail_handler.setLevel(logging.ERROR)
     LOG.addHandler(mail_handler)
 
-rotating_file_handler = handlers.RotatingFileHandler(
-    app.config['LOG_FILE'],
-    maxBytes=app.config['LOG_MAX_BYTES'],
-    backupCount=app.config['LOG_BACKUP_COUNT'])
-rotating_file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s '
-    '[in %(pathname)s:%(lineno)d]'
-))
-LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
-LOG.addHandler(rotating_file_handler)
+app.jinja_env.hamlish_mode = 'indented'
+
+app.cache = cache.MemcachedCache(
+    [app.config['MEMCACHED_HOST']],
+    default_timeout=300000,
+    key_prefix='focus')
+
+app.session_interface = flask_memcache_session.Session()
 
 
 # SMTP
