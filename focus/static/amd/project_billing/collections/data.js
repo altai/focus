@@ -12,7 +12,12 @@ define(['jquery', 'backbone', 'project_billing/models/datum'], function($, Backb
       this.fetch({
     	data: opts,
         success: function(collection, response){
-          this.response = response;
+          if (response['data']['resources'].length == 0) {
+            $('div.graph-view').html('<div class="alert alert-warning">No items to show</div>');
+            $('div.table-view').html('');
+          } else {
+            this.response = response;
+          }
         }
       });
     }
