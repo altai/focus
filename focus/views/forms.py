@@ -20,6 +20,9 @@
 
 
 # TODO(apugachev) convert factories to plain classes where possible
+
+import decimal
+
 import netaddr
 
 from flaskext import wtf
@@ -116,11 +119,35 @@ class RemoveUserFromProject(wtf.Form):
 class DeleteForm(wtf.Form):
     """Just an empty form to easily bypass CSRF checks."""
 
+class DecimalFieldRequired(wtf.Required):
+    """
+    Validates that the field contains data. This validator will stop the
+    validation chain on error.
+
+    If the data is empty, also removes prior errors (such as processing errors)
+    from the field.
+
+    :param message:
+        Error message to raise in case of a validation error.
+    """
+
+    def __call__(self, form, field):
+        if not field.data == decimal.Decimal('0.0'):
+            if (
+                not field.data or isinstance(field.data, basestring) and 
+                not field.data.strip()):
+                    if self.message is None:
+                        self.message = field.gettext(u'This field is required.')
+
+                    field.errors[:] = []
+                    raise StopValidation(self.message)
+
+
 
 class TariffEditForm(wtf.Form):
     price = wtf.DecimalField(
         'Price',
-        [wtf.Required()],
+        [DecimalFieldRequired()],
         places=None)
     migrate = wtf.BooleanField(
         'Migrate Resources',
