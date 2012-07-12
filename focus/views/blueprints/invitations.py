@@ -77,12 +77,16 @@ def register_user(username, email, password, role):
             if role != 'user':
                 all_roles = clients.admin_clients().keystone.roles.list()
                 for r in all_roles:
-                    if r.name == role:
+                    if r.name.lower() == role.lower():
                         clients.admin_clients().keystone.roles.add_user_role(
                             new_keystone_user, r,
                             tenant=clients.get_systenant_id()
                         )
                         break
+                else:
+                    flask.current_app.logger(
+                        'Matching Keystone role for %s nto found.' % role.lower(), 
+                        'error')
             return new_keystone_user
         except Exception, e:
             raise Exception("Registration fail", e.message)
