@@ -73,7 +73,7 @@ def neo4j_api_call(path, params={}, method='GET'):
             method,
             params=params,
             body=body)[1]
-    except (socket.error, socket.gaierror, socket.herror, socket.timeout), e:
+    except socket.error, e:
         e.public_message = 'Can\'t connect to ODB "%s".' % api_url
         flask.current_app.logger.error(e.public_message)
         raise e
@@ -167,7 +167,7 @@ def username_is_taken(email):
 def send_msg(msg):
     try:
         focus.mail.send(msg)
-    except (socket.error, socket.gaierror, socket.herror, socket.timeout), e:
+    except socket.error, e:
         e.message = 'Unable to send emails'
         flask.current_app.logger.error(e.message)
         raise e
