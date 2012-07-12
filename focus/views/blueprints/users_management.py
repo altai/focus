@@ -155,7 +155,7 @@ def grant_admin(user_id):
     """
     clients.admin_clients().keystone.roles.add_user_role(
         user_id,
-        clients.get_role_id("member"),
+        clients.get_role_id("admin"),
         clients.get_systenant_id())
     flask.flash('Admin role granted', 'success')
     return flask.redirect(flask.url_for('.index'))
