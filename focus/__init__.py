@@ -47,7 +47,9 @@ try:
 except IOError:
     pass
 
+logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger()
+LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
 if not app.debug:
     if app.config.get('LOG_FILE', '') != '':
         rotating_file_handler = handlers.RotatingFileHandler(
@@ -58,7 +60,6 @@ if not app.debug:
                 '%(asctime)s %(levelname)s: %(message)s '
                 '[in %(pathname)s:%(lineno)d]'
                 ))
-        LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
         LOG.addHandler(rotating_file_handler)
 if not app.debug and len(app.config['ADMINS']):
     mail_handler = handlers.SMTPHandler(
