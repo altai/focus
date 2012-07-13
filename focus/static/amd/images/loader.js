@@ -10,6 +10,26 @@ define([
   'js!vendors/underscore-1.3.3/underscore-min.js!order',
   'js!vendors/backbone-0.9.2/backbone-min.js!order'
 ], function(){
+  var g_data = {}
+  g_data[Date.now()] = ''
+  jQuery.ajaxSetup(
+    {
+      dataFilter: function(data, type){
+        var obj = jQuery.parseJSON(data);
+        if (obj['status'] && (obj['status'] == 'error')){
+          jQuery('#error_message_modal .modal-body').html(obj['message']);
+          jQuery('#error_message_modal').modal();
+          jQuery('#error_message_modal').on('hidden', function () {
+            if (obj.code == 1){
+              window.location = '/logout/';
+            }
+          })
+        }
+        return data
+      }
+      , data: g_data
+    }
+  );
   return {
     Backbone: Backbone,
     _: _,

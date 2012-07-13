@@ -58,9 +58,12 @@ if not focus.app.debug:
         exc_type, exc_value, traceback = sys.exc_info()
         flask.current_app.log_exception((exc_type, exc_value, traceback))
         # referrer is None if header is missing
-        if (flask.request.referrer or '').startswith(flask.request.host_url):
-            return flask.redirect(flask.request.referrer)
-        return flask.render_template('blank.haml')
+        if flask.request.is_xhr:
+            return flask.jsonify({'status': 'error', 'message': message, 'code': -1})
+        else:
+            if (flask.request.referrer or '').startswith(flask.request.host_url):
+                return flask.redirect(flask.request.referrer)
+            return flask.render_template('blank.haml')
 
     @focus.app.errorhandler(HttpException)
     def handle_openstackclient_http_exceptions(error):

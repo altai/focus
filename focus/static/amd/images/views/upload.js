@@ -33,7 +33,6 @@ define([
                                 '/new/',
                                 '/progress/' + uploaded_filename + '/'),
                             function(response){
-                                console.log(response);
                                 if (!_.isEmpty(response)){
                                     if (response.transferred >= 0) {
                                         self.$('.api-progress .bar').css('width', response.percent + '%');
@@ -46,7 +45,7 @@ define([
                                     }
                                 } else {
                                     clearInterval(window.progressIntervalID);
-                                    window.location.reload();
+                                    //window.location.reload();
                                 }
                             }
                         );
