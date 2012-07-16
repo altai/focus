@@ -170,10 +170,8 @@ class NewProject(wtf.Form):
 
 class CreateNetwork(wtf.Form):
     cidr = wtf.TextField('CIDR', [wtf.Required()])
-    vlan = wtf.IntegerField(
-        'VLAN',
-        [wtf.Required(),
-         wtf.NumberRange(min=1, max=4096, message='Invalid VLAN')])
+    vlan = wtf.IntegerField('VLAN', [wtf.NumberRange(min=1, max=4096, 
+        message='Not in range %(min)s - %(max)s')])
 
     def validate_cidr(form, field):
         try:

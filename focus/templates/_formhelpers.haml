@@ -25,8 +25,12 @@
     %div.controls    
       =field|safe
       -if field.errors
-        -for error in field.errors
-          %div.help-inline
+        %div.help-inline
+          -if field.errors|length > 1:
+            -for error in field.errors
+                =error
+                %br
+          -else
             =error
       %p.help-block
         =field.description
