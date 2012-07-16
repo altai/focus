@@ -224,14 +224,19 @@ def get_bp(name):
         if flask.request.form['upload_type'] == 'rootfs':
             properties['kernel_id'] = flask.request.form['kernel']
             properties['ramdisk_id'] = flask.request.form['initrd']
-        kwargs = {
-            'name': flask.request.form['name'],
-            'container_format': flask.request.form['container'],
-            'disk_format': flask.request.form['disk'],
-            'data': open(uploaded_filename),
-            'is_public': not hasattr(flask.g, 'tenant_id'),
-            'properties': properties,
-        }
+        try:
+            kwargs = {
+                'name': flask.request.form['name'],
+                'container_format': flask.request.form['container'],
+                'disk_format': flask.request.form['disk'],
+                'data': open(uploaded_filename),
+                'is_public': not hasattr(flask.g, 'tenant_id'),
+                'properties': properties,
+            }
+        except IOError, e:
+            e.public_message = 'Uploaded file is missing'
+            flask.current_app.logger.error(str(e))
+            raise
         try:
             user_clients = clients.user_clients(tenant_id)
             callback = ProgressRecorder(
