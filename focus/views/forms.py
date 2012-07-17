@@ -55,7 +55,8 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     IMAGE_CHOICES = sorted(
         map(lambda x: (x.id, x.name), images), key=l_by_name)
     FLAVOR_CHOICES = map(l_id_name, sorted(flavors, key=l_flavor))
-    SECURITY_GROUP = sorted(map(l_id_name, security_groups), key=l_by_name)
+    SECURITY_GROUP = sorted(map(lambda x: (x.name, x.name), security_groups), 
+                            key=l_by_name)
     KEYPAIR_CHOICES = sorted(
         map(lambda x: (x.name, x.name), key_pairs),
         key=l_by_name)
