@@ -61,7 +61,7 @@ mkdir -p %{buildroot}/etc/focus
 install -p -D -m644 etc/* %{buildroot}/etc/focus
 
 install -d -m755 %{buildroot}%{_localstatedir}/{log,lib,run}/focus
-install -p -m644 %{buildroot}/etc/focus/focus.conf /etc/nginx/conf.d/focus.conf
+install -p -m644 -D %{buildroot}/etc/focus/focus.conf /etc/nginx/conf.d/focus.conf
 
 %clean
 %__rm -rf %{buildroot}
