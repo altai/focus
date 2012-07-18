@@ -28,9 +28,7 @@ Later on we'll need image management for members of tenants, Essex allows it.
 import datetime
 import json
 import os
-import shutil
 import time
-import uuid
 
 import flask
 from flask import blueprints
@@ -132,17 +130,7 @@ def fast_upload_response():
     to avoid cleanup. Return path temp location.
     """
     src = os.path.abspath(flask.request.form['file.path'])
-    if src.startswith(flask.current_app.config['NGINX_UPLOADS']):
-        name = str(uuid.uuid4())
-        dest = os.path.join(flask.current_app.config['UPLOADS_DEFAULT_DEST'],
-                            'files',
-                            name)
-        try:
-            os.rename(src, dest)
-        except OSError, e:
-            e.public_message = 'Failed to finish upload.'
-            flask.current_app.logger.error('Failed to rename %s to %s: %s', src, dest, str(e))
-            raise
+    if src.startswith(flask.current_app.config['UPLOADS_DEFAULT_DEST']):
         return flask.make_response(name)
     else:
         flask.current_app.logger.error('Tried to trigger upload finish for %s',

@@ -1,7 +1,6 @@
 # coding=utf-8
 DEBUG = False
 
-NGINX_UPLOADS = '/var/lib/focus/nginx-upload/'
 UPLOADS_DEFAULT_DEST = '/var/lib/focus/uploads/'
 
 INVITATIONS_DATABASE_URI = ''

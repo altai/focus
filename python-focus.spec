@@ -34,6 +34,8 @@ Requires:       python-keystoneclient-essex
 Requires:       python-glanceclient-essex
 Requires:       python-openstackclient-base-essex
 
+Requires:       nginx-upload
+
 %description
 
 
@@ -59,7 +61,7 @@ mkdir -p %{buildroot}/etc/focus
 install -p -D -m644 etc/* %{buildroot}/etc/focus
 
 install -d -m755 %{buildroot}%{_localstatedir}/{log,lib,run}/focus
-
+install -p -m644 %{buildroot}/etc/focus/focus.conf /etc/nginx/conf.d/focus.conf
 
 %clean
 %__rm -rf %{buildroot}
@@ -99,6 +101,7 @@ exit 0
 %defattr(-,focus,focus,-)
 %dir /etc/focus
 %config(noreplace) /etc/focus/*
+%config(noreplace) /etc/nginx/conf.d/focus.conf
 
 %changelog
 * Fri May 11 2012 Alessio Ababilov <aababilov@griddynamics.com> - 1.0-0
