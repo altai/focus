@@ -57,9 +57,11 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     FLAVOR_CHOICES = map(l_id_name, sorted(flavors, key=l_flavor))
     SECURITY_GROUP = sorted(map(lambda x: (x.name, x.name), security_groups), 
                             key=l_by_name)
-    KEYPAIR_CHOICES = sorted(
-        map(lambda x: (x.name, x.name), key_pairs),
-        key=l_by_name)
+    KEYPAIR_CHOICES = list(sorted(
+	map(lambda x: (x.name, x.name), key_pairs),
+	key=l_by_name))
+    KEYPAIR_CHOICES.insert(0, ('', ''))
+
 
     class SpawnForm(wtf.Form):
         image = wtf.SelectField(
@@ -73,6 +75,10 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
         keypair = wtf.SelectField('Key Pair', choices=KEYPAIR_CHOICES)
         security_groups = wtf.SelectMultipleField(
             'Security Groups', choices=SECURITY_GROUP)
+
+        def validate_password(self, field):
+            if field.data == '' and self._fields['keypair'].data == '':
+                raise wtf.ValidationError('Password or keypair must be set.')
 
     return SpawnForm
 
