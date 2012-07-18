@@ -28,7 +28,9 @@ Later on we'll need image management for members of tenants, Essex allows it.
 import datetime
 import json
 import os
+import shutil
 import time
+import uuid
 
 import flask
 from flask import blueprints
@@ -121,6 +123,35 @@ def get_images_list():
             clients.user_clients(flask.g.tenant_id).glance.images.list()))
     result = sorted(result, key=lambda x: x.name)
     return result
+
+@focus.app.route('/fast-upload-response/', methods=['POST'])
+def fast_upload_response():
+    """Respond to request from nginx-upload.
+
+    Move image from nginx-upload temp location to another temp location
+    to avoid cleanup. Return path temp location.
+    """
+    src = os.path.abspath(flask.request.form['file.path'])
+    if src.startswith(flask.current_app.config['NGINX_UPLOADS']):
+        name = str(uuid.uuid4())
+        dest = os.path.join(flask.current_app.config['UPLOADS_DEFAULT_DEST'],
+                            'files',
+                            name)
+        try:
+            os.rename(src, dest)
+        except OSError, e:
+            e.public_message = 'Failed to finish upload.'
+            flask.current_app.logger.error('Failed to rename %s to %s: %s', src, dest, str(e))
+            raise
+        return flask.make_response(name)
+    else:
+        flask.current_app.logger.error('Tried to trigger upload finish for %s',
+                                       str(flask.request.form))
+        return flask.jsonify({
+                'status': 'error',
+                'message': 'Invalid path of upload.'
+                })
+
 
 
 def get_bp(name):

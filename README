@@ -1,9 +1,19 @@
 After installing RPM:
 
+
 1) Install/start Memcached
 2) Install/start MySQL
 3) Create MySQL db for Invitations and load it with /etc/invitations_dump.sql
-4) edit /etc/focus/local_settings.py
+4) Install/start Nginx with module nginx-upload
+   - make sure port 80 is open
+
+5) Copy template of nginx configuration /etc/focus/focus.conf to /etc/nginx/conf.d/
+  - set upload_store directive (nginx module "upload" will save images there on upload)
+    * make sure the directory exists and is writable by nginx user
+  - set proxy_pass directive (URL to access gunicorn server)
+  - nginx requires restart after this operation
+
+6) edit /etc/focus/local_settings.py
   - have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
   - set credentials to Keystone MySQL db for read-only user (RO_DATABASE_URI)
   - set credentials to Keystone MySQL db for read-write user (RW_DATABASE_URI)
@@ -27,20 +37,22 @@ After installing RPM:
       = if SMTP server does not require authentication then this variable can contain email address or be tuple of (name, email)
     * MAIL_USE_TLS must be True if SMTP server requires it (e..g. Gmail)
   - set default uploads destination (UPLOADS_DEFAULT_DEST)
+    * make sure directory "<UPLOADS_DEFAULT_DEST>/files/" exists and is writable by root user
   - set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
   - set path to log (file LOG_FILE).
+  - set NGINX_UPLOADS to the same value as upload_store in focus.conf
 
-5) edit /etc/focus/gunicorn_config.py
+7) edit /etc/focus/gunicorn_config.py
   - bind: "<IP:port>"
   - workers: integer number of workers
   - timeout: leave as is, we require big number of seconds here
   - accesslog: Gunicorn access log
   - errorlog: Gunicorn error log
-
+  
+8) Start service focus (CentOS)
 
 
 You can turn on HTTP logging for Keystone client(KEYSTONECLIENT_DEBUG).
 To receive reports about errors on email list email addresses in ADMINS.
 
-After configuration is finished start or restart service focus (CentOS).
 

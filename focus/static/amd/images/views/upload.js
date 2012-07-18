@@ -158,7 +158,7 @@ define([
       this.uploader = new plupload.Uploader({
         runtimes: 'html5,gears,flash,silverlight',
         multi_selection: false,
-        url : $('form.new-image').attr('data-upload-action'),
+        url : '/fast-upload/',//('form.new-image').attr('data-upload-action'),
         flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
 	silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
         browse_button : 'pickfiles',

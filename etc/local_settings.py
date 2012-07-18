@@ -1,7 +1,8 @@
 # coding=utf-8
 DEBUG = False
 
-UPLOADS_DEFAULT_DEST = '/var/tmp/focus-uploads/'
+NGINX_UPLOADS = '/var/lib/focus/nginx-upload/'
+UPLOADS_DEFAULT_DEST = '/var/lib/focus/uploads/'
 
 INVITATIONS_DATABASE_URI = ''
 NEO4J_API_URL = ''
