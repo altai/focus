@@ -122,16 +122,16 @@ def get_images_list():
     result = sorted(result, key=lambda x: x.name)
     return result
 
+
 @focus.app.route('/fast-upload-response/', methods=['POST'])
 def fast_upload_response():
     """Respond to request from nginx-upload.
 
-    Move image from nginx-upload temp location to another temp location
-    to avoid cleanup. Return path temp location.
+    Return path temp location.
     """
     src = os.path.abspath(flask.request.form['file.path'])
     if src.startswith(flask.current_app.config['UPLOADS_DEFAULT_DEST']):
-        return flask.make_response(name)
+        return flask.make_response(os.path.basename(name))
     else:
         flask.current_app.logger.error('Tried to trigger upload finish for %s',
                                        str(flask.request.form))
@@ -139,7 +139,6 @@ def fast_upload_response():
                 'status': 'error',
                 'message': 'Invalid path of upload.'
                 })
-
 
 
 def get_bp(name):
