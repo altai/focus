@@ -131,7 +131,7 @@ def fast_upload_response():
     """
     src = os.path.abspath(flask.request.form['file.path'])
     if src.startswith(flask.current_app.config['UPLOADS_DEFAULT_DEST']):
-        return flask.make_response(os.path.basename(name))
+        return flask.make_response(os.path.basename(src))
     else:
         flask.current_app.logger.error('Tried to trigger upload finish for %s',
                                        str(flask.request.form))
