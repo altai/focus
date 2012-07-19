@@ -76,10 +76,6 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
         security_groups = wtf.SelectMultipleField(
             'Security Groups', choices=SECURITY_GROUP)
 
-        def validate_password(self, field):
-            if field.data == '' and self._fields['keypair'].data == '':
-                raise wtf.ValidationError('Password or keypair must be set.')
-
     return SpawnForm
 
 

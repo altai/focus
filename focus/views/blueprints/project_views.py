@@ -83,15 +83,21 @@ def spawn_vm():
     security_groups = c.compute.security_groups.list()
     key_pairs = c.compute.keypairs.list()
 
-    form = forms.get_spawn_form(
-        images_list, flavors, security_groups, key_pairs)()
+    form = forms.get_spawn_form(images_list,
+                                flavors,
+                                security_groups,
+                                key_pairs)()
+
     if form.validate_on_submit():
-        c.nova.servers.create(
-            form.name.data,
-            form.image.data,
-            form.flavor.data,
-            key_name=form.keypair.data,
-            security_groups=form.security_groups.data)
+        kw = dict(security_groups=form.security_groups.data)
+        if form.keypair.data:
+            kw['key_name'] = form.keypair.data
+        elif form.password.data:
+            kw['admin_pass'] = form.password.data
+        c.nova.servers.create(form.name.data,
+                              form.image.data,
+                              form.flavor.data,
+                              **kw)
         flask.flash('Virtual machine spawned.', 'success')
         return flask.redirect(flask.url_for(
             '.show_tenant', tenant_id=flask.g.tenant_id))
