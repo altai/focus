@@ -51,7 +51,7 @@ define([
                   }*/
                 } else {
                   clearInterval(window.progressIntervalID);
-                  window.location = window.location.pathname.replace('new/', '');
+                  window.location.reload(true);
                 }
               }
             );
