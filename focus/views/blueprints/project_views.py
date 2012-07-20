@@ -92,7 +92,7 @@ def spawn_vm():
         kw = dict(security_groups=form.security_groups.data)
         if form.keypair.data:
             kw['key_name'] = form.keypair.data
-        elif form.password.data:
+        if form.password.data:
             kw['admin_pass'] = form.password.data
         c.nova.servers.create(form.name.data,
                               form.image.data,
