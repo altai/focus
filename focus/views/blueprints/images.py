@@ -190,7 +190,9 @@ def get_bp(name):
         check = lambda f: lambda x: getattr(x, 'container_format') == f
         kernels = filter(check('aki'), images)
         initrds = filter(check('ari'), images)
-        dump = lambda d: json.dumps([x.properties for x in d])
+        dump = lambda d: json.dumps([{'name': x.name, 
+                                      'container_format' :x.container_format, 
+                                      'id': x.id} for x in d])
         return {
             'kernel_list': dump(kernels),
             'initrd_list': dump(initrds)
