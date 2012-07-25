@@ -102,6 +102,10 @@ def register_user(username, email, password, role):
             return user
         except Exception, e:
             # revert new user creation in Keystone
+            roles = keystone_user.list_roles()
+            for role in roles:
+                clients.admin_clients().keystone.tenants.remove_user(
+                    role.tenant['id'], keystone_user, role.role['id'])
             clients.admin_clients().keystone.users.delete(keystone_user)
             raise Exception('Registration was interrupted, please try again')
     return None
