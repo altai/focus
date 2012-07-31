@@ -18,7 +18,7 @@ define([
         chunk_size : '1mb',
         url : '',
         flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
-	silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
+        silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
         browse_button : 'pickfiles-' + this.cid,
         container : 'container-' + this.cid,
       });

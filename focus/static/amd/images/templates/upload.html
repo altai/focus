@@ -12,52 +12,14 @@
       Upload type
     </label>
     <div class="controls">
-      <select id="id_upload_type" name="upload_type">
-        <option value="combined"<% if (selected_upload_type == 'combined'){%> selected="selected"<% } %>>Combined Image</option>
-        <option value="rootfs"<% if (selected_upload_type == 'rootfs'){%> selected="selected"<% } %>>Rootfs Image + previously uploaded kernel,rootfs</option>
-        <option value="kernel"<% if (selected_upload_type == 'kernel'){%> selected="selected"<% } %>>Kernel Image only</option>
-        <option value="initrd"<% if (selected_upload_type == 'initrd'){%> selected="selected"<% } %>>Initrd  Image only</option>
-      </select>
-      <p class="help-block">
-      </p>
-    </div>
-  </div>
-  <%= rootfs_partial({
-      kernel_list: kernel_list, 
-      initrd_list: initrd_list,
-      selected_upload_type: selected_upload_type}) %>
-  <div class="control-group container">
-    <label class="control-label">Container format</label>
-    <div class="controls">
-      <select id="id_container" name="container">
-        <% if (selected_upload_type == 'combined'){ %>
-        <option value="ovf">ovf</option>
-        <option value="bare">bare</option>
-        <% } else if(selected_upload_type == 'rootfs') { %>
-        <option value="ami">ami</option>
-        <% } else if(selected_upload_type == 'kernel') { %>
-        <option value="aki">aki</option>
-        <% } else if(selected_upload_type == 'initrd') { %>
-        <option value="ari">ari</option>
-        <% } %>
-      </select>
-    </div>
-  </div>
-  <div class="control-group disk">
-    <label class="control-label">Disk format</label>
-    <div class="controls">
-      <select id="id_disk" name="disk">
-        <% if (selected_upload_type == 'combined'){ %>
-        <option value="qcow2">qcow2</option>
-        <option value="raw">raw</option>
-        <% } else if(selected_upload_type == 'rootfs') { %>
-        <option value="ami">ami</option>
-        <% } else if(selected_upload_type == 'kernel') { %>
-        <option value="aki">aki</option>
-        <% } else if(selected_upload_type == 'initrd') { %>
-        <option value="ari">ari</option>
-        <% } %>
-      </select>
+      <label class="radio inline">
+        <input type="radio" name="upload_type" id="id_upload_type" value="solid" checked="">
+        Solid
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="upload_type" id="id_upload_type" value="amazon_like">
+        Amazon Like
+      </label>
     </div>
   </div>
   <div class="control-group uploader" data-error-key="uploader">
@@ -65,8 +27,23 @@
     <div class="controls">
       <div id="container" style="padding-top: 5px;">
         <div id="filelist">No runtime found.</div>
-        <a id="pickfiles" href="#">Select file</a>
+        <input type="text" name="uploaded_file" id="id_uploaded_file" value="">
       </div>
+    </div>
+  </div>
+  <div class="control-group disk-format">
+    <label class="control-label">
+      Disk format
+    </label>
+    <div class="controls">
+      <label class="radio inline">
+        <input type="radio" name="disk_format" id="id_disk_format" value="raw" checked="">
+        raw
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="disk_format" id="id_disk_format" value="qcow">
+        qcow
+      </label>
     </div>
   </div>
 </fieldset>

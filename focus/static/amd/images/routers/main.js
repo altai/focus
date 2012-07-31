@@ -13,21 +13,15 @@ define([
 
     routes: {
       ':upload_type': 'upload_type_selection',
-      '.*': 'go_combined'
     },
 
     upload_type_selection: function(upload_type){
-      if (_.indexOf(['combined', 'kernel', 'rootfs', 'initrd'], upload_type) != -1){
+      if (_.indexOf(['solid', 'amazon_like'], upload_type) != -1){
         this.view.selected_upload_type = upload_type;
         this.view.render_with_respect_to_upload();
       } else {
-        this.navigate('', trigger=true)
+        this.navigate('solid', trigger=true)
       }
     },
-
-    go_combined: function(){
-      this.navigate('combined', trigger=true);
-    },
-
   });
 });

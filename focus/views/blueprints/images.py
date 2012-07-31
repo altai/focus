@@ -206,6 +206,7 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
+        import pdb;pdb.set_trace()
         storage = flask.request.files['file']
         filename = focus.files_uploads.save(storage)
         flask.current_app.cache.set(
@@ -241,14 +242,11 @@ def get_bp(name):
             'project_id': tenant_id,
             'architecture': 'x86_64',
             'image_location': 'local'}
-        if flask.request.form['upload_type'] == 'rootfs':
-            properties['kernel_id'] = flask.request.form['kernel']
-            properties['ramdisk_id'] = flask.request.form['initrd']
         try:
             kwargs = {
                 'name': flask.request.form['name'],
-                'container_format': flask.request.form['container'],
-                'disk_format': flask.request.form['disk'],
+                #'container_format': flask.request.form['container'],
+                'disk_format': flask.request.form['disk_format'],
                 'data': open(uploaded_filename),
                 'is_public': not hasattr(flask.g, 'tenant_id'),
                 'properties': properties,
