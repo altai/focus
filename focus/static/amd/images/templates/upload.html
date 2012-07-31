@@ -19,86 +19,40 @@
       Name
     </label>
     <div class="controls">
-      <input type="text" name="name" id="id_name" value="<%= name %>">
+      <label class="radio inline">
+        <input type="radio" name="upload_type" id="id_upload_type" value="solid" checked="">
+        Solid
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="upload_type" id="id_upload_type" value="amazon_like">
+        Amazon Like
+      </label>
     </div>
   </div>
-  <% if (selected_upload_type == 'solid'){ %>
-	  <div class="control-group uploader" data-error-key="uploader">
-	    <label class="control-label">File to upload</label>
-	    <div class="controls">
-	      <div id="container" style="padding-top: 5px;">
-	        <input readonly type="text" name="uploaded_file" id="id_uploaded_file">
-	        <button class="btn" id="id_uploaded_file_button">Select</button>
-	        <div id="filelist"></div>
-	      </div>
-	    </div>
-        <div class="controls hide" id="autoupload_container">
-          <input type="checkbox" name="autoupload" id="autoupload"> Auto submit form after file upload
-        </div>
-	  </div>
-	  <div class="control-group disk-format">
-	    <label class="control-label">
-	      Disk format
-	    </label>
-	    <div class="controls">
-	      <label class="radio inline">
-	        <input type="radio" name="disk_format" id="id_disk_format" value="raw" checked="">
-	        raw
-	      </label>
-	      <label class="radio inline">
-	        <input type="radio" name="disk_format" id="id_disk_format" value="qcow2">
-	        qcow2
-	      </label>
-	    </div>
-	  </div>
-  <% } %>
-  <% if (selected_upload_type == 'amazon_like'){ %>
-    <div class="control-group uploader" data-error-key="kernel">
-      <label class="control-label">Kernel</label>
-      <div class="controls">
-        <div id="kernel_container" style="padding-top: 5px;">
-	      <select id="id_kernel" name="kernel">
-	        <option disabled="disabled" selected>Select kernel</option>
-            <option id="kernel_uploaded_file">Upload new kernel</option>
-            <option disabled="disabled">---------</option>
-	        <% _.each(kernel_list, function(x){ %>
-	        <option value="<%= x.id %>"><%= x.name %></option>
-	        <% }); %>
-	      </select>
-          <div id="filelist"></div>
-        </div>
+  <div class="control-group uploader" data-error-key="uploader">
+    <label class="control-label">File to upload</label>
+    <div class="controls">
+      <div id="container" style="padding-top: 5px;">
+        <div id="filelist">No runtime found.</div>
+        <input type="text" name="uploaded_file" id="id_uploaded_file" value="">
       </div>
     </div>
-    <div class="control-group uploader" data-error-key="initrd">
-      <label class="control-label">Initrd</label>
-      <div class="controls">
-        <div id="initrd_container" style="padding-top: 5px;">
-	      <select id="id_initrd" name="initrd" disabled>
-	        <option disabled="disabled" selected>Select initrd</option>
-            <option id="initrd_uploaded_file">Upload new initrd</option>
-            <option disabled="disabled">---------</option>
-	        <% _.each(initrd_list, function(x){ %>
-	        <option value="<%= x.id %>"><%= x.name %></option>
-	        <% }); %>
-	      </select>
-          <div id="filelist"></div>
-        </div>
-      </div>
+  </div>
+  <div class="control-group disk-format">
+    <label class="control-label">
+      Disk format
+    </label>
+    <div class="controls">
+      <label class="radio inline">
+        <input type="radio" name="disk_format" id="id_disk_format" value="raw" checked="">
+        raw
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="disk_format" id="id_disk_format" value="qcow">
+        qcow
+      </label>
     </div>
-    <div class="control-group uploader" data-error-key="filesystem">
-      <label class="control-label">Filesystem</label>
-      <div class="controls">
-        <div id="filesystem_container" style="padding-top: 5px;">
-          <input readonly type="text" id="filesystem_uploaded_file">
-          <button class="btn" id="filesystem_uploaded_file_button" disabled>Select</button>
-          <div id="filelist"></div>
-        </div>
-      </div>
-      <div class="controls hide inline" id="autoupload_container">
-        <input type="checkbox" name="autoupload" id="autoupload"> Auto submit form after file upload
-      </div>
-    </div>
-  <% } %>
+  </div>
 </fieldset>
 <div class="form-actions">
   <button class="btn btn-primary tc-add" type="submit" disabled>Add</button>
