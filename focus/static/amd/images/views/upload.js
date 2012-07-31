@@ -64,7 +64,7 @@ define([
                 }
               }
             );
-          }, 2000);
+          }, 2000);*/
         }
       },
       'click .cancel-upload': function(e){
@@ -160,7 +160,6 @@ define([
           browse_button : 'id_uploaded_file_button',
           container : 'container',
         });
-
         this.uploader.bind('Init', function(up, params) {
           //self.$('#filelist').html(self.progress_bar());
         });
