@@ -26,15 +26,15 @@ define([
           );
           var $f = $('form.new-image');
           var self = this;
-          $.post($f.attr('action'), $f.serialize()
-            ,function(data){
+          debugger;
+          $.post($f.attr('action'), $f.serialize());
+            /*,function(data){
             if (data.status == 'error'){
               self.$('.form-actions').html(bkp_form_actions);
               self.render();
-            }
-          });
+            }}*/
           
-          window.progressIntervalID = window.setInterval(function(){
+          /*window.progressIntervalID = window.setInterval(function(){
             $.get(
               window.location.pathname.replace(
                 '/new/',
@@ -56,7 +56,7 @@ define([
                 }
               }
             );
-          }, 2000);
+          }, 2000);*/
         }
       },
       'click .cancel-upload': function(e){
@@ -124,14 +124,6 @@ define([
       var name = this.$('#id_name').val();
       if (window.is_file_uploaded){
         this.clean_error_messages();
-        this.$('.rootfs-partial').remove();
-        if (this.selected_upload_type == 'rootfs'){
-          this.$('.control-group.upload-type').after(
-            this.rootfs_partial({
-              kernel_list: this.options.kernel_list,
-              initrd_list: this.options.initrd_list,
-              selected_upload_type: this.selected_upload_type}));
-        }
       } else {
         this.render();
         this.$('#id_name').val(name);
@@ -152,20 +144,19 @@ define([
       }
       this.$el.html(this.template(context));
       /* first time there is no uploader */
-      if (this.selected_upload_type == 'solid'){
-        if (this.uploader){
-          this.uploader.stop();
-        }
-        var self = this;
-        this.uploader = new plupload.Uploader({
-          runtimes: 'html5,gears,flash,silverlight',
-          multi_selection: this.selected_upload_type=='amazon_like',
-          url : '/fast-upload/',
-          flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
-	  silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
-          browse_button : 'id_uploaded_file_button',
-          container : 'container',
-        });
+      if (this.uploader){
+        this.uploader.stop();
+      }
+      var self = this;
+      this.uploader = new plupload.Uploader({
+        runtimes: 'html5,gears,flash,silverlight',
+        multi_selection: this.selected_upload_type=='solid',
+        url : '/fast-upload/',//('form.new-image').attr('data-upload-action'),
+        flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
+	silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
+        browse_button : 'id_uploaded_file',
+        container : 'container',
+      });
 
         this.uploader.bind('Init', function(up, params) {
           //self.$('#filelist').html(self.progress_bar());
@@ -284,7 +275,7 @@ define([
           'error': err
         }));
         up.refresh(); // Reposition Flash/Silverlight
-        $('#pickfiles').html('Select file');
+        $('#id_uploaded_file').val('Select file');
       });
       
       this.uploader.bind('FileUploaded', function(up, file, response) {
@@ -292,9 +283,8 @@ define([
         $('#' + file.id).append('<div id="uploaded_filename" class=" hide">' + response.response + '</div>');
         window.is_file_uploaded = true;
         self.$('.form-actions button[type=submit]').removeAttr('disabled');
-        $('#pickfiles').html('Select another file');
+        $('#id_uploaded_file').val(file.path);
       });
-      
     }
   });
 });
