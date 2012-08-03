@@ -1,3 +1,3 @@
 curl(curl_cfg, [
-  'jq' 
+  'jq',
 ], function(){});

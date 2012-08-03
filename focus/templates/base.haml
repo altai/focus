@@ -44,6 +44,8 @@
           %div
             -for category, message in messages
               %div class="alert alert-{{ category }}"
+                %button class="close" data-dismiss="alert"
+                  ×
                 =message
       -block content
     %div.modal.hide.fade#error_message_modal 

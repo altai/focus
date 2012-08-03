@@ -30,7 +30,7 @@ define([
           }
           var bkp_form_actions = this.$('.form-actions').html();
           this.$('.form-actions').html(
-            this.api_progress_bar({progress_percent: 0})
+            '<div width="100%" height="100%" align="left"><img src="/static/img/ajax-loader.gif"></div>'
           );
           var $f = $('form.new-image');
           var self = this;
@@ -49,7 +49,7 @@ define([
                 '/progress/' + uploaded_filename + '/'),
               function(response){
                 if (!_.isEmpty(response)){
-                  if (response.transferred >= 0) {
+                  /*if (response.transferred >= 0) {
                     self.$('.api-progress .bar').css('width', response.percent + '%');
                     self.$('.api-progress .info').html(
                       'ETA: ' + response.eta +
@@ -57,7 +57,7 @@ define([
                         ' b/s<br>Seconds spent: ' + response.time_spent +
                         '<br>Transferred bytes: ' + response.transferred +
                         '<br>Total bytes: ' + response.total);
-                  }
+                  }*/
                 } else {
                   clearInterval(window.progressIntervalID);
                   window.location.reload(true);
@@ -160,7 +160,7 @@ define([
           url : '/fast-upload/',
           flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
 	  silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
-          browse_button : 'id_uploaded_file',
+          browse_button : 'id_uploaded_file_button',
           container : 'container',
         });
 
@@ -216,6 +216,7 @@ define([
           self.$('.form-actions button[type=submit]').removeAttr('disabled');
         	$('#id_uploaded_file').val(file.name);
 	        $('#filelist').hide();
+          $('#autoupload_container').removeClass('hide');
 	        if ($('#autoupload').is(':checked')){
 	          $('button[type=submit]').click();
 	        }
@@ -236,7 +237,9 @@ define([
             browse_button : 'kernel_uploaded_file',
             container : 'kernel_container',
           });
-
+          $('#id_kernel').change(function(){
+            $('#id_initrd').removeAttr('disabled');
+          });
           this.kernel_uploader.init();
           this.kernel_uploader.bind('FilesAdded', function(up, files) {
             /*
@@ -257,7 +260,7 @@ define([
               }))
             });
             up.refresh(); // Reposition Flash/Silverlight
-            up.start()
+            up.start();
           });
 
           this.kernel_uploader.bind('UploadProgress', function(up, file) {
@@ -308,7 +311,9 @@ define([
             browse_button : 'initrd_uploaded_file',
             container : 'initrd_container',
           });
-
+          $('#id_initrd').change(function(){
+            $('#filesystem_uploaded_file_button').removeAttr('disabled');
+          });
           this.initrd_uploader.init();
           this.initrd_uploader.bind('FilesAdded', function(up, files) {
             /*
@@ -377,7 +382,7 @@ define([
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
       silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
-            browse_button : 'filesystem_uploaded_file',
+            browse_button : 'filesystem_uploaded_file_button',
             container : 'filesystem_container',
           });
 
@@ -432,6 +437,7 @@ define([
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
             $('#filesystem_container #filelist').hide();
+            $('#autoupload_container').removeClass('hide');
             $('#filesystem_container #filesystem_uploaded_file').val(file.name);
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();

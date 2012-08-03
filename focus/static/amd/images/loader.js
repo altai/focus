@@ -4,6 +4,7 @@ define([
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-collapse.js!order', 
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-dropdown.js!order',
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-modal.js!order',
+  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-alert.js!order',
   // 'js!http://bp.yahooapis.com/2.4.21/browserplus-min.js!order',
   'js!/static/vendors/plupload-1.5.4/js/plupload.full.js!order', 
   'js!/static/vendors/plupload-1.5.4/js/jquery.plupload.queue/jquery.plupload.queue.js!order', 
