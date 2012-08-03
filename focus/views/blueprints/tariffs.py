@@ -41,7 +41,11 @@ bp = environments.admin(blueprints.Blueprint('tariffs', __name__))
 def index():
     """List tariffs"""
     tariffs = generic_billing.get_tariff_list()
-    return {'tariffs': tariffs}
+    return {
+        'tariffs': tariffs,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'List of tariffs'
+    }
 
 
 @bp.route('<path:name>/', methods=['GET', 'POST'])
@@ -67,4 +71,9 @@ def edit(name):
                 'Successfully changed tarif %s to %s.' % response.items()[0],
                 'success')
             return flask.redirect(flask.url_for('.index'))
-    return {'name': name, 'form': form}
+    return {
+        'name': name,
+        'form': form,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Tariffs edit'
+    }

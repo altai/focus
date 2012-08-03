@@ -49,14 +49,21 @@ def index():
     return {
         'objects': networks,
         'pagination': p,
-        'delete_form': forms.DeleteForm()}
+        'delete_form': forms.DeleteForm(),
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'List of networks'
+    }
 
 
 @bp.route('<object_id>/')
 def show(object_id):
     net = clients.admin_clients().compute.networks.get(object_id)
-    return {'object': dict(((k, '-' if v is None else v)
-                            for k, v in net._info.iteritems()))}
+    return {
+        'object': dict(((k, '-' if v is None else v)
+                           for k, v in net._info.iteritems())),
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Network details'
+    }
 
 
 @bp.route('new/', methods=['GET', 'POST'])
@@ -80,7 +87,11 @@ def new():
         else:
             flask.flash('Network %s created.' % label, 'success')
             return flask.redirect(flask.url_for('.index'))
-    return {'form': form}
+    return {
+        'form': form,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Add new network'
+    }
 
 
 @bp.route('delete/<object_id>/', methods=['POST'])

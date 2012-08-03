@@ -69,7 +69,9 @@ def index():
                     break
     return {
         'pagination': p,
-        'data': data
+        'data': data,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'List of users'
     }
 
 
@@ -108,7 +110,10 @@ def show(user_id):
         'user': user,
         'user_roles': user_roles,
         'add_user_to_project_form': add_user_to_project,
-        'remove_user_from_project_form': remove_user_from_project}
+        'remove_user_from_project_form': remove_user_from_project,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'User details'
+    }
 
 
 @bp.route('add_user_to_project/', methods=['POST'])

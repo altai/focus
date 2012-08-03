@@ -57,7 +57,10 @@ def index():
     return {
         'objects': pagina.slice(ordered),
         'pagination': pagina,
-        'delete_form': delete_form}
+        'delete_form': delete_form,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'List of projects'
+    }
 
 
 @bp.route('<object_id>', methods=['POST'])
@@ -136,4 +139,8 @@ def new():
             raise
         flask.flash('Project created.', 'success')
         return flask.redirect(flask.url_for('.index'))
-    return {'form': form}
+    return {
+        'form': form,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Add new project'
+    }

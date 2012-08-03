@@ -154,8 +154,12 @@ def get_bp(name):
         """
         glance_image = clients.admin_clients().glance.images.get(image_id)
         nova_image = clients.admin_clients().nova.images.get(image_id)
-        return {'glance_image': glance_image,
-                'nova_image': nova_image}
+        return {
+            'glance_image': glance_image,
+            'nova_image': nova_image,
+            'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+            'subtitle': 'Image details',
+        }
 
     def get_tenant_id():
         return getattr(flask.g, 'tenant_id', clients.get_systenant_id())
@@ -177,7 +181,9 @@ def get_bp(name):
         return {
             'images': data,
             'pagination': p,
-            'delete_form': forms.DeleteForm()
+            'delete_form': forms.DeleteForm(),
+            'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+            'subtitle': 'List of existing images'
         }
 
     @bp.route('new/', methods=['GET'])
@@ -195,7 +201,9 @@ def get_bp(name):
                                       'id': x.id} for x in d])
         return {
             'kernel_list': dump(kernels),
-            'initrd_list': dump(initrds)
+            'initrd_list': dump(initrds),
+            'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+            'subtitle': 'Add new image'
         }
 
     @bp.route('upload/', methods=['POST'])

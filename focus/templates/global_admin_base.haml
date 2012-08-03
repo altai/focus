@@ -1,11 +1,6 @@
 -extends "authenticated_base.haml"
 -block subnav
   %div.container
-    %header.jumbotron.subhead#overview
-      %h1
-        Global administration
-      %p.lead
-        Cloud-wide information and actions
     %div.subnav
       %ul.nav.nav-pills
         %li{% if request.path == url_for('global_views.list_vms') %} class="active"{% endif %}
@@ -28,3 +23,8 @@
           %a href="{{ url_for('networks.index') }}" -> Networks
         %li{% if request.blueprint == 'invitation_domains' %} class="active"{% endif %}
           %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+    %header.jumbotron.subhead#overview
+      %h1
+        Global administration: {{ title }}
+      %p.lead
+        {{ subtitle }}

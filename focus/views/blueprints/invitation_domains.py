@@ -50,7 +50,10 @@ def index():
     return {
         'pagination': p,
         'objects': objects,
-        'delete_form': forms.DeleteForm()}
+        'delete_form': forms.DeleteForm(),
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Invitation domains list'
+    }
 
 
 @bp.route('delete/<object_id>/', methods=['POST'])
@@ -75,4 +78,8 @@ def new():
         flask.g.store.commit()
         flask.flash('Email mask created.', 'success')
         return flask.redirect(flask.url_for('.index'))
-    return {'form': form}
+    return {
+        'form': form,
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+        'subtitle': 'Add new email domain'
+    }

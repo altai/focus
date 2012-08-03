@@ -212,5 +212,7 @@ def invite():
                     flask.flash('Invitation sent successfully', 'info')
     return {
         'form': form,
-        'masks': masks
+        'masks': masks,
+        'title': bp.name.replace('_', ' ').capitalize(),
+        'subtitle': 'Send invitation'
     }

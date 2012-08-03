@@ -1,12 +1,12 @@
 -extends "global_admin_base.haml"
 -block content
-  %form.form-horizontal method="POST" action="."
+  %form.form-horizontal.well method="POST" action="."
     -from "_formhelpers.haml" import render_form_errors, render_h_field
     =render_form_errors(form.csrf_token)
     =form.hidden_tag()
     %fieldset
       %legend
-        Edit tariff for resource {{ name }}
+        {{ name }}
       =render_h_field(form.price)
       =render_h_field(form.migrate)
       %div.form-actions

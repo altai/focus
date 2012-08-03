@@ -1,9 +1,12 @@
 -extends "authenticated_base.haml"
 -block content
+  %header.jumbotron.subhead#overview
+    %h1
+      {{ title }}
+    %p.lead
+      {{ subtitle }}
   -from "_formhelpers.haml" import render_form_errors, render_field
-  %form method="POST" action="." class="well offset4 span4 form-vertical invite"
-    %legend
-      Invitation Form
+  %form method="POST" action="." class="well form-vertical invite"
     Allowed domains:
     %ul class="unstyled"
       {% for mask in masks: %}
