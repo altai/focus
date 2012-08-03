@@ -19,14 +19,7 @@
       Name
     </label>
     <div class="controls">
-      <label class="radio inline">
-        <input type="radio" name="upload_type" id="id_upload_type" checked="" value="solid">
-        Solid
-      </label>
-      <label class="radio inline">
-        <input type="radio" name="upload_type" id="id_upload_type" checked="" value="amazon_like">
-        Amazon Like
-      </label>
+      <input type="text" name="name" id="id_name" value="<%= name %>">
     </div>
   </div>
   <% if (selected_upload_type == 'solid'){ %>
@@ -34,10 +27,14 @@
 	    <label class="control-label">File to upload</label>
 	    <div class="controls">
 	      <div id="container" style="padding-top: 5px;">
-	        <input type="text" name="uploaded_file" id="id_uploaded_file" value="">
-	        <div id="filelist">No runtime found.</div>
+	        <input readonly type="text" name="uploaded_file" id="id_uploaded_file">
+	        <button class="btn" id="id_uploaded_file_button">Select</button>
+	        <div id="filelist"></div>
 	      </div>
 	    </div>
+        <div class="controls hide" id="autoupload_container">
+          <input type="checkbox" name="autoupload" id="autoupload"> Auto submit form after file upload
+        </div>
 	  </div>
 	  <div class="control-group disk-format">
 	    <label class="control-label">
@@ -61,13 +58,14 @@
       <div class="controls">
         <div id="kernel_container" style="padding-top: 5px;">
 	      <select id="id_kernel" name="kernel">
+	        <option disabled="disabled" selected>Select kernel</option>
+            <option id="kernel_uploaded_file">Upload new kernel</option>
+            <option disabled="disabled">---------</option>
 	        <% _.each(kernel_list, function(x){ %>
 	        <option value="<%= x.id %>"><%= x.name %></option>
 	        <% }); %>
-	        <option disabled="disabled">---------</option>
-	        <option id="kernel_uploaded_file">Upload</option>
 	      </select>
-          <div id="filelist">No runtime found.</div>
+          <div id="filelist"></div>
         </div>
       </div>
     </div>
@@ -75,14 +73,15 @@
       <label class="control-label">Initrd</label>
       <div class="controls">
         <div id="initrd_container" style="padding-top: 5px;">
-	      <select id="id_initrd" name="initrd">
+	      <select id="id_initrd" name="initrd" disabled>
+	        <option disabled="disabled" selected>Select initrd</option>
+            <option id="initrd_uploaded_file">Upload new initrd</option>
+            <option disabled="disabled">---------</option>
 	        <% _.each(initrd_list, function(x){ %>
 	        <option value="<%= x.id %>"><%= x.name %></option>
 	        <% }); %>
-	        <option disabled="disabled">---------</option>
-	        <option id="initrd_uploaded_file">Upload</option>
 	      </select>
-          <div id="filelist">No runtime found.</div>
+          <div id="filelist"></div>
         </div>
       </div>
     </div>
@@ -90,20 +89,16 @@
       <label class="control-label">Filesystem</label>
       <div class="controls">
         <div id="filesystem_container" style="padding-top: 5px;">
-          <input type="text" id="filesystem_uploaded_file">
-          <div id="filelist">No runtime found.</div>
+          <input readonly type="text" id="filesystem_uploaded_file">
+          <button class="btn" id="filesystem_uploaded_file_button" disabled>Select</button>
+          <div id="filelist"></div>
         </div>
+      </div>
+      <div class="controls hide inline" id="autoupload_container">
+        <input type="checkbox" name="autoupload" id="autoupload"> Auto submit form after file upload
       </div>
     </div>
   <% } %>
-  <div class="control-group">
-  	<label class="control-label">
-      Submit after upload
-    </label>
-    <div class="controls">
-  	  <input type="checkbox" name="autoupload" id="autoupload">
-  	</div>
-  </div>
 </fieldset>
 <div class="form-actions">
   <button class="btn btn-primary tc-add" type="submit" disabled>Add</button>
