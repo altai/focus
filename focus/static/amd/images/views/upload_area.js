@@ -38,8 +38,7 @@ define([
       uploader.bind('FilesAdded', function(up, files) {
         $.each(files, function(i, file) {
             self.$('#filelist-' + self.cid).append(
-                '<div id="' + file.id + '">' +
-                file.name + ' (' + plupload.formatSize(file.size) + ') <b></b>' + '</div>');
+                '<div id="' + file.id + '">' + ' (' + plupload.formatSize(file.size) + ') <b></b>' + '</div>');
         });
         up.refresh(); // Reposition Flash/Silverlight
       });

@@ -206,7 +206,6 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        import pdb;pdb.set_trace()
         storage = flask.request.files['file']
         filename = focus.files_uploads.save(storage)
         flask.current_app.cache.set(
@@ -233,49 +232,92 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        # TODO(apugachev): validate thoroughly, do not rely on js to do it
-        uploaded_filename = focus.files_uploads.path(
-            flask.request.form['uploaded_filename'])
-        tenant_id = get_tenant_id()
-        properties = {
-            'image_state': 'available',
-            'project_id': tenant_id,
-            'architecture': 'x86_64',
-            'image_location': 'local'}
-        try:
-            kwargs = {
-                'name': flask.request.form['name'],
-                #'container_format': flask.request.form['container'],
-                'disk_format': flask.request.form['disk_format'],
-                'data': open(uploaded_filename),
-                'is_public': not hasattr(flask.g, 'tenant_id'),
-                'properties': properties,
+        kernel_id, ramdisk_id = None, None
+        
+        def create_image(uploaded_filename, name, container, disk_format, kernel_id=None,
+                ramdisk_id=None):
+            tenant_id = get_tenant_id()
+            properties = {
+                'image_state': 'available',
+                'project_id': tenant_id,
+                'architecture': 'x86_64',
+                'image_location': 'local'
             }
-        except IOError, e:
-            e.public_message = 'Uploaded file is missing'
-            flask.current_app.logger.error(str(e))
-            raise
-        try:
-            user_clients = clients.user_clients(tenant_id)
-            callback = ProgressRecorder(
-                user_clients.http_client,
-                os.path.basename(uploaded_filename),
-                os.fstat(kwargs['data'].fileno()).st_size)
-            with callback:
-                img = user_clients.image.images.create(**kwargs)
-        except RuntimeError as e:
-            flask.flash(e.message, 'error')
-        else:
-            flask.flash(
-                'Image with ID %s was registered.' % img.id,
-                'success')
-        finally:
+            if kernel_id is not None:
+                properties['kernel_id'] = kernel_id
+            if ramdisk_id is not None:
+                properties['ramdisk_id'] = ramdisk_id
+            uploaded_filename = focus.files_uploads.path(uploaded_filename)
             try:
-                kwargs['data'].close()
-                os.unlink(uploaded_filename)
-            except OSError:
-                # nothing to do, temporal file was removed by something
-                pass
+                kwargs = {
+                    'name': name,
+                    'container_format': container,
+                    'disk_format': disk_format,
+                    'data': open(uploaded_filename),
+                    'is_public': not hasattr(flask.g, 'tenant_id'),
+                    'properties': properties,
+                }
+            except IOError, e:
+                e.public_message = 'Uploaded file is missing'
+                flask.current_app.logger.error(str(e))
+                raise
+            try:
+                user_clients = clients.user_clients(tenant_id)
+                callback = ProgressRecorder(
+                    user_clients.http_client,
+                    os.path.basename(uploaded_filename),
+                    os.fstat(kwargs['data'].fileno()).st_size)
+                with callback:
+                    img = user_clients.image.images.create(**kwargs)
+                    if container == 'aki':
+                        kernel_id = img.id
+                    if container == 'ari':
+                        ramdisk_id = img.id
+            except RuntimeError as e:
+                flask.flash(e.message, 'error')
+            else:
+                flask.flash(
+                    'Image with ID %s was registered.' % img.id,
+                    'success')
+            finally:
+                try:
+                    kwargs['data'].close()
+                    os.unlink(uploaded_filename)
+                except OSError:
+                    # nothing to do, temporal file was removed by something
+                    pass
+        # TODO(apugachev): validate thoroughly, do not rely on js to do it
+        if flask.request.form['upload_type'] == 'solid':
+            create_image(
+                flask.request.form['uploaded_filename'],
+                flask.request.form['name'],
+                'bare',
+                flask.request.form['disk_format']
+                )
+        elif flask.request.form['upload_type'] == 'amazon_like':
+            if flask.request.form['uploaded_kernel'] != u'null':
+                create_image(
+                    flask.request.form['uploaded_kernel'],
+                    flask.request.form['kernel'],
+                    'aki', 'aki'
+                )
+            else:
+                kernel_id = flask.request.form['kernel']
+            if flask.request.form['uploaded_initrd'] != u'null':
+                create_image(
+                    flask.request.form['uploaded_initrd'],
+                    flask.request.form['initrd'],
+                    'ari', 'ari'
+                )
+            else:
+                ramdisk_id = flask.request.form['initrd']
+            create_image(
+                flask.request.form['uploaded_filesystem'],
+                flask.request.form['kernel'],
+                'ami', 'ami',
+                kernel_id,
+                ramdisk_id
+            )
         # NOTE(apugachev) for big this will fail to load and BrokenPipe
         # will be raised inside Flask
         return flask.make_response('')

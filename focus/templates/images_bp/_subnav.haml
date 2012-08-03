@@ -5,5 +5,5 @@
         %a href="{{ url_for('.index') }}"
           List
       %li{% if request.endpoint.endswith('.new') %} class="active"{% endif %}
-        %a href="{{ url_for('.new') }}"
+        %a href="{{ url_for('.new') }}#upload"
           Add
