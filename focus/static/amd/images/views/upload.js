@@ -64,7 +64,7 @@ define([
                 }
               }
             );
-          }, 2000);*/
+          }, 2000);
         }
       },
       'click .cancel-upload': function(e){
