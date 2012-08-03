@@ -8,12 +8,10 @@
     flavors = {{ flavors }}
 -block content
     -from "_formhelpers.haml" import render_form_errors, render_field, render_h_field
-    %form method="POST" action="." class="form-horizontal" autocomplete="off"
+    %form.form-horizontal.well method="POST" action="." autocomplete="off"
         {{ render_form_errors(form.csrf_token) }}
         {{ form.hidden_tag() }}
         %fieldset
-            %legend
-                Spawn VM in tenant {{ g.tenant.name }}
             %div.row
                 %div.span5
                  {{ render_h_field(form.image, True) }}

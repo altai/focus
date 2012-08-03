@@ -39,7 +39,9 @@ def index():
     c = clients.user_clients(flask.g.tenant_id)
     context = {
         'keys': c.nova.keypairs.list(),
-        'delete_form': forms.DeleteForm()
+        'delete_form': forms.DeleteForm(),
+        'title': bp.name.replace('_', ' '),
+        'subtitle': 'List of SSH keys'
     }
     return context
 
@@ -65,7 +67,11 @@ def new():
                          re.sub('[^-a-zA-Z0-9]', '_', keypair.name)})
         flask.flash('Keypair was successfully created', 'success')
         return flask.redirect(flask.url_for('.index'))
-    return {'form': form}
+    return {
+        'form': form,
+        'title': bp.name.replace('_', ' '),
+        'subtitle': 'Add new SSH key'
+    }
 
 
 @bp.route('delete/<name>/', methods=['GET', 'POST'])

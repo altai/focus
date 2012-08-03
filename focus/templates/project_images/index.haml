@@ -1,8 +1,8 @@
 -extends "projects_base.haml"
--block subnav
-  =super()
-  -include "images_bp/_subnav.haml"
 -block content
+  %div.container align="right"
+    %a.btn.btn-primary href="{{ url_for('.new') }}#upload"
+      Add
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr

@@ -1,7 +1,4 @@
 -extends "projects_base.haml"
--block subnav
-  =super()
-  -include "images_bp/_subnav.haml"
 -block amdjs
   %script
     window.kernel_list = {{ kernel_list }};
@@ -9,7 +6,5 @@
   %script src="{{ url_for('static', filename='amd/main_images.js') }}"
 -block content
   -from "_formhelpers.haml" import render_h_field
-  %form.form-horizontal.new-image method="POST" action="{{ url_for('.create') }}" data-upload-action="{{ url_for('.upload') }}"
-    %legend
-      Add Image    
+  %form.form-horizontal.new-image.well method="POST" action="{{ url_for('.create') }}" data-upload-action="{{ url_for('.upload') }}"
     %div.upload-view

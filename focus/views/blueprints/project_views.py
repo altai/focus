@@ -67,7 +67,9 @@ def show_tenant():
                     pass
     return {
         'vms': data,
-        'pagination': p
+        'pagination': p,
+        'title': 'Virtual Machines',
+        'subtitle': 'List of virtual machines'
     }
 
 
@@ -105,7 +107,9 @@ def spawn_vm():
         'form': form,
         'tenant': flask.g.tenant,
         'images': json.dumps([x._info for x in images_list]),
-        'flavors': json.dumps([x._info for x in flavors])
+        'flavors': json.dumps([x._info for x in flavors]),
+        'title': 'Virtual Machines',
+        'subtitle': 'Spawn new virtual machine'
     }
 
 
@@ -123,7 +127,10 @@ def show_vm(vm_id):
     return {
         'server': server,
         'flavor': flavor,
-        'image': image}
+        'image': image,
+        'title': 'Virtual Machines',
+        'subtitle': 'Virtual machine details'
+    }
 
 
 @bp.route('vms/<vm_id>/remove/', methods=['POST'])
@@ -166,7 +173,9 @@ def list_users():
     p = pagination.Pagination(users)
     return {
         'pagination': p,
-        'objects': p.slice(users)
+        'objects': p.slice(users),
+        'title': 'Users',
+        'subtitle': 'List of users'
     }
 
 
@@ -189,4 +198,8 @@ def get_credentials():
         response.headers['Content-Type'] = 'text/plain'
         return response
     else:
-        return {'credentials_text': credentials_text}
+        return {
+            'credentials_text': credentials_text,
+            'title': 'Project credentials',
+            'subtitle': 'Project credentials'
+        }

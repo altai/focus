@@ -1,7 +1,4 @@
 -extends "projects_base.haml"
--block subnav
-  =super()
-  -include "images_bp/_subnav.haml"
 -block content
   %div
     %h2
@@ -50,7 +47,4 @@
                    %br
            %td
              =glance_image.size
-    
-  %a href="{{ url_for('global_images.index') }}"
-    back to images list
      

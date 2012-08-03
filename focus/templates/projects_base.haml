@@ -1,12 +1,9 @@
 -extends "authenticated_base.haml"
 -block subnav
   %div.container
-    %header.jumbotron.subhead#overview
-      %h1
-        =g.tenant.name
     %div.subnav
       %ul.nav.nav-pills
-        %li class="{% if request.path == url_for('project_views.show_tenant', tenant_id=g.tenant_id) %}active{% endif %}"
+        %li class="{% if title == 'Virtual Machines' %}active{% endif %}"
           %a href="{{ url_for('project_views.show_tenant', tenant_id=g.tenant_id) }}"
             Virtual Machines
         %li class="{% if request.path == url_for('project_views.billing', tenant_id=g.tenant_id) %}active{% endif %}"
@@ -21,6 +18,11 @@
         %li class="{% if request.blueprint == 'ssh_keys' %}active{% endif %}"
           %a href="{{ url_for('ssh_keys.index', tenant_id=g.tenant_id) }}"
             SSH Keys                  
-        %li
+        %li class="{% if request.path == url_for('project_views.get_credentials', tenant_id=g.tenant_id) %}active{% endif %}"
           %a href="{{ url_for('project_views.get_credentials') }}"
             Get Credentials File
+    %header.jumbotron.subhead#overview
+      %h1
+        {{ g.tenant.name }}: {{ title }}
+      %p.lead
+        {{ subtitle }}

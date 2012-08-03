@@ -197,7 +197,9 @@ def generic_billing(tenant, user, tenants=None):
         tariffs = get_tariff_list()
         context = {
             'tenant_id': tenant.id,
-            'tariffs': tariffs
+            'tariffs': tariffs,
+            'title': 'Billing',
+            'subtitle': 'Billing details for project ' + tenant.name
         }
         if tenants is not None:
             context.update({
