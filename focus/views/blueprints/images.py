@@ -321,7 +321,7 @@ def get_bp(name):
                 ramdisk_id = flask.request.form['initrd']
             create_image(
                 flask.request.form['uploaded_filesystem'],
-                flask.request.form['kernel'],
+                flask.request.form['name'],
                 'ami', 'ami',
                 kernel_id,
                 ramdisk_id
