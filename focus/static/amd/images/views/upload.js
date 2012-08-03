@@ -127,12 +127,9 @@ define([
     api_progress_bar: _.template(api_progress_bar_template),
     render_with_respect_to_upload: function(){
       var name = this.$('#id_name').val();
-      if (window.is_file_uploaded){
-        this.clean_error_messages();
-      } else {
-        this.render();
-        this.$('#id_name').val(name);
-      }
+      this.clean_error_messages();
+      this.render();
+      this.$('#id_name').val(name);
     },
     render: function(){
       context = {
@@ -188,6 +185,7 @@ define([
           });
           up.refresh(); // Reposition Flash/Silverlight
           up.start()
+          $('#autoupload_container').removeClass('hide');
         });
 
         this.uploader.bind('UploadProgress', function(up, file) {
@@ -210,13 +208,13 @@ define([
         });
         
         this.uploader.bind('FileUploaded', function(up, file, response) {
+          $('#autoupload_container').addClass('hide');
           $('#' + file.id + " b").html("100%");
           $('#' + file.id).append('<div id="uploaded_filename" class=" hide">' + response.response + '</div>');
           window.is_file_uploaded = true;
           self.$('.form-actions button[type=submit]').removeAttr('disabled');
         	$('#id_uploaded_file').val(file.name);
 	        $('#filelist').hide();
-          $('#autoupload_container').removeClass('hide');
 	        if ($('#autoupload').is(':checked')){
 	          $('button[type=submit]').click();
 	        }
@@ -407,6 +405,7 @@ define([
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start()
+            $('#autoupload_container').removeClass('hide');
           });
 
           this.filesystem_uploader.bind('UploadProgress', function(up, file) {
@@ -429,6 +428,7 @@ define([
           });
           
           this.filesystem_uploader.bind('FileUploaded', function(up, file, response) {
+            $('#autoupload_container').addClass('hide');
             $('#filesystem_container #' + file.id + " b").html("100%");
             $('#filesystem_container #' + file.id).append('<div id="uploaded_filename" class=" hide">' + response.response + '</div>');
             window.is_filesystem_uploaded = true;
@@ -437,7 +437,6 @@ define([
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
             $('#filesystem_container #filelist').hide();
-            $('#autoupload_container').removeClass('hide');
             $('#filesystem_container #filesystem_uploaded_file').val(file.name);
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
