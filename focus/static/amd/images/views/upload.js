@@ -214,7 +214,6 @@ define([
           self.$('.form-actions button[type=submit]').removeAttr('disabled');
         	$('#id_uploaded_file').val(file.name);
 	        $('#filelist').hide();
-          $('#autoupload_container').removeClass('hide');
 	        if ($('#autoupload').is(':checked')){
 	          $('button[type=submit]').click();
 	        }
@@ -437,7 +436,6 @@ define([
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
             $('#filesystem_container #filelist').hide();
-            $('#autoupload_container').removeClass('hide');
             $('#filesystem_container #filesystem_uploaded_file').val(file.name);
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
