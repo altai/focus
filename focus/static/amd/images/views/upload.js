@@ -3,38 +3,37 @@ define([
   'images/underscore',
   'text!/static/amd/images/templates/upload.html',
   'text!/static/amd/images/templates/progress_bar.html',
+  'text!/static/amd/images/templates/rootfs_partial.html',
   'text!/static/amd/images/templates/api_progress_bar.html'
-], function(Backbone, _, template, progress_bar_template, api_progress_bar_template){
+], function(Backbone, _, template, progress_bar_template, rootfs_partial_template, api_progress_bar_template){
   return Backbone.View.extend({
     initialize: function(){
       this.options.kernel_list = window.kernel_list; // from global
       this.options.initrd_list = window.initrd_list; // from global
-      window.is_file_uploaded = false;
     },
     events: {
-      'change input#id_upload_type': function(e){
+      'change select#id_upload_type': function(e){
         this.options.router.navigate(e.currentTarget.value, trigger=true)
       },
       'click button[type=submit]': function(e){
         e.preventDefault();
         if (this.formValid()){
           var uploaded_filename = this.$('#uploaded_filename').html();
-	  this.$el.find('input[name="uploaded_filename"]').val(uploaded_filename);
+          this.$el.append('<input type="hidden" name="uploaded_filename" value="' + uploaded_filename  + '">');
           var bkp_form_actions = this.$('.form-actions').html();
           this.$('.form-actions').html(
             '<div width="100%" height="100%" align="left"><img src="/static/img/ajax-loader.gif"></div>'
           );
           var $f = $('form.new-image');
+          var url = $f.attr('action');
           var self = this;
-          debugger;
-          $.post($f.attr('action'), $f.serialize());
-            /*,function(data){
+          $.post(url, $f.serialize(), function(data){
             if (data.status == 'error'){
               self.$('.form-actions').html(bkp_form_actions);
               self.render();
-            }}*/
-          
-          /*window.progressIntervalID = window.setInterval(function(){
+            }
+          });
+          window.progressIntervalID = window.setInterval(function(){
             $.get(
               window.location.pathname.replace(
                 '/new/',
@@ -56,7 +55,7 @@ define([
                 }
               }
             );
-          }, 2000);*/
+          }, 2000);
         }
       },
       'click .cancel-upload': function(e){
@@ -66,6 +65,7 @@ define([
         this.$('#filelist').html(this.progress_bar());
       }
     },
+    is_file_uploaded: false,
     error_messages: {},
     clean_error_messages: function(){
       var self = this;
@@ -90,7 +90,7 @@ define([
       if (!this.$('#id_name').val()){
         this.error_messages['name'] = 'Required field';
       }
-      if (!window.is_file_uploaded){
+      if (!this.is_file_uploaded){
         this.error_messages['uploader'] = 'No complete upload';
       }
       if (this.$('#id_upload_type').val() == 'rootfs'){
@@ -117,13 +117,22 @@ define([
       return _.isEmpty(this.error_messages);
     },
     selected_upload_type: 0,
+    rootfs_partial: _.template(rootfs_partial_template),
     template: _.template(template),
     progress_bar: _.template(progress_bar_template),
     api_progress_bar: _.template(api_progress_bar_template),
     render_with_respect_to_upload: function(){
       var name = this.$('#id_name').val();
-      if (window.is_file_uploaded){
+      if (this.is_file_uploaded){
         this.clean_error_messages();
+        this.$('.rootfs-partial').remove();
+        if (this.selected_upload_type == 'rootfs'){
+          this.$('.control-group.upload-type').after(
+            this.rootfs_partial({
+              kernel_list: this.options.kernel_list,
+              initrd_list: this.options.initrd_list,
+              selected_upload_type: this.selected_upload_type}));
+        }
       } else {
         this.render();
         this.$('#id_name').val(name);
@@ -131,6 +140,7 @@ define([
     },
     render: function(){
       context = {
+        'rootfs_partial': this.rootfs_partial,
         'selected_upload_type': this.selected_upload_type,
         'kernel_list': this.options.kernel_list,
         'initrd_list': this.options.initrd_list,
@@ -192,7 +202,7 @@ define([
           Remove previous content of the queue as we have
           1 item uploaded at the time.
         */
-        window.is_file_uploaded = false;
+        self.is_file_uploaded = false;
         self.$('.form-actions button[type=submit]').attr('disabled', 'disabled');
         this.splice(0, this.files.length - 1);
         self.$('.uploader').removeClass('alert-error');
@@ -275,16 +285,17 @@ define([
           'error': err
         }));
         up.refresh(); // Reposition Flash/Silverlight
-        $('#id_uploaded_file').val('Select file');
+        $('#pickfiles').html('Select file');
       });
       
       this.uploader.bind('FileUploaded', function(up, file, response) {
         $('#' + file.id + " b").html("100%");
         $('#' + file.id).append('<div id="uploaded_filename" class=" hide">' + response.response + '</div>');
-        window.is_file_uploaded = true;
+        self.is_file_uploaded = true;
         self.$('.form-actions button[type=submit]').removeAttr('disabled');
-        $('#id_uploaded_file').val(file.path);
+        $('#pickfiles').html('Select another file');
       });
+      
     }
   });
 });

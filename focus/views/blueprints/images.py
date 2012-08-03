@@ -214,7 +214,6 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        import pdb;pdb.set_trace()
         storage = flask.request.files['file']
         filename = focus.files_uploads.save(storage)
         flask.current_app.cache.set(
@@ -241,23 +240,16 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        # TODO(apugachev): validate thoroughly, do not rely on js to do it
-        uploaded_filename = focus.files_uploads.path(
-            flask.request.form['uploaded_filename'])
-        tenant_id = get_tenant_id()
-        properties = {
-            'image_state': 'available',
-            'project_id': tenant_id,
-            'architecture': 'x86_64',
-            'image_location': 'local'}
-        try:
-            kwargs = {
-                'name': flask.request.form['name'],
-                #'container_format': flask.request.form['container'],
-                'disk_format': flask.request.form['disk_format'],
-                'data': open(uploaded_filename),
-                'is_public': not hasattr(flask.g, 'tenant_id'),
-                'properties': properties,
+        kernel_id, ramdisk_id = None, None
+        
+        def create_image(uploaded_filename, name, container, disk_format, kernel_id=None,
+                ramdisk_id=None):
+            tenant_id = get_tenant_id()
+            properties = {
+                'image_state': 'available',
+                'project_id': tenant_id,
+                'architecture': 'x86_64',
+                'image_location': 'local'
             }
             if kernel_id is not None:
                 properties['kernel_id'] = kernel_id
