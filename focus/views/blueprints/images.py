@@ -214,7 +214,6 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        import pdb;pdb.set_trace()
         storage = flask.request.files['file']
         filename = focus.files_uploads.save(storage)
         flask.current_app.cache.set(
