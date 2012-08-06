@@ -44,6 +44,7 @@ ANONYMOUS_ALLOWED = [
     'project_images.progress'
 ]
 
+VNC_CONSOLE_TYPE = 'novnc'
 DEFAULT_APP_PORT = 8080
 # for keystone/nova/glance client
 KEYSTONE_CONF = {

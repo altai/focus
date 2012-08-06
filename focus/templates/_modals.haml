@@ -34,8 +34,4 @@
     {% if action=='delete' %} 
       %i.icon-remove
     {% endif %}
-    {% if action.startswith('reboot ') %}
-      {{ action.replace('reboot ', '') }}
-    {% else %}
-      {{ action }}
-    {% endif %}
+    {{ action }}

@@ -35,8 +35,9 @@
                 &nbsp;
               -else:
                 {{ show_modal(vm, msg='Sure to delete VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='delete', form_action=url_for('project_views.remove_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'])) }}
-                reboot:
-                {{ show_modal(vm, msg='Sure to reboot VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reboot soft', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft')) }}
-                {{ show_modal(vm, msg='Sure to reboot VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reboot hard', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard')) }}
-            
+                {{ show_modal(vm, msg='Sure to reboot VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reboot', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='soft')) }}
+                {{ show_modal(vm, msg='Sure to reset VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reset', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard')) }}
+                %a href="{{ url_for('project_views.get_vnc_console', vm_id=vm['id']) }}" target="_blank"
+                  VNC
+
   -include "pagination.haml"

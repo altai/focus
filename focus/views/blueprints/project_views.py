@@ -133,6 +133,13 @@ def show_vm(vm_id):
     }
 
 
+@bp.route('vms/<vm_id>/vnc')
+def get_vnc_console(vm_id):
+    vnc = (clients.user_clients(flask.g.tenant_id).compute.servers.
+           get_vnc_console(vm_id, flask.current_app.config['VNC_CONSOLE_TYPE']))
+    return flask.redirect(vnc['console']['url'])
+
+
 @bp.route('vms/<vm_id>/remove/', methods=['POST'])
 def remove_vm(vm_id):
     '''
