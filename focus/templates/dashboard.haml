@@ -1,30 +1,29 @@
 -extends "authenticated_base.haml"
 -block content
   -if ('role', 'admin') is allowed:
-    %section
-      %div.page-header
-        %h2
-          Global Administration
-          %small
-            {{ total_users }} users in {{ total_projects }} projects use {{ total_vms }} VMs
-      %div.subnav
-        %ul.nav.nav-pills
-          %li
-            %a href="{{ url_for('global_views.list_vms') }}" -> Virtual machines      
-          %li
-            %a href="{{ url_for('global_views.billing') }}" -> Billing     
-          %li
-            %a href="{{ url_for('global_images.index') }}" -> Images
-          %li
-            %a href="{{ url_for('global_user_management.index')}}" -> Users
-          %li
-            %a href="{{ url_for('tariffs.index') }}" -> Tariffs
-          %li
-            %a href="{{ url_for('projects.index') }}" -> Projects
-          %li
-            %a href="{{ url_for('networks.index') }}" -> Networks
-          %li
-            %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+    %div.subnav
+      %ul.nav.nav-pills
+        %li
+          %a href="{{ url_for('global_views.list_vms') }}" -> Virtual machines      
+        %li
+          %a href="{{ url_for('global_views.billing') }}" -> Billing     
+        %li
+          %a href="{{ url_for('global_images.index') }}" -> Images
+        %li
+          %a href="{{ url_for('global_user_management.index')}}" -> Users
+        %li
+          %a href="{{ url_for('tariffs.index') }}" -> Tariffs
+        %li
+          %a href="{{ url_for('projects.index') }}" -> Projects
+        %li
+          %a href="{{ url_for('networks.index') }}" -> Networks
+        %li
+          %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+  %header.jumbotron.subhead#overview
+    %h1
+      {{ title }}
+    %p.lead
+      {{ subtitle }}
 
   -if tenants_with_roles|length
     %section

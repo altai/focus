@@ -43,7 +43,8 @@ def dashboard():
             clients.admin_clients().nova.servers.list(search_opts={
                 'all_tenants': 1}))
         context.update(dict(
-            total_users=len(users),
-            total_projects=len(projects),
-            total_vms=len(servers)))
+            title='Altai private cloud',
+            subtitle='%s users in %s projects use %s VMs' % (len(users), 
+                                                             len(projects), 
+                                                             len(servers))))
     return context

@@ -285,7 +285,7 @@ def get_bp(name):
                 flask.flash(e.message, 'error')
             else:
                 flask.flash(
-                    'Image with ID %s was registered.' % img.id,
+                    'Image with name %s was registered.' % img.name,
                     'success')
             finally:
                 try:
@@ -295,6 +295,7 @@ def get_bp(name):
                     # nothing to do, temporal file was removed by something
                     pass
         # TODO(apugachev): validate thoroughly, do not rely on js to do it
+        print flask.request.form
         if flask.request.form['upload_type'] == 'solid':
             create_image(
                 flask.request.form['uploaded_filename'],
