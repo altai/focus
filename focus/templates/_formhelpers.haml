@@ -11,7 +11,12 @@
         -if field.errors
          -for error in field.errors
            %div.help-inline
-             =error
+             -if field.errors|length > 1:
+               -for error in field.errors
+                 =error
+                 %br
+             -else
+               =field.errors.0
 
 
 -macro render_h_field(field, is_required)
@@ -24,6 +29,7 @@
         =field.label.text
     %div.controls    
       =field|safe
+      
       -if field.errors
         %div.help-inline
           -if field.errors|length > 1:
@@ -31,7 +37,7 @@
                 =error
                 %br
           -else
-            =error
+            =field.errors.0
       %p.help-block
         =field.description
          
