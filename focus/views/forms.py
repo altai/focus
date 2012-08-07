@@ -111,12 +111,12 @@ class DeleteUserForm(wtf.Form):
 
 
 class AddUserToProject(wtf.Form):
-    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    add_project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
     user = wtf.HiddenField('User', [wtf.Required()])
 
 
 class RemoveUserFromProject(wtf.Form):
-    project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
+    remove_project = wtf.SelectField('Projects', [wtf.Required()], choices=[])
     user = wtf.HiddenField('User', [wtf.Required()])
 
 

@@ -100,12 +100,12 @@ def show(user_id):
         if is_non_admin(tenant):
             users_projects_choices.append((tenant.id, tenant.name))
             user_projects.append(tenant.id)
-    remove_user_from_project.project.choices = users_projects_choices
+    remove_user_from_project.remove_project.choices = users_projects_choices
     all_tenants = clients.admin_clients().keystone.tenants.list()
     for tenant in all_tenants:
         if not tenant.id in user_projects and is_non_admin(tenant):
             not_user_projects_choices.append((tenant.id, tenant.name))
-    add_user_to_project.project.choices = not_user_projects_choices
+    add_user_to_project.add_project.choices = not_user_projects_choices
     return {
         'user': user,
         'user_roles': user_roles,
@@ -122,7 +122,7 @@ def add_user_to_project():
     Giving a 'Member' role in given tenant
     """
     form = forms.AddUserToProject()
-    tenant = clients.admin_clients().keystone.tenants.get(form.project.data)
+    tenant = clients.admin_clients().keystone.tenants.get(form.add_project.data)
     tenant.add_user(form.user.data, clients.get_role_id("member"))
     flask.flash('User was added to project', 'success')
     return flask.redirect(flask.url_for('.show', user_id=form.user.data))
@@ -134,7 +134,7 @@ def remove_user_from_project():
     Removes all user's roles for given tenant
     """
     form = forms.RemoveUserFromProject()
-    project = clients.admin_clients().keystone.tenants.get(form.project.data)
+    project = clients.admin_clients().keystone.tenants.get(form.remove_project.data)
     user = clients.admin_clients().keystone.users.get(form.user.data)
     user_roles_in_project = []
     all_tenants = clients.admin_clients().keystone.tenants.list(limit=1000000)
