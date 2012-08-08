@@ -166,6 +166,16 @@ def reboot_vm(vm_id, type):
     return flask.redirect(views_utils.get_next_url())
 
 
+@bp.route('vms/<vm_id>/console')
+def get_console_output(vm_id):
+    console = clients.user_clients(flask.g.tenant_id).compute.servers.get_console_output(vm_id)
+    console = console.split('\n')
+    return {
+        'title': 'Console output',
+        'log': console
+        }
+
+
 @bp.route('billing/')
 def billing():
     return generic_billing.generic_billing(flask.g.tenant, flask.g.user)

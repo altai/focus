@@ -39,5 +39,7 @@
                 {{ show_modal(vm, msg='Sure to reset VM "%s" spawned by "%s"?' % (vm['name'], vm['user_id']), action='reset', form_action=url_for('project_views.reboot_vm', tenant_id=vm['tenant_id'], vm_id=vm['id'], type='hard')) }}
                 %a href="{{ url_for('project_views.get_vnc_console', vm_id=vm['id']) }}" target="_blank"
                   VNC
+                %a href="{{ url_for('project_views.get_console_output', vm_id=vm['id']) }}"
+                  log
 
   -include "pagination.haml"

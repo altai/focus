@@ -1,0 +1,9 @@
+-extends "projects_base.haml"
+-block content:
+  %div.container
+    %code
+      -for line in log:
+        {% autoescape true %}
+          {{line}}
+        {% endautoescape %}
+        %br
