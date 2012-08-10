@@ -18,6 +18,9 @@
         %li class="{% if request.blueprint == 'ssh_keys' %}active{% endif %}"
           %a href="{{ url_for('ssh_keys.index', tenant_id=g.tenant_id) }}"
             SSH Keys                  
+        %li class="{% if request.blueprint == 'project_security_groups' %}active{% endif %}"
+          %a href="{{ url_for('project_security_groups.index', tenant_id=g.tenant_id) }}"
+            Security Groups
         %li class="{% if request.path == url_for('project_views.get_credentials', tenant_id=g.tenant_id) %}active{% endif %}"
           %a href="{{ url_for('project_views.get_credentials') }}"
             Get Credentials File

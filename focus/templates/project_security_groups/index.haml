@@ -1,0 +1,22 @@
+-extends "projects_base.haml"
+-block content
+  %div.container align="right"
+    %a.btn.btn-primary href="{{ url_for('.new') }}#upload"
+      Add
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th -> Name
+        %th -> Description
+        %th -> Actions
+    %tbody
+      -from "_modals.haml" import show_modal with context
+      -for security_group in security_groups
+        %tr
+          %td
+            %a href="{{ url_for('.show', security_group_id=security_group['id']) }}"
+              =security_group['name']
+          %td -> =security_group['description']
+          %td
+            {{ show_modal(security_group, action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete', security_group_id=security_group['id'])) }}
+  -include "pagination.haml"

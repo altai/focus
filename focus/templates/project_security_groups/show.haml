@@ -1,0 +1,71 @@
+-extends "projects_base.haml"
+-from "_modals.haml" import show_modal with context
+-from "_formhelpers.haml" import render_form_errors, render_h_field
+-block content
+  %div
+    %h2
+      {{ security_group.name }}
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+       %thead
+         %tr
+           %th
+             ID
+           %th
+             Name
+           %th
+             Description
+         %tr
+           %td
+             =security_group.id
+           %td
+             =security_group.name
+           %td
+             =security_group.description
+    %h3
+      Rules
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+       %thead
+         %tr
+           %th
+             IP Protocol
+           %th
+             From Port
+           %th
+             To Port
+           %th
+             IP Range
+           %th
+             Source Group
+           %th
+             Actions
+         -for rule in security_group['rules']:
+           %tr
+             %td
+               =rule.ip_protocol
+             %td
+               =rule.from_port
+             %td
+               =rule.to_port
+             %td
+               =rule.ip_range.cidr if rule.ip_range else ''
+             %td
+               =rule.group.name if rule.group else ''
+             %td
+               {{ show_modal(security_group, action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete_rule', security_group_id=security_group['id'], rule_id=rule['id'])) }}
+
+    %h3
+      Add a rule
+      %form.form-horizontal.well method="POST" action="{{url_for('.add_rule', security_group_id=security_group['id'])}}"
+          =render_form_errors(add_form.csrf_token)
+          =add_form.hidden_tag()
+          %fieldset
+            =render_h_field(add_form.ip_protocol, is_required=True)
+            =render_h_field(add_form.from_port)
+            =render_h_field(add_form.to_port)
+            =render_h_field(add_form.group_id)
+            =render_h_field(add_form.cidr)
+            %div.form-actions
+              %button.btn.btn-primary.tc-add type="submit"
+                Add
+              %a.btn.tc-cancel href="."
+                Cancel

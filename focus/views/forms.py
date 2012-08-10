@@ -25,10 +25,11 @@ import decimal
 
 import netaddr
 
+import flask
 from flaskext import wtf
 from flaskext.wtf import html5
 from focus.views import utils
-
+from focus import clients
 
 def get_login_form():
     """
@@ -183,6 +184,41 @@ class CreateNetwork(wtf.Form):
             raise wtf.ValidationError('Unrecognised format of CIDR')
         if network.size > 65536:
             raise wtf.ValidationError('Network size is greater then 65536')
+
+
+class SecurityGroupCreate(wtf.Form):
+    name = wtf.TextField('Name', [wtf.Required()])
+    description = wtf.TextField('Description', [wtf.Required()])
+
+
+class SecurityGroupRuleAdd(wtf.Form):
+    ip_protocol = wtf.SelectField(
+        'IP Protocol',
+        choices=[('tcp', 'TCP'),
+                 ('udp', 'UDP'),
+                 ('icmp', 'ICMP')])
+
+    from_port = wtf.IntegerField(
+        "From Port",
+        validators=[wtf.NumberRange(min=-1, max=65536)])
+
+    to_port = wtf.IntegerField(
+        "To Port",
+        validators=[wtf.NumberRange(min=-1, max=65536)])
+
+    group_id = wtf.SelectField('Source Group', choices=[])
+    cidr = wtf.TextField(
+        "CIDR",
+        default="0.0.0.0/0")
+
+    def __init__(self, *args, **kwargs):
+        security_group_id = kwargs.pop('security_group_id')
+        super(SecurityGroupRuleAdd, self).__init__(*args, **kwargs)
+        security_groups = (clients.user_clients(flask.g.tenant_id).compute.
+                           security_groups.list())
+        self.group_id.choices = [('<None>', '')] + [(str(sg.id), sg.name)
+                                 for sg in security_groups
+                                 if str(sg.id) != str(security_group_id)]
 
 
 class CreateEmailMask(wtf.Form):

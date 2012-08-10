@@ -98,6 +98,7 @@ mail = mail_module.Mail(app)
 
 from focus.views.blueprints import global_views
 from focus.views.blueprints import images
+from focus.views.blueprints import security_groups
 from focus.views.blueprints import project_views
 from focus.views.blueprints import ssh_keys
 from focus.views.blueprints import users_management
@@ -110,6 +111,8 @@ from focus.views.blueprints import invitations
 
 app.register_blueprint(images.ABP, url_prefix='/global/images/')
 app.register_blueprint(images.PBP, url_prefix='/projects/<tenant_id>/images/')
+app.register_blueprint(security_groups.PBP,
+                       url_prefix='/projects/<tenant_id>/security_groups/')
 app.register_blueprint(project_views.bp, url_prefix='/projects/<tenant_id>/')
 app.register_blueprint(global_views.bp, url_prefix='/global/')
 app.register_blueprint(
