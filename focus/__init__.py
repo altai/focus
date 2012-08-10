@@ -50,17 +50,16 @@ except IOError:
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
-if not app.debug:
-    if app.config.get('LOG_FILE', '') != '':
-        rotating_file_handler = handlers.RotatingFileHandler(
-            app.config['LOG_FILE'],
-            maxBytes=app.config['LOG_MAX_BYTES'],
-            backupCount=app.config['LOG_BACKUP_COUNT'])
-        rotating_file_handler.setFormatter(logging.Formatter(
-                '%(asctime)s %(levelname)s: %(message)s '
-                '[in %(pathname)s:%(lineno)d]'
-                ))
-        LOG.addHandler(rotating_file_handler)
+if app.config.get('LOG_FILE', '') != '':
+    rotating_file_handler = handlers.RotatingFileHandler(
+        app.config['LOG_FILE'],
+        maxBytes=app.config['LOG_MAX_BYTES'],
+        backupCount=app.config['LOG_BACKUP_COUNT'])
+    rotating_file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s '
+            '[in %(pathname)s:%(lineno)d]'
+            ))
+    LOG.addHandler(rotating_file_handler)
 if not app.debug and len(app.config['ADMINS']):
     mail_handler = handlers.SMTPHandler(
         app.config['MAIL_SERVER'],
@@ -107,6 +106,7 @@ from focus.views.blueprints import projects
 from focus.views.blueprints import networks
 from focus.views.blueprints import invitation_domains
 from focus.views.blueprints import invitations
+from focus.views.blueprints import load_history
 
 
 app.register_blueprint(images.ABP, url_prefix='/global/images/')
@@ -124,6 +124,7 @@ app.register_blueprint(projects.bp, url_prefix='/global/projects/')
 app.register_blueprint(networks.bp, url_prefix='/global/networks/')
 app.register_blueprint(invitation_domains.bp, url_prefix='/global/invites/')
 app.register_blueprint(invitations.bp, url_prefix='/invite/')
+app.register_blueprint(load_history.bp, url_prefix='/global/load_history/')
 
 
 class ResolvingUploadSet(uploads.UploadSet):
@@ -132,7 +133,7 @@ class ResolvingUploadSet(uploads.UploadSet):
     def resolve_conflict(self, target_folder, basename):
         try:
             return super(ResolvingUploadSet, self).resolve_conflict(
-                target_folder, basename)
+                target_folder, basename) 
         except ValueError:
             import uuid
             return str(uuid.uuid4())
@@ -150,3 +151,12 @@ import focus.views.authorization
 import focus.views.dashboard
 import focus.views.profile
 import focus.views.template_filters
+
+from werkzeug.wsgi import DispatcherMiddleware
+from focus.zabbix_proxy import app as zabbix_data_api
+
+#the_app = DispatcherMiddleware(zabbix_data_api)
+
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+        '/zabbix_proxy': zabbix_data_api.wsgi_app
+        })

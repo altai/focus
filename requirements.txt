@@ -14,3 +14,4 @@ python-novaclient
 python-openstackclient-base
 storm
 WTForms
+rrdtool

@@ -1,0 +1,9 @@
+-extends "global_admin_base.haml"
+-block amdjs
+  %script
+    | var ZABBIX_API = '{{ api }}';
+  %script src="{{ url_for('static', filename='amd/main_load_history.js') }}"
+-block content:
+  %div.container.main-view align="right"
+
+              

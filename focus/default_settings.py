@@ -62,3 +62,4 @@ LOG_FILE = '/var/log/focus/focus-tor.log'
 LOG_MAX_BYTES = 1024 * 1024 * 100
 LOG_BACKUP_COUNT = 12
 DEV_LOG_TO_FILE = False
+ZABBIX_PROXY_BASEURL = 'http://0.0.0.0:8080/zabbix_proxy/'

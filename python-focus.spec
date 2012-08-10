@@ -35,6 +35,8 @@ Requires:       python-glanceclient-essex
 Requires:       python-openstackclient-base-essex
 
 Requires:       nginx-upload
+Requires:       rrdtool-python
+
 
 %description
 

@@ -19,10 +19,10 @@
 # <http://www.gnu.org/licenses/>.
 
 
-if __name__ == "__main__":
-    import focus
-    port = focus.app.config['DEFAULT_APP_PORT']
-    focus.app.run(host='0.0.0.0', port=port if port else 5000)
-    #from werkzeug.serving import run_simple
-    #run_simple('0.0.0.0', port, focus.app,
-    #            use_reloader=True, use_debugger=True, use_evalex=True)
+ZABBIX_PROXY_DB = {
+    'host': 'localhost',
+    'user': 'root',
+    'db': 'zabbix'
+}
+
+ZABBIX_PROXY_TMP = '/var/lib/focus'

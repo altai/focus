@@ -38,6 +38,15 @@ After installing RPM:
   - set default uploads destination (UPLOADS_DEFAULT_DEST) (pay attention to Nginx configuration)
   - set difference between Focus and Keystone timezones (RELATIVE_TO_API_HOURS_SHIFT)
   - set path to log (file LOG_FILE).
+  - set URL of zabbix proxy API (ZABBIX_PROXY_BASEURL)
+  - set DB credentials to access Zabbix database (ZABBIX_PROXY_DB)
+    * it must be dictionary of keys/values for MySQLdb to connect
+    * example:{
+       'host': 'localhost',
+       'user': 'root',
+       'db': 'zabbix'
+       }
+  - set path to directory writable by the web-aplication for zabbix proxy API service to store it's files (ZABBIX_PROXY_TMP)
 
 7) edit /etc/focus/gunicorn_config.py
   - bind: "<IP:port>"

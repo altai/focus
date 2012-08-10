@@ -23,6 +23,9 @@
           %a href="{{ url_for('networks.index') }}" -> Networks
         %li{% if request.blueprint == 'invitation_domains' %} class="active"{% endif %}
           %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+        %li{% if request.blueprint == 'load_history' %} class="active"{% endif %}
+          %a href="{{ url_for('load_history.index') }}" -> Load History
+
     %header.jumbotron.subhead#overview
       %h1
         Global administration: {{ title }}
