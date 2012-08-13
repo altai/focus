@@ -414,8 +414,13 @@ def data(version, host, period):
                     '-e', 'now'])
         data = rrdtool.fetch(*args)
         indexes = [data[1].index(x) for x in parameters]
-        result = [data[0], 
-                  [data[1][i] for i in indexes], 
-                  [[[row[i] for i in indexes] for row in data[2]]]]
+        result = [
+            range(data[0][0], data[0][1]+1, data[0][2]),
+            dict(
+                [
+                    (
+                        v, 
+                        [x[k] for x in data[2]]) for k, v in enumerate(data[1]) if v in parameters]
+)]
         return flask.json.dumps(result)
     flask.abort(404)

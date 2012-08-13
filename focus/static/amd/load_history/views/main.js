@@ -41,7 +41,13 @@ define([
         periods: this.options.periods,
         parameters: this.options.parameters,
         data: this.data
-      }))
+      }));
+      
+      this.draw_cpu();
+      this.draw_memory();
+      this.draw_disk();
+      this.draw_swap();
+      /*
       // nice data to see nice pictures (we have arrays of nulls in data[2][0])
       var x = [], y = [], y2 = [], y3 = [];
 
@@ -60,10 +66,11 @@ define([
             r.circle(this.x, this.y[1]),
             r.circle(this.x, this.y[2])
           );
-        }, function () {
+        }, function () { 
           this.set.remove();
         });
       })
+      */
     }
     , events: {
       'change select.hosts': function(){
@@ -75,6 +82,101 @@ define([
         this.period = e.currentTarget.rel
         this.render()
       }
+    }
+    , draw_cpu: function(){
+      var r = Raphael('chart-cpu')
+      txtattr = { font: "12px sans-serif" };
+      r.text(160, 15, "Load Average").attr(txtattr);
+      r.linechart(
+        10, 10, 300, 200, 
+        [this.data[0], this.data[0], this.data[0], this.data[0]], 
+        [this.data[1]['avg1'], this.data[1]['avg5'], this.data[1]['avg15'], this.data[1]['iowait']],
+        {
+          axis: '0 0 1 1',
+          nostroke: false,
+          colors: ['red', 'green', 'blue', 'yellow']
+        }
+      );
+      var base = 0;
+      _.each([['avg1', '1 min', 'red'], 
+              ['avg5', '5 min', 'green'], 
+              ['avg15', '15 min', 'blue'],
+              ['iowait', 'iowait', 'yellow'],], 
+             function(x){
+               r.rect(base + 40, 220, 10, 10).attr({fill: x[2]})
+               r.text(base + 70, 227, x[1])
+               base = base + 50
+             })
+        }
+    , draw_memory: function(data){
+      var r = Raphael('chart-memory')
+      txtattr = { font: "12px sans-serif" };
+      r.text(160, 15, "Memory").attr(txtattr);
+      r.linechart(
+        10, 10, 300, 200, 
+        [this.data[0], this.data[0]], 
+        [this.data[1]['freemem'], this.data[1]['usedmem']],
+        {
+          axis: '0 0 1 1',
+          nostroke: false,
+          colors: ['blue', 'red'],
+          shadow: true
+        }
+      );
+      var base = 0;
+      _.each([['freemem', 'Free', 'blue'], 
+              ['usedmem', 'Used', 'red']], 
+             function(x){
+               r.rect(base + 40, 220, 10, 10).attr({fill: x[2]})
+               r.text(base + 70, 227, x[1])
+               base = base + 50
+             })
+        }
+    , draw_disk: function(data){
+      var r = Raphael('chart-disk')
+      txtattr = { font: "12px sans-serif" };
+      r.text(160, 15, "Disk").attr(txtattr);
+      r.linechart(
+        10, 10, 300, 200, 
+        [this.data[0]], 
+        [this.data[1]['freespace']],
+        {
+          axis: '0 0 1 1',
+          nostroke: false,
+          colors: ['blue'],
+          shadow: true
+        }
+      );
+      var base = 0;
+      _.each([['freespace', 'Free', 'blue']], 
+             function(x){
+               r.rect(base + 40, 220, 10, 10).attr({fill: x[2]})
+               r.text(base + 70, 227, x[1])
+               base = base + 50
+             })
+    }
+    , draw_swap: function(data){
+      var r = Raphael('chart-swap')
+      txtattr = { font: "12px sans-serif" };
+      r.text(160, 15, "Swap").attr(txtattr);
+      r.linechart(
+        10, 10, 300, 200, 
+        [this.data[0]], 
+        [this.data[1]['freeswap']],
+        {
+          axis: '0 0 1 1',
+          nostroke: false,
+          colors: ['blue'],
+          shadow: true
+        }
+      );
+      var base = 0;
+      _.each([['freespace', 'Free', 'blue']], 
+             function(x){
+               r.rect(base + 40, 220, 10, 10).attr({fill: x[2]})
+               r.text(base + 70, 227, x[1])
+               base = base + 50
+             })
     }
   });
 });
