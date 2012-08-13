@@ -25,6 +25,7 @@ CPU/Load Avg./Mem/free space/io-wait history of every compute node.
 """
 
 import contextlib
+import re
 import urllib
 import urlparse
 
@@ -61,6 +62,15 @@ def proxy(bypass):
     We already have authorization control (environments.admin).
     zabbix_proxy API provides GET endpoints only.
     '''
+    if not re.match('^('
+                    '|v0/'
+                    '|v0/hosts/'
+                    '|v0/periods/'
+                    '|v0/parameters/'
+                    '|v0/[^/]+/[^/]+/)$', 
+                    bypass):
+        flask.current_app.logger.info('Strange path requested: %s.' % bypass)
+        flask.abort(404)
     baseurl = flask.current_app.config['ZABBIX_PROXY_BASEURL']
     if not baseurl.endswith('/'):
         baseurl += '/'
