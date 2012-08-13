@@ -28,7 +28,6 @@ import thread
 import time
 import urlparse
 
-import eventlet
 import flask
 import rrdtool
 import MySQLdb
