@@ -80,8 +80,14 @@ def proxy(bypass):
     flask.current_app.logger.debug('Going to proxy to zabbix proxy "%s"' % url)
     with contextlib.closing(urllib.urlopen(url)) as fp:
         content = fp.read()
-        url_root = flask.request.url.split('proxy/%s' % bypass)[0] + 'proxy/'
-        screened = content.replace(baseurl, url_root)
+        url_root = str(
+            flask.request.url.split('proxy/%s' % bypass)[0] + 'proxy/')
+        try:
+            screened = content.replace(baseurl, url_root)
+        except UnicodeDecodeError:
+            pass
         flask.current_app.logger.debug(
             'Response from zabbix proxy "%s", screened "%s"' % (content, screened))
-        return flask.make_response(screened)
+        response = flask.make_response(screened)
+        response.headers['Content-Type'] = fp.info().getheader('Content-Type')
+        return response

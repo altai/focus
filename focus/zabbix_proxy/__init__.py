@@ -18,12 +18,30 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 
+"""Pumps data from Zabbix DB and provides it with HTTP API.
+
+Hosts with status 0 are real hosts, not templates.
+Items store histori data in few tables depending on values type:
++------------------+--------------+
+| items.value_type |  table name  |
++------------------+--------------+
+|        0         |   history    |
+|        3         | history_uint |
++------------------+--------------+
+
+Data is collected by Zabbix with different time delay. This makes signals
+with bigger delay have more error when stored in a single RRD file. To 
+avoid this we store every item data for every host in a separate RRD file.
+rrdtool graph then consolidates data to build graphics.
+
+"""
 import fcntl
 import logging
 import os
 import os.path
 import re
 import socket
+import tempfile
 import thread
 import time
 import urlparse
@@ -31,8 +49,43 @@ import urlparse
 import flask
 import rrdtool
 import MySQLdb
+import _mysql
 
 
+PERIODS = ['6h', '1d', '1w', '1m', '1y']
+PARAMETERS = [
+    'avg1', 
+    'avg5',
+    'avg15', 
+    'freemem', 
+    'usedmem',
+    'freeswap',
+    'freespace',
+    'iowait'
+]
+DESCRIPTIONS_TO_DATASOURCE_NAMES = {
+    'CPU Load Average 1': 'avg1',
+    'CPU Load Average 5': 'avg5',
+    'CPU Load Average 15': 'avg15',
+    'Free memory(%)': 'freemem',
+    'Used memory(%)': 'usedmem',
+    'Available Swap(%)': 'freeswap',
+    'Free disk space on $1': 'freespace',
+    'CPU iowait': 'iowait'
+    }
+ITEM_VALUE_TYPE_2_TABLE_NAME = {0: 'history', 3: 'history_uint'}
+COLORS = [
+    '000080',
+    '008000',
+    '800000',
+    '0000FF',
+    '00FF00',
+    'FF0000',
+    '800080',
+    '008080',
+    '808000'
+    ]
+    
 app = flask.Flask(__name__)
 
 app.config.from_object('focus.zabbix_proxy.default_settings')
@@ -72,108 +125,74 @@ class RRDKeeper(object):
     # steps is number of PDPs to pass to CF to get 1 point of RRA
     # if PDP frequency is 2 seconds then steps for 100 points in 6 hours
     # interval is 6 * 60 * 60 / 100 / 2 = 108
-    POINTS_PER_GRAPH = 10
-    SPAN_6H = 6 * 60 * 60 / POINTS_PER_GRAPH / STEP_INTERVAL
-    # 100 points for 1 day
-    SPAN_1D = SPAN_6H * 4
-    # 100 points for 1 week
-    SPAN_1W = SPAN_1D * 7
-    # 100 points for 1 month
-    SPAN_1M = SPAN_1D * 30
-    # 100 points for 1 year
-    SPAN_1Y = SPAN_1D * 365
+    POINTS_PER_GRAPH = 100
+    
 
-    DESCRIPTIONS_TO_DATASOURCE_NAMES = {
-        'CPU Load Average 1': 'avg1',
-        'CPU Load Average 5': 'avg5',
-        'CPU Load Average 15': 'avg15',
-        'Free memory(%)': 'freemem',
-        'Used memory(%)': 'usedmem',
-        'Available Swap(%)': 'freeswap',
-        'Free disk space on $1': 'freespace',
-        'CPU iowait': 'iowait'
-        }
     def __init__(self, path):
         self.path = os.path.abspath(path)
         
     @staticmethod
-    def _fname(path, host):
-        return os.path.join(path, 
-                            '%s.rrd' % re.sub('[^a-zA-Z0-9_.-]', '', host))
-    
-    def fname(self, host):
-        return self._fname(self.path, host)
+    def fname(path, host, ds_name):
+        name = '%s.%s.rrd' % (re.sub('[^a-zA-Z0-9_.-]', '', host), ds_name)
+        return os.path.join(path, name)
 
-    def ensure_rrd_existence(self, hosts):
-        """Create RRD files for each host."""
-        for h in hosts:
-            db_filename = self.fname(h)
-            if not os.path.isfile(db_filename):
-                start = '01/01/80'
-                rras = [
-                    'RRA:AVERAGE:0.99999:%s:%s' % (
-                        self.SPAN_6H, self.POINTS_PER_GRAPH),
-                    'RRA:AVERAGE:0.99999:%s:%s' % (
-                        self.SPAN_1D, self.POINTS_PER_GRAPH),
-                    'RRA:AVERAGE:0.99999:%s:%s' % (
-                        self.SPAN_1W, self.POINTS_PER_GRAPH),
-                    'RRA:AVERAGE:0.99999:%s:%s' % (
-                        self.SPAN_1M, self.POINTS_PER_GRAPH),
-                    'RRA:AVERAGE:0.99999:%s:%s' % (
-                        self.SPAN_1Y,  self.POINTS_PER_GRAPH)
-                    ]
-                CONSUMER_LOG.info(
-                    'Creating RRD  %s\nStart: %s\nStep: %s\n'
-                    'Datasources: %s\nRRAs: %s' % (
-                        db_filename, start, 
-                        str(self.STEP_INTERVAL), self.DATASOURCES, rras))
-                rrdtool.create(
-                    db_filename,
-                    '--start', start,
-                    '--step', str(self.STEP_INTERVAL),
-                    self.DATASOURCES,
-                    *rras)
+    def ensure_rrd_existence(self, host, ds_name, step):
+        """Create RRD files for the host/item combination."""
+        db_filename = self.fname(self.path, host, ds_name)
+        if not os.path.isfile(db_filename):
+            # it is better to take little bit more points then exact value
+            # because dividing by 100 can eat some and because interpolation
+            # is better on bigger datasets (it will occur when RRD will build 
+            # a graph later)
+            SPAN_6H = 8 * 60 * 60 / self.POINTS_PER_GRAPH / step or 1
+            SPAN_1D = 5 * 6 * 60 * 60 / self.POINTS_PER_GRAPH / step or 1
+            SPAN_1W = 10 * 24 * 60 * 60 / self.POINTS_PER_GRAPH / step or 1
+            SPAN_1M = 40 * 24 * 60 * 60 / self.POINTS_PER_GRAPH / step or 1
+            SPAN_1Y = 380 * 24 * 60 * 60 / self.POINTS_PER_GRAPH / step or 1
+            rras = [
+                'RRA:AVERAGE:0.5:1:%s' % self.POINTS_PER_GRAPH,
+                'RRA:AVERAGE:0.99999:%s:%s' % (
+                    SPAN_6H, self.POINTS_PER_GRAPH),
+                'RRA:AVERAGE:0.99999:%s:%s' % (
+                    SPAN_1D, self.POINTS_PER_GRAPH),
+                'RRA:AVERAGE:0.99999:%s:%s' % (
+                    SPAN_1W, self.POINTS_PER_GRAPH),
+                'RRA:AVERAGE:0.99999:%s:%s' % (
+                    SPAN_1M, self.POINTS_PER_GRAPH),
+                'RRA:AVERAGE:0.99999:%s:%s' % (
+                    SPAN_1Y,  self.POINTS_PER_GRAPH)
+                ]
+            # workaround, otherwise rrdtool.create file with empty points
+            # starting at current moment and it is impossible to add old data
+            START = '01/01/80'
+            
+            args = (db_filename,
+                '--start', str(START),
+                '--step', str(step),
+                'DS:%s:GAUGE:%s:U:U' % (ds_name, str(step * 2)))
+            #CONSUMER_LOG.debug(args)
+            #CONSUMER_LOG.debug(rras)
+            rrdtool.create(
+                db_filename,
+                '--start', str(START),
+                '--step', str(step),
+                'DS:%s:GAUGE:%s:U:U' % (ds_name, str(step * 2)),
+                *rras)
+            #CONSUMER_LOG.debug('ok')
 
-    def update(self, data, items_2_hosts, items_2_descriptions):
+    def update(self, data, items_2_hosts, items_2_descriptions, items_2_delays):
         """Update RRD files with the data.
-
-        To minimize rrdtool.update callse we need to rearrange the data:
         
-        update filename [--template|-t ds-name[:ds-name]...] \
-        N|timestamp:value[:value...] [timestamp:value[:value...] ...]
+        Ensure file exists.
         """
-        host_data = {}
-        host_datasources = {}
-        for itemid, clock, value in data:
-            host = items_2_hosts[itemid]
-            if host not in host_data:
-                host_data[host] = {}
-            description = items_2_descriptions[itemid]
-            try:
-                ds = self.DESCRIPTIONS_TO_DATASOURCE_NAMES[description]
-            except KeyError, e:
-                pass
-            else:
-                if clock not in host_data[host]:
-                    host_data[host][clock] = {}
-                host_data[host][clock][ds] = value
-                if host not in host_datasources:
-                    host_datasources[host] = []
-                if ds not in host_datasources[host]:
-                    host_datasources[host].append(ds)
-        for host, samples in host_data.items():
-            datasources = ':'.join(host_datasources[host])
-            values = []
-            for clock, dots in sorted(samples.items(), key=lambda x: x[0]):
-                row = [str(clock)]
-                for ds in host_datasources[host]:
-                    row.append(str(dots.get(ds, 'U')))
-                values.append(':'.join(row))
-            CONSUMER_LOG.debug(values)
-            CONSUMER_LOG.debug(datasources)
-            rrdtool.update(self.fname(host), 
-                           '-t', datasources,
-                           *values)
+        for itemid, samples in data.items():
+            if len(samples):
+                host = items_2_hosts[itemid]
+                description = items_2_descriptions[itemid]
+                ds_name = DESCRIPTIONS_TO_DATASOURCE_NAMES[description]
+                self.ensure_rrd_existence(host, ds_name, items_2_delays[itemid])
+                values = ['%s:%s' % x for x in samples]
+                rrdtool.update(self.fname(self.path, host, ds_name), *values)
 
 
 class LastSecond(object):
@@ -210,38 +229,57 @@ class ZabbixConsumer(object):
 
     def __init__(self, c, path):
         self.c, self.path = c, path
+        
 
-    def get_data(self):
+    def get_data(self, hostids):
+        """Read data appeared since last time it was read.
+
+        Data is separated by items.
+        Objects to call after data is sucessfully handled returned as well.
+        They save time of the lookup.
+        """
         # for each table history, history_uint
         #   get last second
-        #   get everything after the last second
-        #   update last known second
-        data = []
-        second_savers = []
-        for t in ('history', 'history_uint'):
-            x = LastSecond(self.path, t)
+        #   for every itemid designated by descriptions
+        #     get everything after the last second
+        #   return collected data, objects to commit last seconds and delays
+        data = {}
+        second_savers = {}
+        items_2_delays = {}
+        descriptions = DESCRIPTIONS_TO_DATASOURCE_NAMES.keys()
+        self.c.execute('SELECT itemid, value_type, delay '
+                       'FROM items '
+                       'WHERE hostid IN (%s) AND description IN (%s)' % (
+                ','.join(map(str, hostids)),
+                ','.join(['"%s"' % _mysql.escape_string(x) for x in descriptions])))
+        for itemid, value_type, delay in self.c.fetchall():
+            items_2_delays[itemid] = delay
+            table = ITEM_VALUE_TYPE_2_TABLE_NAME[value_type]
+            if itemid not in second_savers:
+                second_savers[itemid] = LastSecond(self.path, itemid)
+            last_sec = second_savers[itemid]
             #FIXME - check clock field has index in db
-            self.c.execute(
-                'SELECT itemid, clock, value FROM %s WHERE clock > %%s ORDER BY clock' % t, 
-                (x.second,))
-            tmp = self.c.fetchall()
-            data.extend(tmp)
-            if len(tmp):
-                x.second = data[-1][1]
-            second_savers.append(x)
-        return data, second_savers
+            self.c.execute('SELECT itemid, clock, value '
+                           'FROM %s WHERE clock > %%s AND itemid = %%s '
+                           'ORDER BY clock' % table,
+                           (last_sec.second, itemid))
+            data[itemid] = [x[1:] for x in self.c.fetchall()]
+            if len(data[itemid]):
+                last_sec.second = data[itemid][-1][0]
+        return data, second_savers.values(), items_2_delays
 
     def get_hosts(self):
-        # Sozinov says templates have status 3
-        self.c.execute('SELECT host FROM hosts WHERE status <> 3')
-        hosts = [x[0] for x in self.c.fetchall()]
+        self.c.execute('SELECT hostid, host FROM hosts WHERE status <> 3')
+        data = self.c.fetchall()
+        hostids = [x[0] for x in data]
+        hosts = [x[1] for x in data]
         items_2_hosts = {}
         items_2_descriptions = {}
         self.c.execute('SELECT itemid, host, description FROM items JOIN hosts ON (items.hostid = hosts.hostid)')
         for itemid, host, description in self.c.fetchall():
             items_2_hosts[itemid] = host
             items_2_descriptions[itemid] = description
-        return hosts, items_2_hosts, items_2_descriptions
+        return hostids, items_2_hosts, items_2_descriptions
 
 
 class Locker(type):
@@ -259,7 +297,6 @@ class ZabbixRRDFeeder(object):
         self.path = os.path.abspath(app.config['ZABBIX_PROXY_TMP'])
         self.db_config = app.config['ZABBIX_PROXY_DB']
         thread.start_new_thread(self.consume, ())
-        #self.consume()
         CONSUMER_LOG.info('Consumer started.')
 
 
@@ -293,16 +330,15 @@ class ZabbixRRDFeeder(object):
                             z = ZabbixConsumer(cursor, self.path)
                             r = RRDKeeper(self.path)
                             # get hosts and items
-                            hosts, items_2_hosts, items_2_descriptions = z.get_hosts()
-                            # init missing RRD files
-                            r.ensure_rrd_existence(hosts)
+                            hostids, items_2_hosts, items_2_descriptions = z.get_hosts()
                             # get historic data 
-                            data, second_savers = z.get_data()
+                            data, second_savers, items_2_delays = z.get_data(hostids)
                             # save data in rrd
-                            r.update(data, items_2_hosts, items_2_descriptions)
+                            r.update(data, items_2_hosts, 
+                                     items_2_descriptions, items_2_delays)
                             # commit last known seconds after rrdtool saved new data
                             [x.commit() for x in second_savers]
-
+                            
                         except Exception, e:
                             CONSUMER_LOG.exception(
                                 'Error during consumerism: %s', 
@@ -325,18 +361,6 @@ def versions():
         })
 
 
-PERIODS = ['6h', '1d', '1w', '1m', '1y']
-PARAMETERS = [
-    'avg1', 
-    'avg5',
-    'avg15', 
-    'freemem', 
-    'usedmem',
-    'freeswap',
-    'freespace',
-    'iowait'
-]
-
 @app.route('/v<version>/')
 def discover(version):
     if version == '0':
@@ -355,15 +379,20 @@ def discover(version):
     flask.abort(404)
 
 
+def _hosts(version):
+    if version == '0':
+        path = os.path.abspath(flask.current_app.config['ZABBIX_PROXY_TMP'])
+        listing = [x for x in os.listdir(path) if x.endswith('.rrd')]
+        hosts = ['.'.join(x.split('.')[:-2]) for x in listing]
+        unique = list(set(hosts))
+        return unique
+    raise RuntimeError, 'Unknown version'
+
+
 @app.route('/v<version>/hosts/')
 def hosts(version):
-    # TODO: use IPs as names for rrd files, list dir and return here
     if version == '0':
-        return flask.json.dumps([
-                x.replace('.rrd', '') for x in os.listdir(
-                    os.path.abspath(
-                        flask.current_app.config['ZABBIX_PROXY_TMP'])
-                    ) if x.endswith('.rrd')])
+        return flask.json.dumps(_hosts(version))
     flask.abort(404)
 
 
@@ -384,6 +413,10 @@ def parameters(version):
 @app.route('/v<version>/<host>/<period>/')
 def data(version, host, period):
     if version == '0':
+        if host not in _hosts(version):
+            flask.abort(404)
+        if period not in PERIODS:
+            flask.abort(404)
         parameters = flask.request.args.get('parameters', None)
         if parameters is not None:
             parameters = parameters.split(',')
@@ -392,7 +425,8 @@ def data(version, host, period):
                     flask.abort(404)
         else:
             parameters = PARAMETERS
-        if period not in PERIODS:
+        data_format = flask.request.args.get('format', 'png')
+        if data_format not in ['png']:
             flask.abort(404)
         RESOLUTIONS = {
             '6h': 6 * 60 * 60 / RRDKeeper.POINTS_PER_GRAPH,
@@ -401,25 +435,30 @@ def data(version, host, period):
             '1m': 30 * 24 * 60 * 60 / RRDKeeper.POINTS_PER_GRAPH, 
             '1y': 365 * 24 * 60 * 60 / RRDKeeper.POINTS_PER_GRAPH
             }
-        fname = RRDKeeper._fname(os.path.abspath(
-                flask.current_app.config['ZABBIX_PROXY_TMP']), host)
-        if not os.path.isfile(fname):
-            flask.abort(404)
-        args = map(str,
-                   [fname,
-                    'AVERAGE',
-                    '-r', '%s' % str(RESOLUTIONS[period]),
-                    '-s', 'end-%s' % period,
-                    '-e', 'now'])
-        data = rrdtool.fetch(*args)
-        indexes = [data[1].index(x) for x in parameters]
-        result = [
-            range(data[0][0], data[0][1]+1, data[0][2]),
-            dict(
-                [
-                    (
-                        v, 
-                        [x[k] for x in data[2]]) for k, v in enumerate(data[1]) if v in parameters]
-)]
-        return flask.json.dumps(result)
+        if data_format == 'png':
+            width = flask.request.args.get('width', 400)
+            height = flask.request.args.get('height', 400)
+            img_file = tempfile.NamedTemporaryFile(mode='rb', dir='/tmp')
+            args = [img_file.name, 
+                    '--start', 'end-%s' % period, 
+                    '--step', RESOLUTIONS[period], 
+                    '-h', height, 
+                    '-w', width]
+            if 'title' in flask.request.args:
+                args.extend(['--title', flask.request.args['title']])
+            for i, ds_name in enumerate(parameters):
+                fname = RRDKeeper.fname(
+                    os.path.abspath(
+                        flask.current_app.config['ZABBIX_PROXY_TMP']),
+                    host,
+                    ds_name)
+                args.extend([
+                        'DEF:%s=%s:%s:AVERAGE' % (ds_name, fname, ds_name),
+                        'LINE1:%s#%s:"%s"' % (ds_name, COLORS[i], ds_name)])
+            args = map(str, args)
+            rrdtool.graph(*args)
+            response = flask.make_response(img_file.read())
+            img_file.close()
+            response.headers['Content-Type'] = 'image/png'
+            return response
     flask.abort(404)

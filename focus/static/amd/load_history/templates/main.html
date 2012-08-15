@@ -18,20 +18,25 @@
     </ul>
   </div>
 </div>
-<div class="row">
-  <div class="span4">
-    <div id="chart-cpu" style="width: 320px; height: 240px; border: 1px silver solid"></div>
-  </div>
-  <div class="span4">
-    <div id="chart-memory" style="width: 320px; height: 240px; border: 1px silver solid"></div>
+<div class="row" style="margin-bottom: 20px;">
+  <div class="span10">
+    <img width="780" height="240" src="<%= cpu_url %>">
   </div>
 </div>
-<div class="row" style="margin-top: 15px;">
-  <div class="span4">
-    <div id="chart-disk" style="width: 320px; height: 240px; border: 1px silver solid"></div>
-  </div>
-  <div class="span4">
-    <div id="chart-swap" style="width: 320px; height: 240px; border: 1px silver solid"></div>
+<div class="row" style="margin-bottom: 20px;">
+  <div class="span10">
+    <img width="780" height="240" src="<%= memory_url %>">
   </div>
 </div>
+<div class="row" style="margin-bottom: 20px;">
+  <div class="span10">
+    <img width="780" height="240" src="<%= disk_url %>">
+  </div>
+</div>
+<div class="row" style="margin-bottom: 20px;">
+  <div class="span10">
+    <img width="780" height="240" src="<%= swap_url %>">
+  </div>
+</div>
+
 
