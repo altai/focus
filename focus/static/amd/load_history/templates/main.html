@@ -9,7 +9,7 @@
     </select>
   </div>
   <div class="span4">
-    <ul class="nav nav-pills">
+    <ul class="nav nav-pills period_menu">
       <% _.each(periods, function(i){ %>
       <li <% if (period == i){ %>class="active"<% } %>>
         <a href="#" class="foo" rel="<%= i %>"><%= i %></a>
@@ -20,22 +20,22 @@
 </div>
 <div class="row" style="margin-bottom: 20px;">
   <div class="span10">
-    <img width="780" height="240" src="<%= cpu_url %>">
+    <img width="780" height="240" src="<%= cpu_url %>" class="graph cpu_graph">
   </div>
 </div>
 <div class="row" style="margin-bottom: 20px;">
   <div class="span10">
-    <img width="780" height="240" src="<%= memory_url %>">
+    <img width="780" height="240" src="<%= memory_url %>" class="graph memory_graph">
   </div>
 </div>
 <div class="row" style="margin-bottom: 20px;">
   <div class="span10">
-    <img width="780" height="240" src="<%= disk_url %>">
+    <img width="780" height="240" src="<%= disk_url %>" class="graph disk_graph">
   </div>
 </div>
 <div class="row" style="margin-bottom: 20px;">
   <div class="span10">
-    <img width="780" height="240" src="<%= swap_url %>">
+    <img width="780" height="240" src="<%= swap_url %>" class="graph swap_graph">
   </div>
 </div>
 
