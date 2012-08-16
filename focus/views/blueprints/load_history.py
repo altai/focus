@@ -82,12 +82,13 @@ def proxy(bypass):
         content = fp.read()
         url_root = str(
             flask.request.url.split('proxy/%s' % bypass)[0] + 'proxy/')
-        try:
+        if 'json' in fp.info().getheader('Content-Type'):
             screened = content.replace(baseurl, url_root)
-        except UnicodeDecodeError:
-            pass
-        flask.current_app.logger.debug(
-            'Response from zabbix proxy "%s", screened "%s"' % (content, screened))
-        response = flask.make_response(screened)
+            flask.current_app.logger.debug(
+                'Response from zabbix proxy "%s", screened "%s"' % (
+                    content, screened))
+            response = flask.make_response(screened)
+        else:
+            response = flask.make_response(content)        
         response.headers['Content-Type'] = fp.info().getheader('Content-Type')
         return response
