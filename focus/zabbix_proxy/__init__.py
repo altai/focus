@@ -356,17 +356,15 @@ def url(*args, **kwargs):
 
 @app.route('/')
 def versions():
-    return flask.json.dumps({
-        'versions': [url('discover', version='0')]
-        })
+    return flask.jsonify(versions=[url('discover', version='0')])
 
 
 @app.route('/v<version>/')
 def discover(version):
     if version == '0':
-        return flask.json.dumps({
-            'version': version,
-            'endpoints': {
+        return flask.jsonify(
+            version=version,
+            endpoints={
                 'hosts': url('hosts', version=version),
                 'periods': url('periods', version=version),
                 'parameters': url('parameters', version=version),
@@ -375,7 +373,7 @@ def discover(version):
                             host='_host_',
                             period='_period_')
                 }
-            })
+            )
     flask.abort(404)
 
 
@@ -392,21 +390,21 @@ def _hosts(version):
 @app.route('/v<version>/hosts/')
 def hosts(version):
     if version == '0':
-        return flask.json.dumps(_hosts(version))
+        return flask.jsonify(hosts=_hosts(version))
     flask.abort(404)
 
 
 @app.route('/v<version>/periods/') 
 def periods(version):
     if version == '0':
-        return flask.json.dumps(PERIODS)
+        return flask.jsonify(periods=PERIODS)
     flask.abort(404)
 
 
 @app.route('/v<version>/parameters/')
 def parameters(version):
     if version == '0':
-        return flask.json.dumps(PARAMETERS)
+        return flask.jsonify(parameters=PARAMETERS)
     flask.abort(404)
 
 

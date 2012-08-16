@@ -80,9 +80,8 @@ def proxy(bypass):
     flask.current_app.logger.debug('Going to proxy to zabbix proxy "%s"' % url)
     with contextlib.closing(urllib.urlopen(url)) as fp:
         content = fp.read()
-        url_root = str(
-            flask.request.url.split('proxy/%s' % bypass)[0] + 'proxy/')
         if 'json' in fp.info().getheader('Content-Type'):
+            url_root = flask.request.path.replace(bypass, '')
             screened = content.replace(baseurl, url_root)
             flask.current_app.logger.debug(
                 'Response from zabbix proxy "%s", screened "%s"' % (

@@ -15,7 +15,7 @@ curl(curl_cfg, [
     $.ajax(endpoints.hosts, {
       async: false
       , success: function(data){
-        hosts = data
+        hosts = data.hosts
       }
       , dataType: "json"})
     
@@ -23,7 +23,7 @@ curl(curl_cfg, [
     $.ajax(endpoints.periods, {
       async: false
       , success: function(data){
-        periods = data
+        periods = data.periods
       }
       , dataType: "json"})
     
@@ -31,7 +31,7 @@ curl(curl_cfg, [
     $.ajax(endpoints.parameters, {
       async: false
       , success: function(data){
-        parameters = data
+        parameters = data.parameters
       }
       , dataType: "json"})
     new MainView({
