@@ -325,6 +325,7 @@ class ZabbixRRDFeeder(object):
             self.db = MySQLdb.connect(**self.db_config)
         except Exception, e:
             CONSUMER_LOG.exception('Failed to connect to Zabbix db: %s', str(e))
+            time.sleep(10)
 
     def consume(self):
         with open(os.path.join(self.path, 'consume.lock'), 'w') as fd:
