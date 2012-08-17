@@ -99,9 +99,23 @@ try:
 except IOError:
     pass
 
-
+API_LOG = logging.getLogger("zabbix_proxy_api.service")
 CONSUMER_LOG = logging.getLogger("zabbix_proxy_api.consumer")
-
+API_LOG.propagate = False
+CONSUMER_LOG.propagate = False
+API_LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
+CONSUMER_LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
+if app.config.get('ZABBIX_LOG_FILE', '') != '':
+    rotating_file_handler = logging.handlers.RotatingFileHandler(
+        app.config['ZABBIX_LOG_FILE'],
+        maxBytes=app.config['ZABBIX_LOG_MAX_BYTES'],
+        backupCount=app.config['ZABBIX_LOG_BACKUP_COUNT'])
+    rotating_file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s '
+            '[in %(pathname)s:%(lineno)d]'
+            ))
+    API_LOG.addHandler(rotating_file_handler)
+    CONSUMER_LOG.addHandler(rotating_file_handler)
 
 class RRDKeeper(object):
     # smallest common divider of item delays was choosen as step interval for DB

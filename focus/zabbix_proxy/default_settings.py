@@ -26,3 +26,6 @@ ZABBIX_PROXY_DB = {
 }
 
 ZABBIX_PROXY_TMP = '/var/lib/focus'
+ZABBIX_LOG_FILE = '/var/log/focus/zabbix_proxy.log'
+ZABBIX_LOG_MAX_BYTES = 1024 * 1024 * 100
+ZABBIX_LOG_BACKUP_COUNT = 12

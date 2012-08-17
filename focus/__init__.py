@@ -47,7 +47,6 @@ try:
 except IOError:
     pass
 
-logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG if app.debug else logging.WARNING)
 if app.config.get('LOG_FILE', '') != '':
