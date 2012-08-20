@@ -1,7 +1,7 @@
 <fieldset>
   <div class="control-group upload-type">
     <label class="control-label">
-      Name
+      Upload type
     </label>
     <div class="controls">
       <label class="radio inline">
@@ -23,7 +23,7 @@
     </div>
   </div>
   <% if (selected_upload_type == 'solid'){ %>
-	  <div class="control-group uploader" data-error-key="uploader">
+	  <div class="control-group uploader solid" data-error-key="uploader">
 	    <label class="control-label">File to upload</label>
 	    <div class="controls">
 	      <div id="container" style="padding-top: 5px;">
@@ -53,7 +53,7 @@
 	  </div>
   <% } %>
   <% if (selected_upload_type == 'amazon_like'){ %>
-    <div class="control-group uploader" data-error-key="kernel">
+    <div class="control-group uploader kernel" data-error-key="kernel">
       <label class="control-label">Kernel</label>
       <div class="controls">
         <div id="kernel_container" style="padding-top: 5px;">
@@ -69,7 +69,7 @@
         </div>
       </div>
     </div>
-    <div class="control-group uploader" data-error-key="initrd">
+    <div class="control-group uploader initrd" data-error-key="initrd">
       <label class="control-label">Initrd</label>
       <div class="controls">
         <div id="initrd_container" style="padding-top: 5px;">
@@ -85,7 +85,7 @@
         </div>
       </div>
     </div>
-    <div class="control-group uploader" data-error-key="filesystem">
+    <div class="control-group uploader filesystem" data-error-key="filesystem">
       <label class="control-label">Filesystem</label>
       <div class="controls">
         <div id="filesystem_container" style="padding-top: 5px;">
@@ -104,4 +104,3 @@
   <button class="btn btn-primary tc-add" type="submit" disabled>Add</button>
   <button class="btn tc-cancel" type="reset">Cancel</button>
 </div>
-<input type="hidden" name="uploaded_filename" value="">

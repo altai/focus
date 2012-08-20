@@ -60,7 +60,7 @@ define([
                   }*/
                 } else {
                   clearInterval(window.progressIntervalID);
-                  window.location.reload(true);
+                  window.location = window.location.pathname.replace('new/', '');
                 }
               }
             );
@@ -127,12 +127,9 @@ define([
     api_progress_bar: _.template(api_progress_bar_template),
     render_with_respect_to_upload: function(){
       var name = this.$('#id_name').val();
-      if (window.is_file_uploaded){
-        this.clean_error_messages();
-      } else {
-        this.render();
-        this.$('#id_name').val(name);
-      }
+      this.clean_error_messages();
+      this.render();
+      this.$('#id_name').val(name);
     },
     render: function(){
       context = {
@@ -163,6 +160,7 @@ define([
           browse_button : 'id_uploaded_file_button',
           container : 'container',
         });
+
         this.uploader.bind('Init', function(up, params) {
           //self.$('#filelist').html(self.progress_bar());
         });
@@ -187,6 +185,7 @@ define([
           });
           up.refresh(); // Reposition Flash/Silverlight
           up.start()
+          $('#autoupload_container').removeClass('hide');
         });
 
         this.uploader.bind('UploadProgress', function(up, file) {
@@ -216,7 +215,6 @@ define([
           self.$('.form-actions button[type=submit]').removeAttr('disabled');
         	$('#id_uploaded_file').val(file.name);
 	        $('#filelist').hide();
-          $('#autoupload_container').removeClass('hide');
 	        if ($('#autoupload').is(':checked')){
 	          $('button[type=submit]').click();
 	        }
@@ -261,29 +259,6 @@ define([
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start();
-          });
-
-          this.kernel_uploader.init();
-          this.kernel_uploader.bind('FilesAdded', function(up, files) {
-            /*
-              Remove previous content of the queue as we have
-              1 item uploaded at the time.
-            */
-            window.is_kernel_uploaded = false;
-            self.$('#kernel_container .form-actions button[type=submit]').attr('disabled', 'disabled');
-            this.splice(0, this.files.length - 1);
-            self.$('#kernel_container .uploader').removeClass('alert-error');
-            self.$('#kernel_container .uploader p.help-block').remove();
-            $.each(files, function(i, file) {
-              self.$('#kernel_container #filelist').html(self.progress_bar({
-                file_id: file.id,
-                file_name: file.name,
-                file_size: plupload.formatSize(file.size),
-                file_percent: file.percent
-              }))
-            });
-            up.refresh(); // Reposition Flash/Silverlight
-            up.start()
           });
 
           this.kernel_uploader.bind('UploadProgress', function(up, file) {
@@ -430,6 +405,7 @@ define([
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start()
+            $('#autoupload_container').removeClass('hide');
           });
 
           this.filesystem_uploader.bind('UploadProgress', function(up, file) {
@@ -452,6 +428,7 @@ define([
           });
           
           this.filesystem_uploader.bind('FileUploaded', function(up, file, response) {
+            $('#autoupload_container').addClass('hide');
             $('#filesystem_container #' + file.id + " b").html("100%");
             $('#filesystem_container #' + file.id).append('<div id="uploaded_filename" class=" hide">' + response.response + '</div>');
             window.is_filesystem_uploaded = true;
@@ -460,7 +437,6 @@ define([
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
             $('#filesystem_container #filelist').hide();
-            $('#autoupload_container').removeClass('hide');
             $('#filesystem_container #filesystem_uploaded_file').val(file.name);
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
