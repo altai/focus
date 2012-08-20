@@ -51,7 +51,10 @@ After installing RPM:
   - timeout: leave as is, we require big number of seconds here
   - accesslog: Gunicorn access log
   - errorlog: Gunicorn error log
-  
+  - logger_class: Python class for Gunicorn logger. Leave it be 'focus.glogging.Logger' because it brings log rotation. Default (omitting this parameter in config) is simple file log.
+  - LOG_MAX_BYTES: maxBytes argument for RotatingFileHandler. Used when logger_class is 'focus.glogging.Logger'.
+  - LOG_BACKUP_COUNT: backupCount argument for RotatingFileHandler. Used when logger_class is 'focus.glogging.Logger'.
+
 8) Start service focus (CentOS)
 
 
