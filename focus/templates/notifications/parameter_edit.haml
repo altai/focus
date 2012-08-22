@@ -1,0 +1,17 @@
+-extends "global_admin_base.haml"
+-block content:
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
+  %form.form-horizontal.well method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()  
+    %fieldset
+      =render_h_field(form.addressees)
+      =render_h_field(form.bound, is_required=True)
+      =render_h_field(form.hysteresis, is_required=True)
+      =render_h_field(form.threshold, is_required=True)
+      =render_h_field(form.is_notified)
+      %div.form-actions
+        %button.btn.btn-primary.tc-add type="submit"
+          Save
+        %a.btn.tc-cancel href="{{ url_for('.index')}}"
+          Cancel

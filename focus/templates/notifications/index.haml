@@ -1,0 +1,54 @@
+-extends "global_admin_base.haml"
+-block content:
+  %div.container align="right"
+    %a.btn.btn-primary href="{{ url_for('.new') }}"
+      Add
+  %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
+    %thead
+      %tr
+        %th
+          Active
+        %th
+          Name
+        %th
+          Notified by
+        %th
+          Addressees
+        %th
+          Bound
+        %th
+          Hysteresis
+        %th
+          Threshold
+        %th
+          Actions
+    %tbody
+      -from "_modals.haml" import show_modal with context
+      -for object in objects
+        %tr
+          %td
+            {% if object['is_notified'] %} + {% endif %}
+          %td
+            %a href="{{ url_for('.show', key_=object['key_']) }}"
+              {{ object['name'] }}
+          %td
+            %a href="{{ url_for('.parameter_edit', object_id=object['id']) }}"
+              {{ object['is_email'] and "E-mail" or "SMS" }}
+          %td
+            {{object['addressees']}}
+          %td
+            {{object['bound']}}
+          %td
+            {{object['hysteresis']}}
+          %td
+            {{object['threshold']}}
+          %td
+            {{ show_modal(
+                   object, msg='Sure to delete "%s"?' % object['name'],
+                   action='delete', extra_fields=[delete_form.hidden_tag()],
+                   add_next=False,
+                   form_action=url_for('.delete', key_=object['key_']))
+            }}
+
+
+  -include "pagination.haml"

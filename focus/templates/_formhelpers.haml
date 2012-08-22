@@ -41,4 +41,5 @@
       %p.help-block
         =field.description
          
-  
+-macro not_none(value, default)
+  {% if value == None %} {{default}} {% else %} {{value}} {% endif %}

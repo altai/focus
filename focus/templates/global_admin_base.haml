@@ -21,6 +21,8 @@
           %a href="{{ url_for('projects.index') }}" -> Projects
         %li{% if request.blueprint == 'networks' %} class="active"{% endif %}
           %a href="{{ url_for('networks.index') }}" -> Networks
+        %li{% if request.blueprint == 'notifications' %} class="active"{% endif %}
+          %a href="{{ url_for('notifications.index') }}" -> Notifications
         %li{% if request.blueprint == 'invitation_domains' %} class="active"{% endif %}
           %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
         %li{% if request.blueprint == 'load_history' %} class="active"{% endif %}
