@@ -121,10 +121,9 @@ def get_bp(blueprint_name):
         return flask.redirect(flask.url_for(
                 '.show', security_group_id=security_group_id))
 
-    @bp.route('<security_group_id>/add_rule', methods=['POST'])
+    @bp.route('<security_group_id>/add_rule', methods=['GET', 'POST'])
     def add_rule(security_group_id):
         form = forms.SecurityGroupRuleAdd(security_group_id=security_group_id)
-        all_ok = True
         if form.validate_on_submit():
             try:
                 group_id = int(form.group_id.data)
@@ -143,19 +142,18 @@ def get_bp(blueprint_name):
                         group_id))
             except exceptions.HttpException as ex:
                 flask.flash(ex.message, 'error')
-                all_ok = False
             else:
                 flask.flash('Security group rule successfully added',
                             'success')
-        else:
-            flask.flash('Invalid form', 'error')
-            all_ok = False
-        if all_ok:
-            return flask.redirect(flask.url_for(
-                '.show', security_group_id=security_group_id))
-        else:
-            return ('%s/show.haml' % blueprint_name,
-                    show(security_group_id, form))
+                return flask.redirect(flask.url_for(
+                        '.show', security_group_id=security_group_id))
+
+        return {
+            'form': form,
+            'security_group_id': security_group_id,
+            'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
+            'subtitle': 'Add new rule'
+        }
 
     return bp
 

@@ -1,0 +1,17 @@
+-extends "projects_base.haml"
+-block content:
+    -from "_formhelpers.haml" import render_form_errors, render_h_field
+    %form.form-horizontal.well method="POST" action="{{url_for('.add_rule', security_group_id=security_group_id)}}"
+      =render_form_errors(form.csrf_token)
+      =form.hidden_tag()
+      %fieldset
+        =render_h_field(form.ip_protocol, is_required=True)
+        =render_h_field(form.from_port)
+        =render_h_field(form.to_port)
+        =render_h_field(form.group_id)
+        =render_h_field(form.cidr)
+        %div.form-actions
+          %button.btn.btn-primary.tc-add type="submit"
+            Create
+          %a.btn.tc-cancel href="{{ url_for('.show', security_group_id=security_group_id) }}"
+            Cancel
