@@ -35,6 +35,8 @@ avoid this we store every item data for every host in a separate RRD file.
 rrdtool graph then consolidates data to build graphics.
 
 """
+
+import datetime
 import fcntl
 import logging
 import os
@@ -184,15 +186,12 @@ class RRDKeeper(object):
                 '--start', str(START),
                 '--step', str(step),
                 'DS:%s:GAUGE:%s:U:U' % (ds_name, str(step * 2)))
-            #CONSUMER_LOG.debug(args)
-            #CONSUMER_LOG.debug(rras)
             rrdtool.create(
                 db_filename,
                 '--start', str(START),
                 '--step', str(step),
                 'DS:%s:GAUGE:%s:U:U' % (ds_name, str(step * 2)),
                 *rras)
-            #CONSUMER_LOG.debug('ok')
 
     def update(self, data, items_2_hosts, items_2_descriptions, items_2_delays):
         """Update RRD files with the data.
@@ -386,7 +385,8 @@ def discover(version):
                 'data': '%s?parameters=param1,param2' % url('data', 
                             version=version, 
                             host='_host_',
-                            period='_period_')
+                            period='_period_'),
+                'hosts_statuses': url('hosts_statuses', version=version) 
                 }
             )
     flask.abort(404)
@@ -475,3 +475,46 @@ def data(version, host, period):
             response.headers['Content-Type'] = 'image/png'
             return response
     flask.abort(404)
+
+@app.route('/v<version>/hosts_statuses/')
+def hosts_statuses(version):
+    """Return list of hosts with statuses.
+
+    Decision on host status here is based on timedelta between last of last second for any host's item and now. If it is bigger then 3 minutes host is off.
+ 
+    Can cause problems on client if some host gets deleted between fetching /hosts/ and /hosts_statuses/. Currently we do not clean old hosts at all and this is not a problem, though it can become it after we start cleaning.
+
+    {"host_statuses: [["n006", 0], ["n007", 1]]}
+    """
+    if version == '0':
+        AVAILABLE_DUE = 3 * 60
+        ON = 0
+        OFF = 1
+
+        hosts = _hosts(version)
+        db = MySQLdb.connect(**app.config['ZABBIX_PROXY_DB'])
+        c = db.cursor()
+        
+        NOW = datetime.datetime.now()
+        result = []
+        for host in hosts:
+            seconds = []
+            c.execute("SELECT hostid FROM hosts WHERE host = %s", (host,))
+            hostid = c.fetchone()[0]
+            c.execute("SELECT itemid FROM items WHERE hostid = %s", (hostid,))
+            items = c.fetchall()
+            for (itemid,) in items:
+                last_second = LastSecond(
+                    flask.current_app.config['ZABBIX_PROXY_TMP'],
+                    itemid)
+                seconds.append(last_second.second)
+            status = OFF
+            if len(seconds):
+                last_datetime = datetime.datetime.utcfromtimestamp(max(seconds))
+                if (last_datetime - NOW).total_seconds() > AVAILABLE_DUE:
+                    status = OFF
+            result.append([host, status])
+        db.close()
+        return flask.jsonify(hosts_statuses=result)
+    flask.abort(404)
+    
