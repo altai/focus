@@ -1,6 +1,6 @@
 -extends "global_admin_base.haml"
 -block content:
-    %table.table
+    %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
       %thead
         %tr
           %th
@@ -12,7 +12,7 @@
           %th
             Links
       %tbody
-        -for host, compute_status, zabbix_status in data:
+        -for host, compute_status, zabbix_status, has_zabbix_data in data:
           %tr
             %td.well -> {{ host }}
             %td
@@ -29,6 +29,7 @@
               -if compute_status == 1:
                 %span.label.label-important -> not responding
             %td
-              %a href="{{ url_for('.show', host=host) }}"
-                show graph
+              -if has_zabbix_data:
+                %a href="{{ url_for('.show', host=host) }}"
+                  show graph
 

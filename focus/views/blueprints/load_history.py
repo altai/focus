@@ -104,7 +104,8 @@ def index():
         data.append((
             host, 
             compute_data.get(host, COMPUTE_OFF), 
-            zabbix_data.get(host, ZABBIX_OFF)))
+            zabbix_data.get(host, ZABBIX_OFF),
+            zabbix_data.has_key(host)))
     return {'data': data}
 
 
