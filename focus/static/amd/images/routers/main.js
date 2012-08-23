@@ -22,8 +22,6 @@ define([
       } else {
         this.navigate('solid', trigger=true)
       }
-      $('input#id_upload_type').removeAttr('checked');
-      $('input#id_upload_type[value='+ upload_type +']').attr('checked', 'checked');
     },
   });
 });

@@ -129,6 +129,8 @@ define([
       var name = this.$('#id_name').val();
       this.clean_error_messages();
       this.render();
+      this.$('input#id_upload_type').removeAttr('checked');
+      this.$('input#id_upload_type[value='+ this.selected_upload_type +']').attr('checked', 'checked');
       this.$('#id_name').val(name);
     },
     render: function(){
