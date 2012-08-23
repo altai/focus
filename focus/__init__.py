@@ -103,6 +103,7 @@ from focus.views.blueprints import users_management
 from focus.views.blueprints import tariffs
 from focus.views.blueprints import projects
 from focus.views.blueprints import networks
+from focus.views.blueprints import notifications
 from focus.views.blueprints import invitation_domains
 from focus.views.blueprints import invitations
 from focus.views.blueprints import load_history
@@ -121,6 +122,7 @@ app.register_blueprint(users_management.bp, url_prefix='/global/users/')
 app.register_blueprint(tariffs.bp, url_prefix='/global/tariffs/')
 app.register_blueprint(projects.bp, url_prefix='/global/projects/')
 app.register_blueprint(networks.bp, url_prefix='/global/networks/')
+app.register_blueprint(notifications.bp, url_prefix='/global/notifications/')
 app.register_blueprint(invitation_domains.bp, url_prefix='/global/invites/')
 app.register_blueprint(invitations.bp, url_prefix='/invite/')
 app.register_blueprint(load_history.bp, url_prefix='/global/load_history/')

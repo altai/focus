@@ -34,6 +34,7 @@ from openstackclient_base.exceptions import NotFound
 
 
 neo4j_client = HttpClient()
+notifications_client = HttpClient()
 
 
 def select_keys(d, keys, strict_order=True):
@@ -53,6 +54,29 @@ def create_hashed_password(password):
     m = hashlib.md5()
     m.update(password.encode('utf-8'))
     return "{MD5}%s" % base64.standard_b64encode(m.digest())
+
+
+def notifications_api_call(path, method='GET', **kwargs):
+    try:
+        api_url = flask.current_app.config['NOTIFICATIONS_API_URL']
+    except KeyError:
+        flask.current_app.logger.error(
+            'Not set notifications API URL (NOTIFICATIONS_API_URL).')
+        raise
+    try:
+        ret = notifications_client.request(
+            '%s%s' % (api_url, path),
+            method,
+            **kwargs)[1]
+    except socket.error, e:
+        e.public_message = ('Can\'t connect to notifications daemon "%s".' %
+                            api_url)
+        flask.current_app.logger.error(e.public_message)
+        raise e
+    try:
+        return ret["values"]
+    except:
+        return ret
 
 
 def neo4j_api_call(path, params={}, method='GET'):
