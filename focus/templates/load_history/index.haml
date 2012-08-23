@@ -24,9 +24,9 @@
             %td
               -if compute_status == 0:
                 %span.label.label-success -> on
-              -if compute_status == 2:
-                %span.label.label-important -> off    
               -if compute_status == 1:
+                %span.label.label-important -> off    
+              -if compute_status == 2:
                 %span.label.label-important -> not responding
             %td
               -if has_zabbix_data:

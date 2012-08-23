@@ -217,7 +217,10 @@ class LastSecond(object):
     def get_second(self):
         try:
             with open(self.fname, 'r') as f:
-                self._second = int(f.read())
+                try:
+                    self._second = int(f.read())
+                except ValueError, e:
+                    pass
         except IOError, e:
             pass
         return self._second
@@ -230,10 +233,9 @@ class LastSecond(object):
             with open(self.fname, 'w') as f:
                 f.write(str(self._second))
         except OSError, e:
-            CUSTOMER_LOG.exception(
+            CONSUMER_LOG.exception(
                 'Can\'t open last second file %s: %s' % (
                     self.fname, str(e)))
-
     second = property(get_second, set_second)
 
 
@@ -352,7 +354,6 @@ class ZabbixRRDFeeder(object):
                                      items_2_descriptions, items_2_delays)
                             # commit last known seconds after rrdtool saved new data
                             [x.commit() for x in second_savers]
-                            
                         except Exception, e:
                             CONSUMER_LOG.exception(
                                 'Error during consumerism: %s', 
@@ -495,7 +496,7 @@ def hosts_statuses(version):
         db = MySQLdb.connect(**app.config['ZABBIX_PROXY_DB'])
         c = db.cursor()
         
-        NOW = datetime.datetime.now()
+        NOW = datetime.datetime.utcnow()
         result = []
         for host in hosts:
             seconds = []
@@ -511,10 +512,9 @@ def hosts_statuses(version):
             status = OFF
             if len(seconds):
                 last_datetime = datetime.datetime.utcfromtimestamp(max(seconds))
-                if (last_datetime - NOW).total_seconds() > AVAILABLE_DUE:
-                    status = OFF
+                if (NOW - last_datetime).total_seconds() < AVAILABLE_DUE:
+                    status = ON
             result.append([host, status])
         db.close()
         return flask.jsonify(hosts_statuses=result)
     flask.abort(404)
-    
