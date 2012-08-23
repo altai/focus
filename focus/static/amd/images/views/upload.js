@@ -177,6 +177,7 @@ define([
           this.splice(0, this.files.length - 1);
           self.$('.uploader').removeClass('alert-error');
           self.$('.uploader p.help-block').remove();
+          self.$('#filelist').removeClass('hide');
           $.each(files, function(i, file) {
             self.$('#filelist').html(self.progress_bar({
               file_id: file.id,
@@ -216,7 +217,7 @@ define([
           window.is_file_uploaded = true;
           self.$('.form-actions button[type=submit]').removeAttr('disabled');
         	$('#id_uploaded_file').val(file.name);
-	        $('#filelist').hide();
+	        $('#filelist').addClass('hide');
 	        if ($('#autoupload').is(':checked')){
 	          $('button[type=submit]').click();
 	        }
@@ -251,6 +252,7 @@ define([
             this.splice(0, this.files.length - 1);
             self.$('#kernel_container .uploader').removeClass('alert-error');
             self.$('#kernel_container .uploader p.help-block').remove();
+            self.$('#kernel_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
               self.$('#kernel_container #filelist').html(self.progress_bar({
                 file_id: file.id,
@@ -289,7 +291,7 @@ define([
             if (window.is_filesystem_uploaded && (window.is_initrd_uploaded || $("#initrd_container option:selected") != 'Upload')){
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
-            $('#kernel_container #filelist').hide();
+            $('#kernel_container #filelist').removeClass('hide');
             $('#kernel_container select').prepend('<option value="'+ file.name +'" selected>'+ file.name +'</option>');
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
@@ -325,6 +327,7 @@ define([
             this.splice(0, this.files.length - 1);
             self.$('#initrd_container .uploader').removeClass('alert-error');
             self.$('#initrd_container .uploader p.help-block').remove();
+            self.$('#initrd_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
               self.$('#initrd_container #filelist').html(self.progress_bar({
                 file_id: file.id,
@@ -363,7 +366,7 @@ define([
             if (window.is_filesystem_uploaded && (window.is_kernel_uploaded || $("#kernel_container option:selected") != 'Upload')){
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
-            $('#initrd_container #filelist').hide();
+            $('#initrd_container #filelist').removeClass('hide');
             $('#initrd_container select').prepend('<option value="'+ file.name +'" selected>'+ file.name +'</option>');
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
@@ -397,6 +400,7 @@ define([
             this.splice(0, this.files.length - 1);
             self.$('#filesystem_container .uploader').removeClass('alert-error');
             self.$('#filesystem_container .uploader p.help-block').remove();
+            self.$('#filesystem_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
               self.$('#filesystem_container #filelist').html(self.progress_bar({
                 file_id: file.id,
@@ -438,7 +442,7 @@ define([
               && (window.is_initrd_uploaded || $("#initrd_container option:selected") != 'Upload')){
               self.$('.form-actions button[type=submit]').removeAttr('disabled');
             }
-            $('#filesystem_container #filelist').hide();
+            $('#filesystem_container #filelist').removeClass('hide');
             $('#filesystem_container #filesystem_uploaded_file').val(file.name);
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
