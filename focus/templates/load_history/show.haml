@@ -1,12 +1,6 @@
 -extends "global_admin_base.haml"
 -block content:
-  %ul.breadcrumb
-    %li
-      %a href="{{ url_for('.index') }}"
-        Hosts list
-      %span.divider
-    %li.active -> {{ host }}
-  %ul.nav.nav-tabs#myTab
+  %ul.nav.nav-tabs
     -for x in periods:
       %li{% if loop.first %} class="active" {% endif %}
         %a href="#{{ x }}" data-toggle="tab" -> {{ x }}
