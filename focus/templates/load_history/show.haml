@@ -1,13 +1,13 @@
 -extends "global_admin_base.haml"
 -block content:
-  %ul.nav.nav-tabs
+  %ul.nav.nav-tabs.period_menu
     -for x in periods:
       %li{% if loop.first %} class="active" {% endif %}
         %a href="#{{ x }}" data-toggle="tab" -> {{ x }}
   %div.tab-content
     -for x in periods:
       %div {% if loop.first %} class="active tab-pane" {% else %} class="tab-pane" {% endif %} id="{{ x }}"
-        %img src="{{ data[x]['cpu_url'] }}"
-        %img src="{{ data[x]['memory_url'] }}"
-        %img src="{{ data[x]['disk_url'] }}"
-        %img src="{{ data[x]['swap_url'] }}"
+        %img.graph src="{{ data[x]['cpu_url'] }}"
+        %img.graph src="{{ data[x]['memory_url'] }}"
+        %img.graph src="{{ data[x]['disk_url'] }}"
+        %img.graph src="{{ data[x]['swap_url'] }}"
