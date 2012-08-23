@@ -1,0 +1,19 @@
+-extends "global_admin_base.haml"
+-block content:
+  %ul.breadcrumb
+    %li
+      %a href="{{ url_for('.index') }}"
+        Hosts list
+      %span.divider
+    %li.active -> {{ host }}
+  %ul.nav.nav-tabs#myTab
+    -for x in periods:
+      %li{% if loop.first %} class="active" {% endif %}
+        %a href="#{{ x }}" data-toggle="tab" -> {{ x }}
+  %div.tab-content
+    -for x in periods:
+      %div {% if loop.first %} class="active tab-pane" {% else %} class="tab-pane" {% endif %} id="{{ x }}"
+        %img src="{{ data[x]['cpu_url'] }}"
+        %img src="{{ data[x]['memory_url'] }}"
+        %img src="{{ data[x]['disk_url'] }}"
+        %img src="{{ data[x]['swap_url'] }}"

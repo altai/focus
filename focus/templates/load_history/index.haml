@@ -1,7 +1,34 @@
 -extends "global_admin_base.haml"
--block amdjs
-  %script
-    | var ZABBIX_API = '{{ api }}';
-  %script src="{{ url_for('static', filename='amd/main_load_history.js') }}"
 -block content:
-  %div.container.main-view align="right"
+    %table.table
+      %thead
+        %tr
+          %th
+            Hostname
+          %th
+            Zabbix Status
+          %th
+            Compute Status
+          %th
+            Links
+      %tbody
+        -for host, compute_status, zabbix_status in data:
+          %tr
+            %td.well -> {{ host }}
+            %td
+              %div{% if zabbix_status %} class="error"{% endif %}
+                -if zabbix_status == 0:
+                  %span.label.label-success -> on
+                -if zabbix_status == 1:
+                  %span.label.label-important -> off    
+            %td
+              -if compute_status == 0:
+                %span.label.label-success -> on
+              -if compute_status == 2:
+                %span.label.label-important -> off    
+              -if compute_status == 1:
+                %span.label.label-important -> not responding
+            %td
+              %a href="{{ url_for('.show', host=host) }}"
+                show graph
+

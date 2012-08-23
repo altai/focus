@@ -14,6 +14,7 @@ After installing RPM:
 
 6) edit /etc/focus/local_settings.py
   - have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
+  - set credentials to Nova MySQL db (NOVA_RO_DATABASE_URI and NOVA_RW_DATABASE_URI)
   - set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
   - set URL to access ODB (NEO4J_API_URL)
   - set Keystone access configuration dictionary (KEYSTONE_CONF):
