@@ -171,7 +171,7 @@ class NewProject(wtf.Form):
         'Network', [wtf.Required()], choices=[],
         description='Network label, CIDR, VLAN respectively')
 
-
+# TODO: contorl networksize >= 4
 class CreateNetwork(wtf.Form):
     cidr = wtf.TextField('CIDR', [wtf.Required()])
     vlan = wtf.IntegerField('VLAN', [wtf.NumberRange(min=1, max=4096, 
@@ -182,6 +182,8 @@ class CreateNetwork(wtf.Form):
             network = netaddr.IPNetwork(field.data)
         except (UnboundLocalError, netaddr.AddrFormatError):
             raise wtf.ValidationError('Unrecognised format of CIDR')
+        if network.size < 4:
+            raise wtf.ValidationError('Network size is lower then 4; use something like 10.1.1.1/30.')
         if network.size > 65536:
             raise wtf.ValidationError('Network size is greater then 65536')
 
