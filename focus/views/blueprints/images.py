@@ -285,7 +285,7 @@ def get_bp(name):
                 flask.flash(e.message, 'error')
             else:
                 flask.flash(
-                    'Image with ID %s was registered.' % img.id,
+                    'Image with name %s registered.' % img.name,
                     'success')
             finally:
                 try:
