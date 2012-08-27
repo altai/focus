@@ -60,13 +60,17 @@ COMPUTE_OFF = 1
 COMPUTE_NOT_RESPONDING = 2
 
 
+def total_seconds(td):
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+
 def compute_statuses((host, updated_at, created_at, disabled)):
     AVAILABLE_DUE = 60 # seconds compute service is alive since last check
     # NOTE(apugachev) we'd survive doing it in this cycle
     NOW = datetime.datetime.now()
     if disabled:
         status = COMPUTE_OFF
-    elif ((updated_at or created_at) - NOW).total_seconds() > AVAILABLE_DUE:
+    elif total_seconds(((updated_at or created_at) - NOW) > AVAILABLE_DUE:
         status = COMPUTE_NOT_RESPONDING
     else:
         status = COMPUTE_ON

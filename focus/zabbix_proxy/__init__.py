@@ -477,6 +477,11 @@ def data(version, host, period):
             return response
     flask.abort(404)
 
+
+def total_seconds(td):
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+
 @app.route('/v<version>/hosts_statuses/')
 def hosts_statuses(version):
     """Return list of hosts with statuses.
@@ -512,7 +517,7 @@ def hosts_statuses(version):
             status = OFF
             if len(seconds):
                 last_datetime = datetime.datetime.utcfromtimestamp(max(seconds))
-                if (NOW - last_datetime).total_seconds() < AVAILABLE_DUE:
+                if total_seconds(NOW - last_datetime) < AVAILABLE_DUE:
                     status = ON
             result.append([host, status])
         db.close()
