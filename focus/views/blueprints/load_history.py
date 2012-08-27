@@ -70,7 +70,7 @@ def compute_statuses((host, updated_at, created_at, disabled)):
     NOW = datetime.datetime.now()
     if disabled:
         status = COMPUTE_OFF
-    elif total_seconds(((updated_at or created_at) - NOW) > AVAILABLE_DUE:
+    elif total_seconds((updated_at or created_at) - NOW) > AVAILABLE_DUE:
         status = COMPUTE_NOT_RESPONDING
     else:
         status = COMPUTE_ON
