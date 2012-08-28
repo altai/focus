@@ -5,7 +5,8 @@ define(
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-collapse.js!order', 
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-dropdown.js!order',
   'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-modal.js!order',
-  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-tab.js!order',], function(){
+  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-tab.js!order',
+  'js!vendors/twitter-bootstrap-aaabe2a/js/bootstrap-alert.js!order'], function(){
   var g_data = {}
   g_data[Date.now()] = ''
   $.ajaxSetup(
