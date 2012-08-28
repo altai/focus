@@ -1,7 +1,8 @@
 syntax: glob
 
+Focus.egg-info
 *.py[co]
-focus/local_settings.py
+focus/local_settings*
 test_settings.py
 pip-log.txt
 Ignored
