@@ -41,7 +41,8 @@ After installing RPM:
     * example:{
        'host': 'localhost',
        'user': 'root',
-       'db': 'zabbix'
+       'db': 'zabbix',
+       'passwd': 'foo'
        }
   - set path to directory writable by the web-aplication for zabbix proxy API service to store it's files (ZABBIX_PROXY_TMP)
   - set path to log (file ZABBIX_LOG_FILE). Default is /var/log/focus/zabbix_proxy.log
