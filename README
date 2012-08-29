@@ -13,7 +13,9 @@ After installing RPM:
   - Nginx requires restart or reload after this operation
 
 6) edit /etc/focus/local_settings.py
-  - have running Memcached server (MEMCACHED_HOST default to '127.0.0.1:11211')
+  - have running Memcached server
+    * MEMCACHED_HOST default to '127.0.0.1:11211'
+    * MEMCACHED_TIMEOUT - number of seconds for Memcached to store a value, 7200 by default (2 hours)
   - set credentials to Nova MySQL db (NOVA_RO_DATABASE_URI and NOVA_RW_DATABASE_URI)
   - set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
   - set URL to access ODB (NEO4J_API_URL)

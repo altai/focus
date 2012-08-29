@@ -56,6 +56,7 @@ KEYSTONE_CONF = {
 SYSTENANT_NAME = 'systenant'
 
 MEMCACHED_HOST = '127.0.0.1:11211'
+MEMCACHED_TIMEOUT = 2 * 60 * 60
 KEYSTONECLIENT_DEBUG = False
 ADMINS = []
 LOG_FILE = '/var/log/focus/focus-tor.log'
@@ -63,3 +64,4 @@ LOG_MAX_BYTES = 1024 * 1024 * 100
 LOG_BACKUP_COUNT = 12
 DEV_LOG_TO_FILE = False
 ZABBIX_PROXY_BASEURL = 'http://0.0.0.0:8080/zabbix_proxy/'
+

@@ -85,7 +85,7 @@ app.jinja_env.hamlish_mode = 'indented'
 
 app.cache = cache.MemcachedCache(
     [app.config['MEMCACHED_HOST']],
-    default_timeout=2 * 60 * 60,
+    default_timeout=app.config['MEMCACHED_TIMEOUT'],
     key_prefix='focus')
 
 app.session_interface = flask_memcache_session.Session()
