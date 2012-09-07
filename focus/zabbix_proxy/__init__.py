@@ -65,16 +65,19 @@ PARAMETERS = [
     'freespace',
     'iowait'
 ]
-DESCRIPTIONS_TO_DATASOURCE_NAMES = {
-    'CPU Load Average 1': 'avg1',
-    'CPU Load Average 5': 'avg5',
-    'CPU Load Average 15': 'avg15',
-    'Free memory(%)': 'freemem',
-    'Used memory(%)': 'usedmem',
-    'Available Swap(%)': 'freeswap',
-    'Free disk space on $1': 'freespace',
-    'CPU iowait': 'iowait'
-    }
+KEYS_TO_DATASOURCE_NAMES = {
+    'system.cpu.load[,avg1]': 'avg1',       # CPU Load Average 1
+    'system.cpu.load[,avg5]': 'avg5',       # CPU Load Average 5
+    'system.cpu.load[,avg15]': 'avg15',     # CPU Load Average 15
+    'vm.memory.size[pfree]': 'freemem',     # Free memory(%)
+    'vm.memory.size[pused]': 'usedmem',     # Used memory(%)
+    'system.swap.size[,pfree]': 'freeswap', #Available Swap(%)
+    'vfs.fs.size[/,free]': 'freespace',     #Free disk space on $1
+    'system.cpu.util[,iowait]': 'iowait'    #CPU iowait'
+}
+ITEMS_KEYS = ','.join(
+    map(lambda x: '"%s"' % _mysql.escape_string(x),
+        KEYS_TO_DATASOURCE_NAMES.keys()))
 ITEM_VALUE_TYPE_2_TABLE_NAME = {0: 'history', 3: 'history_uint'}
 COLORS = [
     '000080',
@@ -193,7 +196,7 @@ class RRDKeeper(object):
                 'DS:%s:GAUGE:%s:U:U' % (ds_name, str(step * 2)),
                 *rras)
 
-    def update(self, data, items_2_hosts, items_2_descriptions, items_2_delays):
+    def update(self, data, items_2_hosts, items_2_keys, items_2_delays):
         """Update RRD files with the data.
         
         Ensure file exists.
@@ -201,8 +204,8 @@ class RRDKeeper(object):
         for itemid, samples in data.items():
             if len(samples):
                 host = items_2_hosts[itemid]
-                description = items_2_descriptions[itemid]
-                ds_name = DESCRIPTIONS_TO_DATASOURCE_NAMES[description]
+                key_ = items_2_keys[itemid]
+                ds_name = KEYS_TO_DATASOURCE_NAMES[key_]
                 self.ensure_rrd_existence(host, ds_name, items_2_delays[itemid])
                 values = ['%s:%s' % x for x in samples]
                 rrdtool.update(self.fname(self.path, host, ds_name), *values)
@@ -255,18 +258,17 @@ class ZabbixConsumer(object):
         """
         # for each table history, history_uint
         #   get last second
-        #   for every itemid designated by descriptions
+        #   for every itemid designated by key_
         #     get everything after the last second
         #   return collected data, objects to commit last seconds and delays
         data = {}
         second_savers = {}
         items_2_delays = {}
-        descriptions = DESCRIPTIONS_TO_DATASOURCE_NAMES.keys()
         self.c.execute('SELECT itemid, value_type, delay '
                        'FROM items '
-                       'WHERE hostid IN (%s) AND description IN (%s)' % (
+                       'WHERE hostid IN (%s) AND key_ IN (%s)' % (
                 ','.join(map(str, hostids)),
-                ','.join(['"%s"' % _mysql.escape_string(x) for x in descriptions])))
+                ITEMS_KEYS))
         for itemid, value_type, delay in self.c.fetchall():
             items_2_delays[itemid] = delay
             table = ITEM_VALUE_TYPE_2_TABLE_NAME[value_type]
@@ -289,12 +291,14 @@ class ZabbixConsumer(object):
         hostids = [x[0] for x in data]
         hosts = [x[1] for x in data]
         items_2_hosts = {}
-        items_2_descriptions = {}
-        self.c.execute('SELECT itemid, host, description FROM items JOIN hosts ON (items.hostid = hosts.hostid)')
-        for itemid, host, description in self.c.fetchall():
+        items_2_keys = {}
+        self.c.execute('SELECT itemid, host, key_ '
+                       'FROM items JOIN hosts ON (items.hostid = hosts.hostid) '
+                       'WHERE key_ IN (%s)' % (ITEMS_KEYS,))
+        for itemid, host, key_ in self.c.fetchall():
             items_2_hosts[itemid] = host
-            items_2_descriptions[itemid] = description
-        return hostids, items_2_hosts, items_2_descriptions
+            items_2_keys[itemid] = key_
+        return hostids, items_2_hosts, items_2_keys
 
 
 class Locker(type):
@@ -329,8 +333,11 @@ class ZabbixRRDFeeder(object):
             time.sleep(10)
 
     def consume(self):
+        CONSUMER_LOG.info('1')
         with open(os.path.join(self.path, 'consume.lock'), 'w') as fd:
+            CONSUMER_LOG.info('2')
             fcntl.lockf(fd, fcntl.LOCK_EX)        
+            CONSUMER_LOG.info('3')
             with Locker('Locker', (), {})().lock:
                 CONSUMER_LOG.info('Consuming now in %s.' % os.getpid())
                 while True:
@@ -346,12 +353,15 @@ class ZabbixRRDFeeder(object):
                             z = ZabbixConsumer(cursor, self.path)
                             r = RRDKeeper(self.path)
                             # get hosts and items
-                            hostids, items_2_hosts, items_2_descriptions = z.get_hosts()
+                            hostids, items_2_hosts, items_2_keys = z.get_hosts()
+                            CONSUMER_LOG.info(hostids)
+                            CONSUMER_LOG.info(items_2_keys)
                             # get historic data 
                             data, second_savers, items_2_delays = z.get_data(hostids)
+                            CONSUMER_LOG.info(data)
                             # save data in rrd
                             r.update(data, items_2_hosts, 
-                                     items_2_descriptions, items_2_delays)
+                                     items_2_keys, items_2_delays)
                             # commit last known seconds after rrdtool saved new data
                             [x.commit() for x in second_savers]
                         except Exception, e:
@@ -506,7 +516,10 @@ def hosts_statuses(version):
         for host in hosts:
             seconds = []
             c.execute("SELECT hostid FROM hosts WHERE host = %s", (host,))
-            hostid = c.fetchone()[0]
+            r = c.fetchone()
+            if r is None:
+                continue
+            hostid = [0]
             c.execute("SELECT itemid FROM items WHERE hostid = %s", (hostid,))
             items = c.fetchall()
             for (itemid,) in items:
