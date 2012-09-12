@@ -29,7 +29,6 @@
               -if compute_status == 2:
                 %span.label.label-important -> not responding
             %td
-              -if has_zabbix_data:
-                %a href="{{ url_for('.show', host=host) }}"
-                  show graph
+              %a href="{{ url_for('.show', host=host) }}"
+                show graph
 
