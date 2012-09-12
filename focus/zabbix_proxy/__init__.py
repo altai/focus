@@ -243,10 +243,8 @@ class LastSecond(object):
 
 
 class ZabbixConsumer(object):
-    c = None    
-
-    def __init__(self, c, path):
-        self.c, self.path = c, path
+    def __init__(self, db, path):
+        self.db, self.path = db, path
         
 
     def get_data(self, hostids):
@@ -264,40 +262,44 @@ class ZabbixConsumer(object):
         data = {}
         second_savers = {}
         items_2_delays = {}
-        self.c.execute('SELECT itemid, value_type, delay '
+        cursor = self.db.cursor()
+        cursor.execute('SELECT itemid, value_type, delay '
                        'FROM items '
                        'WHERE hostid IN (%s) AND key_ IN (%s)' % (
                 ','.join(map(str, hostids)),
                 ITEMS_KEYS))
-        for itemid, value_type, delay in self.c.fetchall():
+        for itemid, value_type, delay in cursor.fetchall():
             items_2_delays[itemid] = delay
             table = ITEM_VALUE_TYPE_2_TABLE_NAME[value_type]
             if itemid not in second_savers:
                 second_savers[itemid] = LastSecond(self.path, itemid)
             last_sec = second_savers[itemid]
             #FIXME - check clock field has index in db
-            self.c.execute('SELECT itemid, clock, value '
+            cursor.execute('SELECT itemid, clock, value '
                            'FROM %s WHERE clock > %%s AND itemid = %%s '
                            'ORDER BY clock' % table,
                            (last_sec.second, itemid))
-            data[itemid] = [x[1:] for x in self.c.fetchall()]
+            data[itemid] = [x[1:] for x in cursor.fetchall()]
             if len(data[itemid]):
                 last_sec.second = data[itemid][-1][0]
+        cursor.close()
         return data, second_savers.values(), items_2_delays
 
     def get_hosts(self):
-        self.c.execute('SELECT hostid, host FROM hosts WHERE status <> 3')
-        data = self.c.fetchall()
+        cursor = self.db.cursor()
+        cursor.execute('SELECT hostid, host FROM hosts WHERE status <> 3')
+        data = cursor.fetchall()
         hostids = [x[0] for x in data]
         hosts = [x[1] for x in data]
         items_2_hosts = {}
         items_2_keys = {}
-        self.c.execute('SELECT itemid, host, key_ '
+        cursor.execute('SELECT itemid, host, key_ '
                        'FROM items JOIN hosts ON (items.hostid = hosts.hostid) '
                        'WHERE key_ IN (%s)' % (ITEMS_KEYS,))
-        for itemid, host, key_ in self.c.fetchall():
+        for itemid, host, key_ in cursor.fetchall():
             items_2_hosts[itemid] = host
             items_2_keys[itemid] = key_
+        cursor.close()
         return hostids, items_2_hosts, items_2_keys
 
 
@@ -343,31 +345,25 @@ class ZabbixRRDFeeder(object):
                 while True:
                     self.reconnect()
                     try:
-                        cursor = self.db.cursor()
+                        z = ZabbixConsumer(self.db, self.path)
+                        r = RRDKeeper(self.path)
+                        # get hosts and items
+                        hostids, items_2_hosts, items_2_keys = z.get_hosts()
+                        CONSUMER_LOG.info(hostids)
+                        CONSUMER_LOG.info(items_2_keys)
+                        # get historic data
+                        data, second_savers, items_2_delays = z.get_data(hostids)
+                        CONSUMER_LOG.info(data)
+                        # save data in rrd
+                        r.update(data, items_2_hosts,
+                            items_2_keys, items_2_delays)
+                        # commit last known seconds after rrdtool saved new data
+                        [x.commit() for x in second_savers]
                     except Exception, e:
                         CONSUMER_LOG.exception(
-                            'Failed to get cursor for Zabbix db: %s', 
+                            'Error during consumerism: %s',
                             str(e))
-                    else:
-                        try:
-                            z = ZabbixConsumer(cursor, self.path)
-                            r = RRDKeeper(self.path)
-                            # get hosts and items
-                            hostids, items_2_hosts, items_2_keys = z.get_hosts()
-                            CONSUMER_LOG.info(hostids)
-                            CONSUMER_LOG.info(items_2_keys)
-                            # get historic data 
-                            data, second_savers, items_2_delays = z.get_data(hostids)
-                            CONSUMER_LOG.info(data)
-                            # save data in rrd
-                            r.update(data, items_2_hosts, 
-                                     items_2_keys, items_2_delays)
-                            # commit last known seconds after rrdtool saved new data
-                            [x.commit() for x in second_savers]
-                        except Exception, e:
-                            CONSUMER_LOG.exception(
-                                'Error during consumerism: %s', 
-                                str(e))
+
             fcntl.lockf(fd, fcntl.LOCK_UN)
         CONSUMER_LOG.info('Unlocked everything.')
 
