@@ -24,7 +24,7 @@ Requires:       python-hamlish-jinja
 Requires:       python-storm
 Requires:       python-storm-mysql
 Requires:       python-gunicorn
-Requires:       python-pylibmc
+Requires:       python-memcached
 Requires:       python-netaddr
 
 Requires:       start-stop-daemon

@@ -7,7 +7,7 @@ gunicorn
 Hamlish-Jinja
 Jinja2
 MySQL-python
-pylibmc
+python-memcached
 python-glanceclient
 python-keystoneclient
 python-novaclient
