@@ -30,7 +30,7 @@ Items store histori data in few tables depending on values type:
 +------------------+--------------+
 
 Data is collected by Zabbix with different time delay. This makes signals
-with bigger delay have more error when stored in a single RRD file. To 
+with bigger delay have more error when stored in a single RRD file. To
 avoid this we store every item data for every host in a separate RRD file.
 rrdtool graph then consolidates data to build graphics.
 
@@ -76,7 +76,7 @@ KEYS_TO_DATASOURCE_NAMES = {
     'system.cpu.util[,iowait]': 'iowait'    #CPU iowait'
 }
 ITEMS_KEYS = ','.join(
-    map(lambda x: '"%s"' % _mysql.escape_string(x),
+    map(lambda x: "'%s'" % _mysql.escape_string(x),
         KEYS_TO_DATASOURCE_NAMES.keys()))
 ITEM_VALUE_TYPE_2_TABLE_NAME = {0: 'history', 3: 'history_uint'}
 COLORS = [
@@ -152,7 +152,7 @@ class RRDKeeper(object):
         
     @staticmethod
     def fname(path, host, ds_name):
-        name = '%s.%s.rrd' % (re.sub('[^a-zA-Z0-9_.-]', '', host), ds_name)
+        name = '%s.%s.rrd' % (str(host), ds_name)
         return os.path.join(path, name)
 
     def ensure_rrd_existence(self, host, ds_name, step):
@@ -203,12 +203,12 @@ class RRDKeeper(object):
         """
         for itemid, samples in data.items():
             if len(samples):
-                host = items_2_hosts[itemid]
+                hostid = items_2_hosts[itemid]
                 key_ = items_2_keys[itemid]
                 ds_name = KEYS_TO_DATASOURCE_NAMES[key_]
-                self.ensure_rrd_existence(host, ds_name, items_2_delays[itemid])
+                self.ensure_rrd_existence(hostid, ds_name, items_2_delays[itemid])
                 values = ['%s:%s' % x for x in samples]
-                rrdtool.update(self.fname(self.path, host, ds_name), *values)
+                rrdtool.update(self.fname(self.path, hostid, ds_name), *values)
 
 
 class LastSecond(object):
@@ -274,7 +274,6 @@ class ZabbixConsumer(object):
             if itemid not in second_savers:
                 second_savers[itemid] = LastSecond(self.path, itemid)
             last_sec = second_savers[itemid]
-            #FIXME - check clock field has index in db
             cursor.execute('SELECT itemid, clock, value '
                            'FROM %s WHERE clock > %%s AND itemid = %%s '
                            'ORDER BY clock' % table,
@@ -293,11 +292,11 @@ class ZabbixConsumer(object):
         hosts = [x[1] for x in data]
         items_2_hosts = {}
         items_2_keys = {}
-        cursor.execute('SELECT itemid, host, key_ '
+        cursor.execute('SELECT itemid, items.hostid, key_ '
                        'FROM items JOIN hosts ON (items.hostid = hosts.hostid) '
                        'WHERE key_ IN (%s)' % (ITEMS_KEYS,))
-        for itemid, host, key_ in cursor.fetchall():
-            items_2_hosts[itemid] = host
+        for itemid, hostid, key_ in cursor.fetchall():
+            items_2_hosts[itemid] = hostid
             items_2_keys[itemid] = key_
         cursor.close()
         return hostids, items_2_hosts, items_2_keys
@@ -402,10 +401,19 @@ def discover(version):
 def _hosts(version):
     if version == '0':
         path = os.path.abspath(flask.current_app.config['ZABBIX_PROXY_TMP'])
-        listing = [x for x in os.listdir(path) if x.endswith('.rrd')]
-        hosts = ['.'.join(x.split('.')[:-2]) for x in listing]
-        unique = list(set(hosts))
-        return unique
+        hostids = []
+        for fname in [x for x in os.listdir(path) if x.endswith('.rrd')]:
+            if '.' in fname:
+                try:
+                    hostids.append(int(fname.split('.')[0]))
+                except ValueError:
+                    pass
+        db = MySQLdb.connect(**app.config['ZABBIX_PROXY_DB'])
+        c = db.cursor()
+        c.execute('SELECT host FROM hosts WHERE hostid IN (%s)' % ', '.join([str(x) for x in hostids]))
+        hosts = [x[0] for x in c.fetchall()]
+        c.close()
+        return hosts
     raise RuntimeError, 'Unknown version'
 
 
@@ -435,6 +443,7 @@ def data(version, host, period):
     if version == '0':
         if host not in _hosts(version):
             flask.abort(404)
+
         if period not in PERIODS:
             flask.abort(404)
         parameters = flask.request.args.get('parameters', None)
@@ -509,13 +518,14 @@ def hosts_statuses(version):
         
         NOW = datetime.datetime.utcnow()
         result = []
+
         for host in hosts:
             seconds = []
             c.execute("SELECT hostid FROM hosts WHERE host = %s", (host,))
             r = c.fetchone()
             if r is None:
                 continue
-            hostid = [0]
+            hostid = r[0]
             c.execute("SELECT itemid FROM items WHERE hostid = %s", (hostid,))
             items = c.fetchall()
             for (itemid,) in items:
