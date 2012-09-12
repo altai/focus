@@ -475,15 +475,23 @@ def data(version, host, period):
                     '-w', width]
             if 'title' in flask.request.args:
                 args.extend(['--title', flask.request.args['title']])
+            db = MySQLdb.connect(**app.config['ZABBIX_PROXY_DB'])
+            c = db.cursor()
+            c.execute('SELECT hostid FROM hosts WHERE host = %s', [host])
+            r = c.fetchone()
+            if r is None:
+                flask.abort(404)
+            hostid = r[0]
             for i, ds_name in enumerate(parameters):
                 fname = RRDKeeper.fname(
                     os.path.abspath(
                         flask.current_app.config['ZABBIX_PROXY_TMP']),
-                    host,
+                    str(hostid),
                     ds_name)
-                args.extend([
-                        'DEF:%s=%s:%s:AVERAGE' % (ds_name, fname, ds_name),
-                        'LINE1:%s#%s:"%s"' % (ds_name, COLORS[i], ds_name)])
+                if os.path.exists(fname):
+                    args.extend([
+                            'DEF:%s=%s:%s:AVERAGE' % (ds_name, fname, ds_name),
+                            'LINE1:%s#%s:"%s"' % (ds_name, COLORS[i], ds_name)])
             args = map(str, args)
             rrdtool.graph(*args)
             response = flask.make_response(img_file.read())
