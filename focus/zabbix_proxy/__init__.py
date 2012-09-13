@@ -263,11 +263,13 @@ class ZabbixConsumer(object):
         second_savers = {}
         items_2_delays = {}
         cursor = self.db.cursor()
-        cursor.execute('SELECT itemid, value_type, delay '
-                       'FROM items '
-                       'WHERE hostid IN (%s) AND key_ IN (%s)' % (
-                ','.join(map(str, hostids)),
-                ITEMS_KEYS))
+	sql = ('SELECT itemid, value_type, delay ' +
+              'FROM items ' +	
+              'WHERE hostid IN (%s) AND key_ IN (%s)') % (
+                ','.join(map(str, hostids)), ITEMS_KEYS)
+	CONSUMER_LOG.info(ITEMS_KEYS)
+	CONSUMER_LOG.info(sql)
+        cursor.execute(sql)
         for itemid, value_type, delay in cursor.fetchall():
             items_2_delays[itemid] = delay
             table = ITEM_VALUE_TYPE_2_TABLE_NAME[value_type]
