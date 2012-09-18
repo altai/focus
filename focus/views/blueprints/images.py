@@ -240,8 +240,6 @@ def get_bp(name):
 
         TODO(apugachev): remove from templ location images older then X hours
         """
-        kernel_id, ramdisk_id = None, None
-        
         def create_image(uploaded_filename, name, container, disk_format, kernel_id=None,
                 ramdisk_id=None):
             tenant_id = get_tenant_id()
@@ -277,16 +275,13 @@ def get_bp(name):
                     os.fstat(kwargs['data'].fileno()).st_size)
                 with callback:
                     img = user_clients.image.images.create(**kwargs)
-                    if container == 'aki':
-                        kernel_id = img.id
-                    if container == 'ari':
-                        ramdisk_id = img.id
             except RuntimeError as e:
                 flask.flash(e.message, 'error')
             else:
                 flask.flash(
                     'Image with name %s registered.' % img.name,
                     'success')
+                return img.id
             finally:
                 try:
                     kwargs['data'].close()
@@ -304,7 +299,7 @@ def get_bp(name):
                 )
         elif flask.request.form['upload_type'] == 'amazon_like':
             if flask.request.form['uploaded_kernel'] != u'null':
-                create_image(
+                kernel_id = create_image(
                     flask.request.form['uploaded_kernel'],
                     flask.request.form['kernel'],
                     'aki', 'aki'
@@ -312,7 +307,7 @@ def get_bp(name):
             else:
                 kernel_id = flask.request.form['kernel']
             if flask.request.form['uploaded_initrd'] != u'null':
-                create_image(
+                ramdisk_id = create_image(
                     flask.request.form['uploaded_initrd'],
                     flask.request.form['initrd'],
                     'ari', 'ari'

@@ -1,0 +1,2 @@
+v.1.0.1 [18.09.2012]
+[focus] - Fixed uploading of Amazon-like images. We were uploading rootfs without kernel and initrd before. {zendesk #10}
