@@ -224,6 +224,7 @@ define([
         });
       } else {
         // amazon
+        
         // kernel uploader start
           if (this.kernel_uploader){
             this.kernel_uploader.stop();
@@ -235,10 +236,13 @@ define([
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
       silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
-            browse_button : 'kernel_uploaded_file',
+            browse_button : 'kernel_uploaded_file_button',
             container : 'kernel_container',
           });
           $('#id_kernel').change(function(){
+            if ($("#id_kernel option:selected").val() == 'Upload new kernel'){
+                $("#kernel_uploaded_file_button").click();
+            }
             $('#id_initrd').removeAttr('disabled');
           });
           this.kernel_uploader.init();
@@ -310,10 +314,13 @@ define([
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
       silverlight_xap_url : '/static/vendors/plupload-1.5.4/js/plupload.silverlight.xap',
-            browse_button : 'initrd_uploaded_file',
+            browse_button : 'initrd_uploaded_file_button',
             container : 'initrd_container',
           });
           $('#id_initrd').change(function(){
+            if ($("#id_initrd option:selected").val() == 'Upload new initrd'){
+                $("#initrd_uploaded_file_button").click();
+            }
             $('#filesystem_uploaded_file_button').removeAttr('disabled');
           });
           this.initrd_uploader.init();
