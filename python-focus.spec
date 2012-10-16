@@ -29,10 +29,10 @@ Requires:       python-netaddr
 
 Requires:       start-stop-daemon
 
-Requires:       python-novaclient-essex
-Requires:       python-keystoneclient-essex
-Requires:       python-glanceclient-essex
-Requires:       python-openstackclient-base-essex
+Requires:       python-novaclient
+Requires:       python-keystoneclient
+Requires:       python-glanceclient
+Requires:       python-openstackclient-base
 
 Requires:       nginx-upload
 Requires:       rrdtool-python
