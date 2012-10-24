@@ -68,10 +68,10 @@ define([
         }
       },
       'click .cancel-upload': function(e){
-        e.preventDefault();
-        this.uploader.stop()
-        this.uploader.splice();
-        this.$('#filelist').html(this.progress_bar());
+          e.preventDefault();
+          this.uploader.stop()
+          this.progress_bar(this.$('#filelist'), {});
+          $('#id_uploaded_file').val('');
       }
     },
     error_messages: {},
@@ -123,7 +123,15 @@ define([
     },
     selected_upload_type: 0,
     template: _.template(template),
-    progress_bar: _.template(progress_bar_template),
+    _progress_bar: _.template(progress_bar_template),
+    progress_bar: function($el, context){
+        $el.html(this._progress_bar(context));
+        if (context.file_percent != undefined){
+            $el.parent().find('a.cancel-upload').show()
+        } else {
+            $el.parent().find('a.cancel-upload').hide()
+        }
+    },
     api_progress_bar: _.template(api_progress_bar_template),
     render_with_respect_to_upload: function(){
       var name = this.$('#id_name').val();
@@ -179,12 +187,12 @@ define([
           self.$('.uploader p.help-block').remove();
           self.$('#filelist').removeClass('hide');
           $.each(files, function(i, file) {
-            self.$('#filelist').html(self.progress_bar({
+            self.progress_bar(self.$('#filelist'), {
               file_id: file.id,
               file_name: file.name,
               file_size: plupload.formatSize(file.size),
               file_percent: file.percent
-            }))
+            })
           });
           up.refresh(); // Reposition Flash/Silverlight
           up.start()
@@ -192,20 +200,20 @@ define([
         });
 
         this.uploader.bind('UploadProgress', function(up, file) {
-          self.$('#filelist').html(self.progress_bar({
+          self.progress_bar(self.$('#filelist'), {
             file_id: file.id,
             file_name: file.name,
             file_size: plupload.formatSize(file.size),
             file_percent: file.percent,
             bytes_loaded: file.loaded,
             bytes_size: file.size
-          }))
+          })
         });
 
         this.uploader.bind('Error', function(up, err) {
-          self.$('#filelist').html(self.progress_bar({
+            self.progress_bar(self.$('#filelist'), {
             'error': err
-          }));
+          })
           up.refresh(); // Reposition Flash/Silverlight
           $('#id_uploaded_file').val('Select file');
         });
@@ -258,32 +266,32 @@ define([
             self.$('#kernel_container .uploader p.help-block').remove();
             self.$('#kernel_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
-              self.$('#kernel_container #filelist').html(self.progress_bar({
+                self.progress_bar(self.$('#kernel_container #filelist'), {
                 file_id: file.id,
                 file_name: file.name,
                 file_size: plupload.formatSize(file.size),
                 file_percent: file.percent
-              }))
+              })
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start();
           });
 
           this.kernel_uploader.bind('UploadProgress', function(up, file) {
-            self.$('#kernel_container #filelist').html(self.progress_bar({
+              self.progress_bar(self.$('#kernel_container #filelist'), {
               file_id: file.id,
               file_name: file.name,
               file_size: plupload.formatSize(file.size),
               file_percent: file.percent,
               bytes_loaded: file.loaded,
               bytes_size: file.size
-            }))
+            })
           });
 
           this.kernel_uploader.bind('Error', function(up, err) {
-            self.$('#kernel_container #filelist').html(self.progress_bar({
+              self.progress_bar(self.$('#kernel_container #filelist'), {
               'error': err
-            }));
+            })
             up.refresh(); // Reposition Flash/Silverlight
             $('#kernel_container #id_uploaded_file').val('Select file');
           });
@@ -336,32 +344,32 @@ define([
             self.$('#initrd_container .uploader p.help-block').remove();
             self.$('#initrd_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
-              self.$('#initrd_container #filelist').html(self.progress_bar({
+                self.progress_bar(self.$('#initrd_container #filelist'), {
                 file_id: file.id,
                 file_name: file.name,
                 file_size: plupload.formatSize(file.size),
                 file_percent: file.percent
-              }))
+              })
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start()
           });
 
           this.initrd_uploader.bind('UploadProgress', function(up, file) {
-            self.$('#initrd_container #filelist').html(self.progress_bar({
+              self.progress_bar(self.$('#initrd_container #filelist'), {
               file_id: file.id,
               file_name: file.name,
               file_size: plupload.formatSize(file.size),
               file_percent: file.percent,
               bytes_loaded: file.loaded,
               bytes_size: file.size
-            }))
+            })
           });
 
           this.initrd_uploader.bind('Error', function(up, err) {
-            self.$('#initrd_container #filelist').html(self.progress_bar({
+              self.progress_bar(self.$('#initrd_container #filelist'), {
               'error': err
-            }));
+            })
             up.refresh(); // Reposition Flash/Silverlight
             $('#initrd_container #id_uploaded_file').val('Select file');
           });
@@ -409,12 +417,12 @@ define([
             self.$('#filesystem_container .uploader p.help-block').remove();
             self.$('#filesystem_container #filelist').removeClass('hide');
             $.each(files, function(i, file) {
-              self.$('#filesystem_container #filelist').html(self.progress_bar({
+                self.progress_bar(self.$('#filesystem_container #filelist'), {
                 file_id: file.id,
                 file_name: file.name,
                 file_size: plupload.formatSize(file.size),
                 file_percent: file.percent
-              }))
+              })
             });
             up.refresh(); // Reposition Flash/Silverlight
             up.start()
@@ -422,20 +430,20 @@ define([
           });
 
           this.filesystem_uploader.bind('UploadProgress', function(up, file) {
-            self.$('#filesystem_container #filelist').html(self.progress_bar({
+              self.progress_bar(self.$('#filesystem_container #filelist'), {
               file_id: file.id,
               file_name: file.name,
               file_size: plupload.formatSize(file.size),
               file_percent: file.percent,
               bytes_loaded: file.loaded,
               bytes_size: file.size
-            }))
+            })
           });
 
           this.filesystem_uploader.bind('Error', function(up, err) {
-            self.$('#filesystem_container #filelist').html(self.progress_bar({
-              'error': err
-            }));
+              self.progress_bar(self.$('#filesystem_container #filelist'), {
+                  'error': err
+              })
             up.refresh(); // Reposition Flash/Silverlight
             $('#filesystem_container #id_uploaded_file').val('Select file');
           });

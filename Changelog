@@ -1,2 +1,4 @@
+[2012-10-24]
+	Fix for JIRA-131 (Cancel link blinks no more in upload form)
 v.1.0.1 [18.09.2012]
 [focus] - Fixed uploading of Amazon-like images. We were uploading rootfs without kernel and initrd before. {zendesk #10}
