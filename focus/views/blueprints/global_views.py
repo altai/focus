@@ -49,15 +49,20 @@ def billing():
     '''
     Define tenant to show and redirect there.
 
-    Not all tenants are accessible! Check '11' (pmo)
+    Not every billing account points to an existing tenants.
     '''
+    def out(tenant_id):
+        return flask.redirect(
+            flask.url_for(
+                '.billing_details',
+                tenant_id=tenant_id))
     billing_accounts = clients.admin_clients().billing.account.list()
-    return flask.redirect(
-        flask.url_for(
-            '.billing_details',
-            tenant_id=billing_accounts[0]['name']
-            if billing_accounts
-            else clients.get_systenant_id()))
+    tenants = clients.admin_clients().keystone.tenants.list()
+    for n in billing_accounts:
+        for k in tenants:
+            if n['name'] == k.id:
+                return out(k.id)
+    return out(clients.get_systenant_id())
 
 
 @bp.route('billing/<tenant_id>/')
