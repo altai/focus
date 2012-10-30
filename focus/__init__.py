@@ -82,6 +82,7 @@ Message:
     LOG.addHandler(mail_handler)
 
 app.jinja_env.hamlish_mode = 'indented'
+app.jinja_env.autoescape = True
 
 app.cache = cache.MemcachedCache(
     [app.config['MEMCACHED_HOST']],
