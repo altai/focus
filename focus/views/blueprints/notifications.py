@@ -175,7 +175,7 @@ def new():
     }
 
 
-@bp.route('<key_>/', methods=['GET', 'POST'])
+@bp.route('<path:key_>/', methods=['GET', 'POST'])
 def show(key_):
     try:
         obj = utils.notifications_api_call(
@@ -206,7 +206,7 @@ def show(key_):
     }
 
 
-@bp.route('delete/<key_>/', methods=['POST'])
+@bp.route('delete/<path:key_>/', methods=['POST'])
 def delete(key_):
     form = forms.DeleteForm()
     if form.validate_on_submit():
