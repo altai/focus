@@ -1,0 +1,2 @@
+New protocol/hostname configured.
+You can access the application here: {{ url_for_path('/') }}

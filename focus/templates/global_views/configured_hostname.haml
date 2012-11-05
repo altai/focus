@@ -1,0 +1,14 @@
+-extends "global_admin_base.haml"
+
+-block content
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
+  %form.form-horizontal.well method="POST" action="."
+    =render_form_errors(form.csrf_token)
+    =form.hidden_tag()
+    %fieldset
+      =render_h_field(form.hostname)
+      %div.form-actions
+        %button.btn.btn-primary.tc-add type="submit"
+          Save
+        %button.btn.tc-cancel type="reset"
+          Cancel

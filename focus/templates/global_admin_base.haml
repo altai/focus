@@ -27,7 +27,9 @@
           %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
         %li{% if request.blueprint == 'load_history' %} class="active"{% endif %}
           %a href="{{ url_for('load_history.index') }}" -> Load History
-
+        %li{% if request.path == url_for('global_views.configured_hostname') %} class="active"{% endif %}
+          %a href="{{ url_for('global_views.configured_hostname') }}"
+            App Hostname
     %header.jumbotron.subhead#overview
       %h1
         Global administration: {{ title }}

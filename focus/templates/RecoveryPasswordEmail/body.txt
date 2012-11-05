@@ -1,2 +1,2 @@
 To drop your password, please go here:
-{{ recovery_link }}
+{{ url_for_path(recovery_link) }}

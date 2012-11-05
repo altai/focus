@@ -184,11 +184,8 @@ def password_recovery_request():
             flask.current_app.log_exception((exc_type, exc_value, traceback))
         else:
             hash_code = str(uuid.uuid4())
-            recovery_link = "http://%s%s" % (
-                flask.request.host, flask.url_for(
-                    'password_recovery_finish', recovery_hash=hash_code
-                )
-            )
+            recovery_link = flask.url_for('password_recovery_finish',
+                                          recovery_hash=hash_code)
             row_mysql_queries.save_recovery(form.email.data, hash_code, 0)
             msg = mail.Message(
                 'Password recovery', recipients=[form.email.data])

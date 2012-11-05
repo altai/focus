@@ -202,9 +202,7 @@ def invite():
                 else:
                     row_mysql_queries.save_invitation(
                         user_email, hash_code, form.role.data)
-                    invite_link = "http://%s%s" % (
-                        flask.request.host,
-                        flask.url_for('.finish', invitation_hash=hash_code))
+                    invite_link = flask.url_for('.finish', invitation_hash=hash_code)
                     msg = mail.Message('Invitation', recipients=[user_email])
                     msg.body = flask.render_template(
                         'invitations/email_body.txt', invite_link=invite_link)

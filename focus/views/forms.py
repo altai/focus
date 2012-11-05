@@ -22,6 +22,7 @@
 # TODO(apugachev) convert factories to plain classes where possible
 
 import decimal
+import urlparse
 
 import netaddr
 
@@ -30,6 +31,8 @@ from flaskext import wtf
 from flaskext.wtf import html5
 from focus.views import utils
 from focus import clients
+from focus.models import row_mysql_queries
+
 
 def get_login_form():
     """
@@ -247,3 +250,27 @@ class InviteRegister(wtf.Form):
     email = wtf.HiddenField()
     username = wtf.HiddenField()
     password = wtf.PasswordField('Password', [wtf.Required()])
+
+
+def validate_hostname(form, field):
+    m = urlparse.urlparse(field.data)
+    if m.scheme and m.scheme not in ['http', 'https']:
+        raise wtf.ValidationError('Forbidden protocol: %s' % m.scheme)
+    if not m.netloc:
+        raise wtf.ValidationError('Hostname required')
+
+
+def filter_hostname(x):
+    if '://' not in x:
+        x = 'http://' + x
+    m = urlparse.urlparse(x)
+    return urlparse.urlunsplit((m.scheme or 'http', m.netloc, '', '', ''))
+
+
+
+class ConfigureHostnameForm(wtf.Form):
+    hostname = wtf.TextField(
+        u'Application Hostname',
+        [wtf.Required(), validate_hostname],
+        [filter_hostname],
+        default=row_mysql_queries.get_configured_hostname)

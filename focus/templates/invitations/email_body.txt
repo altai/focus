@@ -1,3 +1,4 @@
 You have been invited to join OpenStack.
 To complete click the link below, please:
-{{ invite_link }}
+{{ url_for_path(invite_link) }}
+

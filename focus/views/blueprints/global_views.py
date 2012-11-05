@@ -26,12 +26,16 @@ from openstackclient_base.exceptions import NotFound
 
 import flask
 from flask import blueprints
+from flaskext import mail
 from flaskext import principal
 
 from focus import clients
+from focus import utils
+from focus.models import row_mysql_queries
 from focus.views import dataset
 from focus.views import environments
 from focus.views import exporter
+from focus.views import forms
 from focus.views import generic_billing
 from focus.views import pagination
 
@@ -42,6 +46,32 @@ bp = environments.admin(blueprints.Blueprint('global_views', __name__))
 @bp.before_request
 def authorize():
     principal.Permission(('role', 'admin')).test()
+
+
+@bp.route('configured_hostname/', methods=['GET', 'POST'])
+def configured_hostname():
+    '''
+    Set hostname to use in all links set via email.
+    '''
+    form = forms.ConfigureHostnameForm()
+    if form.validate_on_submit():
+        # save
+        row_mysql_queries.set_configured_hostname(form.hostname.data)
+        # send
+        username = flask.session['user']['username']
+        email = utils.neo4j_api_call(
+            '/users/?username=%s' % username)[0]['email']
+        msg = mail.Message(
+            'New Hostname Confiured',
+            recipients=[email])
+        msg.body = flask.render_template(
+            'ConfigureHostnameEmail/body.txt')
+        utils.send_msg(msg)
+        # notify
+        flask.flash('Hostname %s configured' % form.hostname.data, 'success')
+        # redirect
+        return flask.redirect(flask.url_for('.configured_hostname'))
+    return {'form': form}
 
 
 @bp.route('billing/')

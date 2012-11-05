@@ -29,6 +29,7 @@ import flask
 import focus
 from focus import utils
 from focus import clients
+from focus.models import row_mysql_queries
 
 
 @focus.app.context_processor
@@ -77,3 +78,10 @@ def url_for_other_page(page):
 
 
 focus.app.jinja_env.globals['url_for_other_page'] = url_for_other_page
+
+
+def url_for_path(path):
+    return '%s%s' % (row_mysql_queries.get_configured_hostname(), path)
+
+
+focus.app.jinja_env.globals['url_for_path'] = url_for_path

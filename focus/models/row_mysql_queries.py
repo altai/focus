@@ -84,3 +84,23 @@ def get_recovery_request_by_hash(recovery_hash):
     return flask.g.inv_store.execute(
         'SELECT * FROM recovery_requests '
         'WHERE recovery_requests.hash = ?', (recovery_hash,)).get_one()
+
+
+@prepare_database_connection
+def get_configured_hostname():
+    try:
+        result = flask.g.inv_store.execute('SELECT hostname FROM configured_hostnames').get_one()
+        if result:
+            return result[0]
+        else:
+            return flask.current_app.config.get('CONFIGURED_HOSTNAME', '')
+    except TypeError, e:
+        # to not be lost in WTForms
+        raise RuntimeError, str(e)
+
+
+@prepare_database_connection
+def set_configured_hostname(hostname):
+    flask.g.inv_store.execute('DELETE FROM configured_hostnames')
+    flask.g.inv_store.execute('INSERT INTO configured_hostnames (hostname) VALUES (?)', (hostname,))
+    flask.g.inv_store.commit()
