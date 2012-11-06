@@ -236,8 +236,8 @@ class CreateEmailMask(wtf.Form):
 # TODO(apugachev) check if this role is passed to keystone;
 # if yes, take from settings
 ROLES = (
-    ('admin', 'Global Admin'),
     ('user', 'User'),
+    ('admin', 'Global Admin')
 )
 
 
