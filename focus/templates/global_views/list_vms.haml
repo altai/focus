@@ -1,5 +1,6 @@
 -extends "global_admin_base.haml"
 -block amdjs
+  {{ super () }}
   %script
     |var default_columns = {{ columns.default_names.__repr__()|safe }};
   %script src="{{ url_for('static', filename='amd/main_global_list_vms.js') }}"

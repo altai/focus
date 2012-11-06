@@ -1,5 +1,6 @@
 -extends "base.haml"
 -block amdjs
+  {{ super () }}
   %script src="{{ url_for('static', filename='amd/main_login.js') }}"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_field

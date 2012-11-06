@@ -8,7 +8,7 @@
       =render_h_field(form.name, is_required=True)
       =render_h_field(form.is_minimized)
       %div.form-actions
-        %button.btn.btn-primary.tc-add type="submit"
+        %button.btn.btn-primary.tc-add.disable-on-submit type="submit"
           Create
         %a.btn.tc-cancel href="{{ url_for('.index')}}"
           Cancel

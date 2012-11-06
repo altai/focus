@@ -20,5 +20,6 @@
         {{ render_field(form.role) }}
     -else
         %input type="hidden" name="role" value="user"
-    %button type="submit" class="btn btn-primary"
+    %button type="submit" class="btn btn-primary disable-on-submit"
       Invite
+

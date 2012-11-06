@@ -1,5 +1,6 @@
 -extends "projects_base.haml"
 -block amdjs
+  {{ super () }}
   %script src="{{ url_for('static', filename='amd/ssh_keys_add.js') }}"
 -block content
   -from "_formhelpers.haml" import render_form_errors, render_h_field
@@ -10,5 +11,5 @@
       {{ render_h_field(form.name, True) }}
       {{ render_h_field(form.public_key) }}
       %div.form-actions
-        %button.btn.btn-primary type="submit" -> Add Key
+        %button.btn.btn-primary.disable-on-submit type="submit" -> Add Key
         %a.btn href="javascript:history.go(-1)" -> Cancel

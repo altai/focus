@@ -1,5 +1,6 @@
 -extends "global_admin_base.haml"
 -block amdjs
+  {{ super () }}
   %script type="text/javascript" src="{{ url_for('static', filename='amd/main_billing_curl.js') }}"
 -block styles
   %link href="{{ url_for('static', filename='stylesheets/smoothness/jquery-ui-1.8.19.custom.css') }}" rel="stylesheet"

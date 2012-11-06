@@ -9,7 +9,7 @@
       =render_h_field(form.network, is_required=True)
       =render_h_field(form.description)
       %div.form-actions
-        %button.btn.btn-primary type="submit"
+        %button.btn.btn-primary.disable-on-submit type="submit"
           Create
         %a.btn href="{{ url_for('.index')}}"
           Cancel

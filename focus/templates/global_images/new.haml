@@ -1,5 +1,6 @@
 -extends "global_admin_base.haml"
 -block amdjs
+  {{ super () }}
   %script
     window.kernel_list = {{ kernel_list | safe }};
     window.initrd_list = {{ initrd_list | safe }};
