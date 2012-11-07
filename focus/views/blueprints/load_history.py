@@ -67,7 +67,7 @@ def total_seconds(td):
 def compute_statuses((host, updated_at, created_at, disabled)):
     AVAILABLE_DUE = 60 # seconds compute service is alive since last check
     # NOTE(apugachev) we'd survive doing it in this cycle
-    NOW = datetime.datetime.now()
+    NOW = datetime.datetime.utcnow()
     if disabled:
         status = COMPUTE_OFF
     elif total_seconds((updated_at or created_at) - NOW) > AVAILABLE_DUE:
@@ -84,7 +84,6 @@ def get_compute_nodes_with_statuses():
     """
     db = orm.get_store('NOVA_RO')
     data = db.execute("SELECT host, updated_at, created_at, disabled FROM services WHERE deleted = 0 AND topic LIKE 'compute'").get_all()
-    NOW = datetime.datetime.now()
     return map(compute_statuses, data)
 
 
