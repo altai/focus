@@ -39,12 +39,12 @@ app = application.FatFlask(__name__)
 app.config.from_object('focus.default_settings')
 
 try:
-    app.config.from_object('focus.local_settings')
-except ImportError:
-    pass
-try:
     app.config.from_pyfile("/etc/focus/local_settings.py")
 except IOError:
+    pass
+try:
+    app.config.from_object('focus.local_settings')
+except ImportError:
     pass
 
 LOG = logging.getLogger()
@@ -95,6 +95,7 @@ app.session_interface = flask_memcache_session.Session()
 # SMTP
 mail = mail_module.Mail(app)
 
+from focus.views.blueprints import ad_admins
 from focus.views.blueprints import global_views
 from focus.views.blueprints import images
 from focus.views.blueprints import security_groups
@@ -109,7 +110,7 @@ from focus.views.blueprints import invitation_domains
 from focus.views.blueprints import invitations
 from focus.views.blueprints import load_history
 
-
+app.register_blueprint(ad_admins.bp, url_prefix='/global/admins/')
 app.register_blueprint(images.ABP, url_prefix='/global/images/')
 app.register_blueprint(images.PBP, url_prefix='/projects/<tenant_id>/images/')
 app.register_blueprint(security_groups.PBP,

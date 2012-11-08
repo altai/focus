@@ -23,8 +23,9 @@
           %a href="{{ url_for('networks.index') }}" -> Networks
         %li{% if request.blueprint == 'notifications' %} class="active"{% endif %}
           %a href="{{ url_for('notifications.index') }}" -> Notifications
-        %li{% if request.blueprint == 'invitation_domains' %} class="active"{% endif %}
-          %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+        -if not config['LDAP_INTEGRATION']:
+          %li{% if request.blueprint == 'invitation_domains' %} class="active"{% endif %}
+            %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
         %li{% if request.blueprint == 'load_history' %} class="active"{% endif %}
           %a href="{{ url_for('load_history.index') }}" -> Load History
         %li{% if request.path == url_for('global_views.configured_hostname') %} class="active"{% endif %}

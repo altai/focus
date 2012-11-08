@@ -278,3 +278,8 @@ class ConfigureHostnameForm(wtf.Form):
         [wtf.Required(), validate_hostname],
         [filter_hostname],
         default=row_mysql_queries.get_configured_hostname)
+
+
+class ADProjectMembershipForm(wtf.Form):
+    groups = wtf.TextField(widget=wtf.TextArea())
+    users = wtf.TextField(widget=wtf.TextArea())

@@ -33,9 +33,14 @@
                       %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                         =tenant['name']
           %ul class="nav pull-right"
-            %li
-              %a href="{{ url_for('invitations.invite') }}"
-                Invite
+            -if config['LDAP_INTEGRATION']:
+              %li
+                %a href="{{ url_for('ad_admins.main') }}"
+                  Admins
+            -else:
+              %li
+                %a href="{{ url_for('invitations.invite') }}"
+                  Invite
             %li
               %a href="{{ url_for('profile') }}"
                 =session['user']['username']

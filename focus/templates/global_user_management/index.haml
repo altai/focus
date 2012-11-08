@@ -5,27 +5,35 @@
       %tr
         %th
           Username
+        -if config['LDAP_INTEGRATION']:
+          %th
+            Full Name
         %th
           Email
-        -if ('role', 'admin') is allowed:
-          %th
-            Actions
+        -if not config['LDAP_INTEGRATION']:
+          -if ('role', 'admin') is allowed:
+            %th
+              Actions
       -from "_modals.haml" import show_modal with context
       -for user in data
         %tr
           %td
             %a href="{{ url_for('global_user_management.show', user_id=user.id) }}"
               =user.name
+          -if config['LDAP_INTEGRATION']:
+            %td
+              =user.fullName
           %td
             -if user.email != None
               {{ user.email }}
-          %td
-            {{ show_modal(user, msg='Sure to delete "%s"?' % user.name, action='delete', extra_fields=[user.delete_form.hidden_tag()], add_next=False, form_action=url_for('global_user_management.delete')) }}
-            &nbsp;|&nbsp;
-            -if user.is_global_admin:
-              %a href="{{ url_for('global_user_management.revoke_admin', user_id=user.id) }}"
-                revoke admin
-            -else
-              %a href="{{ url_for('global_user_management.grant_admin', user_id=user.id) }}"
-                grant admin
+          -if not config['LDAP_INTEGRATION']:
+            %td
+              {{ show_modal(user, msg='Sure to delete "%s"?' % user.name, action='delete', extra_fields=[user.delete_form.hidden_tag()], add_next=False, form_action=url_for('global_user_management.delete')) }}
+              &nbsp;|&nbsp;
+              -if user.is_global_admin:
+                %a href="{{ url_for('global_user_management.revoke_admin', user_id=user.id) }}"
+                  revoke admin
+              -else
+                %a href="{{ url_for('global_user_management.grant_admin', user_id=user.id) }}"
+                  grant admin
   -include "pagination.haml"

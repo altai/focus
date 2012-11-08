@@ -18,7 +18,11 @@
       -for object in objects
         %tr
           %td
-            =object.name
+            -if config['LDAP_INTEGRATION']:
+              %a href="{{ url_for('.show', object_id=object.id) }}"
+                =object.name
+            -else:
+              =object.name
           %td
             -if object.description != None:
               =object.description

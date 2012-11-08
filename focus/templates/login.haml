@@ -13,5 +13,6 @@
     {{ render_field(form.password) }}
     %button type="submit" class="btn btn-primary"
       Sign in
-    %a href="{{ url_for('password_recovery_request') }}"
-      password recovery
+    -if not config['LDAP_INTEGRATION']:
+      %a href="{{ url_for('password_recovery_request') }}"
+        password recovery

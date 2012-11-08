@@ -17,8 +17,9 @@
           %a href="{{ url_for('projects.index') }}" -> Projects
         %li
           %a href="{{ url_for('networks.index') }}" -> Networks
-        %li
-          %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
+        -if not config['LDAP_INTEGRATION']:
+          %li
+            %a href="{{ url_for('invitation_domains.index') }}" -> Invitation Domains
         %li
           %a href="{{ url_for('load_history.index') }}" -> Load History
         %li

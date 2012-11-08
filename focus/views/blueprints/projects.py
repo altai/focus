@@ -42,6 +42,11 @@ from openstackclient_base.exceptions import HttpException
 
 bp = environments.admin(blueprints.Blueprint('projects', __name__))
 
+@bp.context_processor
+def inject():
+    return {
+        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize()
+        }
 
 @bp.route('')
 def index():
@@ -58,7 +63,6 @@ def index():
         'objects': pagina.slice(ordered),
         'pagination': pagina,
         'delete_form': delete_form,
-        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
         'subtitle': 'List of projects'
     }
 
@@ -142,6 +146,26 @@ def new():
         return flask.redirect(flask.url_for('.index'))
     return {
         'form': form,
-        'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
         'subtitle': 'Add new project'
     }
+
+@bp.route('<object_id>/', methods=['GET', 'POST'])
+def show(object_id):
+    try:
+        tenant = clients.admin_clients().keystone.tenants.get(object_id)
+    except Exception:
+        flask.abort(404)
+    form = forms.ADProjectMembershipForm()
+    if form.validate_on_submit():
+        body = {'tenant': {
+                'id': tenant.id,
+                'groups': [x.strip() for x in form.groups.data.split(',')],
+                'users': [x.strip() for x in form.users.data.split(',')]}}
+        tenant.manager._create(
+            '/tenants/%s/' % tenant.id, body, 'tenant')
+        flask.flash('Active directory project membership updated.', 'success')
+        return flask.redirect(flask.url_for('.show', object_id=tenant.id))
+    else:
+        form.groups.data = ', '.join(getattr(tenant, 'groups', []))
+        form.users.data = ', '.join(getattr(tenant, 'users', []))
+    return {'form': form, 'subtitle': tenant.name}

@@ -1,0 +1,20 @@
+-extends "global_admin_base.haml"
+-block content:
+  %div
+    %form method="POST" action="."
+      -from "_formhelpers.haml" import render_form_errors
+      =form.hidden_tag()
+      %fieldset
+        %legend
+          Active Directory Project Membership
+        %label
+          Groups
+        {{ form.groups() }}
+        %label
+          Users
+        {{ form.users() }}
+        %span.help-block
+          List names of groups and users separated by commas
+        %button.btn.btn-primary type="submit"
+          Submit
+

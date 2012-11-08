@@ -22,3 +22,4 @@ DEFAULT_MAIL_SENDER = ('RobotName', MAIL_USERNAME)
 KEYSTONECLIENT_DEBUG = False
 ADMINS = []
 LOG_FILE = '/var/log/focus/focus-tor.log'
+LDAP_INTEGRATION = False

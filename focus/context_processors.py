@@ -33,6 +33,14 @@ from focus.models import row_mysql_queries
 
 
 @focus.app.context_processor
+def inject_settings():
+    secure = [
+        'LDAP_INTEGRATION'
+    ]
+    return {'config': dict(
+            [(k, flask.current_app.config[k]) for k in secure])}
+
+@focus.app.context_processor
 def navigation_bar_tenant_data():
     if not getattr(flask.g, 'is_authenticated', False):
         return {}
