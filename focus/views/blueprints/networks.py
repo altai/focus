@@ -102,7 +102,10 @@ def delete(object_id):
         try:
             clients.admin_clients().compute.networks.delete(object_id)
         except HttpException as ex:
-            flask.flash(ex.message, 'error')
+            if ex.code == 500:
+                flask.flash('Network is in use. Delete all VMs for the network and try again.', 'error')
+            else:
+                flask.flash(ex.message, 'error')
         else:
             flask.flash('Network deleted.', 'success')
     return flask.redirect(flask.url_for('.index'))
