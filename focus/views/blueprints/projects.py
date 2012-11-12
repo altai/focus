@@ -77,13 +77,14 @@ def delete(object_id):
     form = forms.DeleteForm()
     if form.validate_on_submit():
         try:
-            # kill vms
+            # refuse to delete project if it contains VMs
             vms = filter(
                 lambda x: x.tenant_id == object_id,
                 clients.admin_clients().nova.servers.list(
                     search_opts={'all_tenants': 1}))
-            for x in vms:
-                x.delete()
+            if vms:
+                flask.flash('Project contains VM(s). Please delete VM(s) manually before deleting the project', 'error')
+                return flask.redirect(flask.url_for('.index'))
             # detach network
             networks_client = clients.admin_clients().compute.networks
             networks = networks_client.list()
