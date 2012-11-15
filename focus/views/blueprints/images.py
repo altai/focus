@@ -323,7 +323,7 @@ def get_bp(name):
             )
         # NOTE(apugachev) for big this will fail to load and BrokenPipe
         # will be raised inside Flask
-        return flask.make_response('')
+        return flask.jsonify({})
 
     @bp.route('progress/<uploaded_filename>/')
     def progress(uploaded_filename):

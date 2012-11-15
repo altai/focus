@@ -34,38 +34,22 @@ define([
           );
           var $f = $('form.new-image');
           var self = this;
-          $.post($f.attr('action'), $f.serialize()
-            ,function(data){
-            if (data.status == 'error'){
+
+          // start transmitting uploaded images to Glance
+          $.post($f.attr('action'), $f.serialize())
+          // callbacks on transmission complete
+          .success(function(){
+              window.location = window.location.pathname.replace('new/', '');
+          })
+          .error(function(){
               self.$('.form-actions').html(bkp_form_actions);
               self.render();
-            }
           });
-          
-          window.progressIntervalID = window.setInterval(function(){
-            $.get(
-              window.location.pathname.replace(
-                '/new/',
-                '/progress/' + uploaded_filename + '/'),
-              function(response){
-                if (!_.isEmpty(response)){
-                  /*if (response.transferred >= 0) {
-                    self.$('.api-progress .bar').css('width', response.percent + '%');
-                    self.$('.api-progress .info').html(
-                      'ETA: ' + response.eta +
-                        'UTC<br>Speed: ' + response.speed +
-                        ' b/s<br>Seconds spent: ' + response.time_spent +
-                        '<br>Transferred bytes: ' + response.transferred +
-                        '<br>Total bytes: ' + response.total);
-                  }*/
-                } else {
-                  clearInterval(window.progressIntervalID);
-                  window.location = window.location.pathname.replace('new/', '');
-                }
-              }
-            );
-          }, 2000);
-        }
+
+          // Here was commented code for showing progress bar on transmitting
+          // images to Glance. If you need this code again - find it in earlier
+          // versions of this file in repository.
+      }
       },
       'click .cancel-upload': function(e){
           e.preventDefault();
