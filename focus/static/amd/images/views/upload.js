@@ -233,6 +233,7 @@ define([
           });
           $('#id_kernel').change(function(){
             if ($("#id_kernel option:selected").val() == 'Upload new kernel'){
+                $("#id_kernel").val("Select kernel");
                 $("#kernel_uploaded_file_button").click();
             }
             $('#id_initrd').removeAttr('disabled');
@@ -311,6 +312,7 @@ define([
           });
           $('#id_initrd').change(function(){
             if ($("#id_initrd option:selected").val() == 'Upload new initrd'){
+                $("#id_initrd").val("Select initrd");
                 $("#initrd_uploaded_file_button").click();
             }
             $('#filesystem_uploaded_file_button').removeAttr('disabled');
