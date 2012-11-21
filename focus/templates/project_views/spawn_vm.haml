@@ -4,8 +4,8 @@
   %script src="{{ url_for('static', filename='amd/vm_spawn.js') }}"
 
   %script
-    images = {{ images }}
-    flavors = {{ flavors }}
+    images = {{ images | safe }}
+    flavors = {{ flavors | safe }}
 -block content
     -from "_formhelpers.haml" import render_form_errors, render_field, render_h_field
     %form.form-horizontal.well method="POST" action="." autocomplete="off"
