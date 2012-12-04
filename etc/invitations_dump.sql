@@ -97,7 +97,3 @@ CREATE TABLE `users` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2012-06-08 10:01:53
-DROP TABLE IF EXISTS `configured_hostnames`;
-CREATE TABLE `configured_hostnames` (
-  `hostname` varchar(255) DEFAULT NULL
-);

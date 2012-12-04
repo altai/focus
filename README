@@ -3,7 +3,8 @@ After installing RPM:
 
 1) Install/start Memcached
 2) Install/start MySQL
-3) Create MySQL db for Invitations and load it with /etc/invitations_dump.sql
+3) Create MySQL database and populate it with invitations_dump.sql and
+   configured_hostnames.sql files (in this order) from /etc/focus directory.
 4) Open port 80 in firewall if any is installed
 5) configure Nginx (/etc/nginx/conf.d/focus.conf)
    - set upload_store directive
