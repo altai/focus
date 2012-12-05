@@ -71,7 +71,11 @@ def configured_hostname():
         flask.flash('Hostname %s configured' % form.hostname.data, 'success')
         # redirect
         return flask.redirect(flask.url_for('.configured_hostname'))
-    return {'form': form}
+    return {
+        'form': form,
+        'title': 'Focus URL',
+        'subtitle': 'Network address of Altai UI',
+    }
 
 
 @bp.route('billing/')

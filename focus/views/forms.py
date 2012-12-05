@@ -270,7 +270,7 @@ def filter_hostname(x):
 
 class ConfigureHostnameForm(wtf.Form):
     hostname = wtf.TextField(
-        u'Application Hostname',
+        u'Focus URL',
         [wtf.Required(), validate_hostname],
         [filter_hostname],
         default=row_mysql_queries.get_configured_hostname)
