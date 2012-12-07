@@ -19,7 +19,6 @@ After installing RPM:
     * MEMCACHED_TIMEOUT - number of seconds for Memcached to store a value, 7200 by default (2 hours)
   - set credentials to Nova MySQL db (NOVA_RO_DATABASE_URI and NOVA_RW_DATABASE_URI)
   - set credentials to Invitations MySQL db (INVITATIONS_DATABASE_URI)
-  - set URL to access ODB (NEO4J_API_URL)
   - set Keystone access configuration dictionary (KEYSTONE_CONF):
     * auth_uri - Keyston authentication URL for port 5000
     * admin_tenant_name - usually 'systenant'

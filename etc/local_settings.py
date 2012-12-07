@@ -4,7 +4,6 @@ DEBUG = False
 UPLOADS_DEFAULT_DEST = '/var/lib/focus/uploads/'
 
 INVITATIONS_DATABASE_URI = ''
-NEO4J_API_URL = ''
 
 KEYSTONE_CONF = {
     'username': 'admin',

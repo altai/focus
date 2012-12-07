@@ -1,18 +1,17 @@
 -extends "base.haml"
 -block content
-  -from "_formhelpers.haml" import render_form_errors, render_field
+  -from "_formhelpers.haml" import render_form_errors, render_h_field
   %form method="POST" action="." class="well offset4 span4 form-vertical invite_registration"
     %legend
       Registration Form
     {{ render_form_errors(form.csrf_token) }}
     {{ form.hidden_tag() }}
-    Email: {{ email }}
-    {{ render_field(form.email) }}
-    Username: 
-    {% if not username_is_taken %}
-        {{ username }}
-    {% endif %}
-    {{ render_field(form.username) }}
-    Password: {{ render_field(form.password) }}
+    %div class="control-group"
+      %label class="control-label"
+        Email
+      %div class="controls"
+        %input name="email" value="{{ email }}" readonly="readonly"
+    =render_h_field(form.username, is_required=True)
+    =render_h_field(form.password, is_required=True)
     %button type="submit" class="btn btn-primary"
       Register

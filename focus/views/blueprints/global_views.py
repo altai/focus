@@ -59,10 +59,9 @@ def configured_hostname():
         row_mysql_queries.set_configured_hostname(form.hostname.data)
         # send
         username = flask.session['user']['username']
-        email = utils.neo4j_api_call(
-            '/users/?username=%s' % username)[0]['email']
+        email = flask.session['user']['email']
         msg = mail.Message(
-            'New Hostname Confiured',
+            'New Hostname Configured',
             recipients=[email])
         msg.body = flask.render_template(
             'ConfigureHostnameEmail/body.txt')

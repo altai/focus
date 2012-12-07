@@ -36,10 +36,8 @@ ANONYMOUS_ALLOWED = [
     'login',
     'logout',
     'static',
-    'convert_keystone_2_odb',
     'password_recovery_request',
     'password_recovery_finish',
-    'update_passwords_in_ODB',
     'invitations.finish',
     'project_images.progress'
 ]

@@ -196,16 +196,6 @@ def delete():
     if form.validate_on_submit():
         keystone_user = clients.admin_clients().keystone.users.get(
             form.user_id.data)
-        if keystone_user.email:
-            odb_user = utils.neo4j_api_call('/users', {
-                "email": keystone_user.email
-            }, 'GET')[0]
-        else:
-            odb_user_list = utils.neo4j_api_call('/users', method='GET')
-            odb_user = filter(
-                lambda x: x.username == keystone_user.name,
-                odb_user_list)
-        utils.neo4j_api_call('/users/%s' % odb_user['id'], method='DELETE')
         roles = keystone_user.list_roles()
         for role in roles:
             clients.admin_clients().keystone.tenants.remove_user(

@@ -40,7 +40,7 @@ def get_login_form():
     """
     class LoginForm(wtf.Form):
         next = wtf.HiddenField(default=utils.get_next_url())
-        email = wtf.TextField('Email', [wtf.Required(), wtf.Email()])
+        login = wtf.TextField('Login or e-mail', [wtf.Required()])
         password = wtf.PasswordField('Password', [wtf.Required()])
     return LoginForm
 
@@ -247,8 +247,7 @@ class Invite(wtf.Form):
 
 
 class InviteRegister(wtf.Form):
-    email = wtf.HiddenField()
-    username = wtf.HiddenField()
+    username = wtf.TextField('Username', [wtf.Required()])
     password = wtf.PasswordField('Password', [wtf.Required()])
 
 

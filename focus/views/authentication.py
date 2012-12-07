@@ -45,23 +45,20 @@ def session_clean():
 
 def _login(username, password):
     try:
-        odb_user = utils.neo4j_api_call('/users', {
-            "email": username,
-        }, 'GET')[0]
-    except NotFound:
-        # NOTE(apugachev) ODB returns 404 for non-existing email, lol.
-        return False
-    if not (odb_user['passwordHash'] ==
-            utils.create_hashed_password(password)):
-        return False
-    username = odb_user['username']
-    # NOTE(apugachev)
-    # odb username is Keystone user name
-    # password is the same as Keystone password
-    try:
         clients.create_unscoped(username, password)
     except Unauthorized:
-        return False
+        if '@' not in username:
+            return False
+        try:
+            user = clients.admin_clients().keystone.users.find(email=username)
+        except NotFound:
+            return False
+        username = user.name
+        try:
+            clients.create_unscoped(username, password)
+        except Unauthorized:
+            return False
+
     flask.session['user'] = (
         flask.session['keystone_unscoped']['access']['user'])
     flask.g.is_authenticated = True
@@ -98,13 +95,13 @@ def login():
     if form.validate_on_submit():
         # TODO(apugachev) inline authenticate_user here
         # it must not be used anywhere else
-        logged_successfully = _login(form.email.data, form.password.data)
+        logged_successfully = _login(form.login.data, form.password.data)
         if logged_successfully:
             return flask.redirect(form.next.data)
         # required to wipe artifacts of unsuccessful attempts
         session_clean()
-        flask.session['wrong_email'] = form.email.data
-        flask.flash('Wrong email/password.', 'error')
+        flask.session['wrong_login'] = form.login.data
+        flask.flash('Wrong login/password.', 'error')
     return {'form': form}
 
 
@@ -137,25 +134,17 @@ def password_recovery_finish(recovery_hash):
     if complete == 1:
         flask.flash('Password recovery token is expired', 'error')
         return flask.redirect(flask.url_for('dashboard'))
-    odb_user = utils.neo4j_api_call('/users', {"email": email}, 'GET')[0]
+
     new_hash = str(uuid.uuid4())
     # set trash password in keystone
-    keystone_user = utils.get_keystone_user_by_username(odb_user['username'])
+    keystone_user = clients.admin_clients().keystone.users.find(email=email)
     clients.admin_clients().keystone.users.update_password(keystone_user,
                                                            new_hash)
-    # set trash password in odb
-    utils.neo4j_api_call('/users', {
-        'id': odb_user['id'],
-        'login': odb_user['login'],
-        'username': odb_user['username'],
-        'email': odb_user['email'],
-        'passwordHash': utils.create_hashed_password(new_hash)},
-        'PUT')
     # send trash password back to user
-    msg = mail.Message('Password recovery', recipients=[odb_user['email']])
+    msg = mail.Message('Password recovery', recipients=[email])
     msg.body = flask.render_template('RecoveryPasswordFinishEmail/body.txt',
                                      new_pass=new_hash)
-    
+
     utils.send_msg(msg)
     flask.flash('New password was sent to you', 'success')
     return flask.redirect(flask.url_for('dashboard'))
@@ -172,10 +161,7 @@ def password_recovery_request():
     form = forms.PasswordRecoveryRequest()
     if form.validate_on_submit():
         # check if user exasts in database
-        try:
-            utils.neo4j_api_call(
-                '/users', {"email": form.email.data}, 'GET')[0]
-        except (KeyError, NotFound):
+        if not utils.email_is_used(form.email.data):
             flask.flash(
                 'User with that email "%s" is not registered.' %
                 form.email.data,
@@ -193,8 +179,8 @@ def password_recovery_request():
                                              recovery_link=recovery_link)
             utils.send_msg(msg)
             flask.flash('Recovery request was sent successfully', 'info')
-    if 'wrong_email' in flask.session:
-        form.email.data = flask.session['wrong_email']
+    if 'wrong_login' in flask.session:
+        form.email.data = flask.session['wrong_login']
     return {'form': form}
 
 
