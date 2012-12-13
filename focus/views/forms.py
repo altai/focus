@@ -42,6 +42,11 @@ def get_login_form():
         next = wtf.HiddenField(default=utils.get_next_url())
         login = wtf.TextField('Login or e-mail', [wtf.Required()])
         password = wtf.PasswordField('Password', [wtf.Required()])
+
+        def validate_csrf_token(self, field):
+            field.data = str(field.data)
+            super(LoginForm, self).validate_csrf_token(field)
+
     return LoginForm
 
 
