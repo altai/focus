@@ -1,4 +1,4 @@
-You have been invited to join OpenStack.
+You have been invited to join Altai private cloud.
 To complete click the link below, please:
 {{ url_for_path(invite_link) }}
 
