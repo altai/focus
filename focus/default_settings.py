@@ -18,7 +18,7 @@
 # License along with this program. If not, see
 # <http://www.gnu.org/licenses/>.
 
-
+CSRF_ENABLED = False
 SECRET_KEY = 'g.U(\x8cQ\xbc\xdb\\\xc3\x9a\xb2\xb6,\xec\xad(\xf8"2*\xef\x0bd'
 # GET/POST field name to store next after login URL
 NEXT_TO_LOGIN_ARG = 'next'
