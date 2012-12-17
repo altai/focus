@@ -18,3 +18,5 @@ local_fab_settings.py
 venv
 centosvenv
 .idea
+*.swo
+*.swp

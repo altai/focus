@@ -29,6 +29,7 @@ import netaddr
 import flask
 from flaskext import wtf
 from flaskext.wtf import html5
+from wtforms.validators import StopValidation
 from focus.views import utils
 from focus import clients
 from focus.models import row_mysql_queries
@@ -67,8 +68,8 @@ def get_spawn_form(images, flavors, security_groups, key_pairs):
     SECURITY_GROUP = sorted(map(lambda x: (x.name, x.name), security_groups), 
                             key=l_by_name)
     KEYPAIR_CHOICES = list(sorted(
-	map(lambda x: (x.name, x.name), key_pairs),
-	key=l_by_name))
+        map(lambda x: (x.name, x.name), key_pairs),
+        key=l_by_name))
     KEYPAIR_CHOICES.insert(0, ('', ''))
 
 
@@ -147,7 +148,7 @@ class DecimalFieldRequired(wtf.Required):
     def __call__(self, form, field):
         if not field.data == decimal.Decimal('0.0'):
             if (
-                not field.data or isinstance(field.data, basestring) and 
+                not field.data or isinstance(field.data, basestring) and
                 not field.data.strip()):
                     if self.message is None:
                         self.message = field.gettext(u'This field is required.')
