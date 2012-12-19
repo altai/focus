@@ -31,15 +31,15 @@
         <% } else if (datum.rtype == 'glance/image'){ %>
         <i class="icon-file"></i>
         <% } %>
-        
+
         <% if (datum.detailed){ %>
         <a href="<%= datum.detailed.focus_url %>">
-          <% if (datum.rtype == 'nova/volume'){ %>
+        <% if (datum.rtype == 'nova/volume'){ %>
           <%= datum.detailed.device %>@<%= datum.detailed.instance_info.name %>
           <% } else { %>
           <%= datum.detailed.name  %>
           <% } %>
-        </a>        
+        </a>
         <% } else { %>
         <%= datum.rtype %>/<%= datum.name %>
         <% } %>
@@ -61,6 +61,6 @@
       <td><%= datum.destroyed_at ? formatDate(datum.destroyed_at) : "alive" %></td>      
     </tr>
     <% });%>
-    
+
   </tbody>
 </table>

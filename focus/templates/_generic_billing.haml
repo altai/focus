@@ -9,15 +9,15 @@
       %a href="#year"
         This Year
     %li
-      %div.modal.hide.fade#choose_period 
+      %div.modal.hide.fade#choose_period
         %div.modal-header
           Choose period
         %div.modal-body
           %input.datepicker name="start" type="text"
           %input.datepicker name="end" type="text"
         %div.modal-footer
-          %a.btn data-dismiss="modal" href="#" -> Cancel
-          %a.btn.btn-primary href="#" -> Apply
+          %a.btn data-dismiss="modal" data-action="cancel" href="#" -> Cancel
+          %a.btn.btn-primary data-action="apply" href="#" -> Apply
       %a href="#custom_period" data-toggle="modal" data-target="#choose_period"
         Custom Period
     %li

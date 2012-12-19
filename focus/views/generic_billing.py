@@ -44,26 +44,14 @@ class Params(object):
     period_end = None
     time_period = None
 
-    def __init__(self, account_id, args={}):
+    def __init__(self, account_id, period_start, period_end):
         self.account_id = account_id
-        if 'period_start' in args and 'period_end' in args:
-            # control format of dates
-            self.period_start = args['period_start']
-            self.period_end = args['period_end']
-        else:
-            kind = args.get('kind', 'month')
-            if kind == 'today':
-                self.time_period = datetime.date.today().isoformat()
-            elif kind == 'month':
-                # API default is this month
-                pass
-            elif kind == 'year':
-                self.time_period = datetime.date.today().year
+        self.period_start = period_start
+        self.period_end = period_end
 
     def lookup_key(self):
-        return '%s:%s:%s:%s' % (
-            self.account_id, self.period_start,
-            self.period_end, self.time_period)
+        return '%s:%s:%s:%s' % (self.account_id, self.period_start,
+                self.period_end)
 
 
 def _calc_cost(res):
@@ -187,7 +175,9 @@ def generic_billing(tenant, user, tenants=None):
     in correct formatting as JSON response.
     """
     if flask.request.is_xhr:
-        p = Params(tenant.id, flask.request.args)
+        args = flask.request.args
+
+        p = Params(tenant.id, args['period_start'], args['period_end'])
         d = Dataset(p, user_id=user['id'], tenant_id=tenant.id)
         return flask.jsonify({
             'caption': 'Billing for project %s' % tenant.name,
