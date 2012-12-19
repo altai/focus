@@ -112,10 +112,15 @@ def spawn_vm():
         'subtitle': 'Spawn new virtual machine'
     }
 
+def check_vm_tenant(vm_id):
+    server = clients.admin_clients().nova.servers.get(vm_id)
+    if server.tenant_id != flask.g.tenant_id:
+        flask.abort(401)
+    return server
 
 @bp.route('vms/<vm_id>/')
 def show_vm(vm_id):
-    server = clients.admin_clients().nova.servers.get(vm_id)
+    server = check_vm_tenant(vm_id)
     try:
         flavor = clients.admin_clients().nova.flavors.get(server.flavor['id'])
     except NotFound:
@@ -135,6 +140,7 @@ def show_vm(vm_id):
 
 @bp.route('vms/<vm_id>/vnc')
 def get_vnc_console(vm_id):
+    check_vm_tenant(vm_id)
     vnc = (clients.user_clients(flask.g.tenant_id).compute.servers.
            get_vnc_console(vm_id, flask.current_app.config['VNC_CONSOLE_TYPE']))
     return flask.redirect(vnc['console']['url'])
@@ -146,6 +152,7 @@ def remove_vm(vm_id):
     Delete VM.
     No checks because currently OpenStack performs authorization checks.
     '''
+    check_vm_tenant(vm_id)
     clients.user_clients(flask.g.tenant_id).compute.servers.delete(vm_id)
     flask.flash('Delete operation requested for VM.', 'success')
     # NOT(apugachev)openstack can be slow; make a note to reflect the fact
@@ -161,6 +168,7 @@ def reboot_vm(vm_id, type):
     """
     Reboot VM
     """
+    check_vm_tenant(vm_id)
     clients.user_clients(flask.g.tenant_id).compute.servers.reboot(vm_id, type)
     flask.flash('Virtual machine rebooted successfully.', 'success')
     return flask.redirect(views_utils.get_next_url())
@@ -168,6 +176,7 @@ def reboot_vm(vm_id, type):
 
 @bp.route('vms/<vm_id>/console')
 def get_console_output(vm_id):
+    check_vm_tenant(vm_id)
     console = clients.user_clients(flask.g.tenant_id).compute.servers.get_console_output(vm_id)
     console = console.split('\n')
     return {
