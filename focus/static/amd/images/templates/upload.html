@@ -57,15 +57,16 @@
       <label class="control-label">Kernel</label>
       <div class="controls">
         <div id="kernel_container" style="padding-top: 5px;">
-          <button style="display: none;" id="kernel_uploaded_file_button">basdf</button>
-	      <select id="id_kernel" name="kernel">
-	        <option disabled="disabled" selected>Select kernel</option>
+	  <select id="id_kernel" name="kernel">
+	    <option disabled="disabled" selected>Select kernel</option>
             <option id="kernel_uploaded_file">Upload new kernel</option>
             <option disabled="disabled">---------</option>
-	        <% _.each(kernel_list, function(x){ %>
-	        <option value="<%= x.id %>"><%= x.name %></option>
-	        <% }); %>
-	      </select>
+	    <% _.each(kernel_list, function(x){ %>
+	    <option value="<%= x.id %>"><%= x.name %></option>
+	    <% }); %>
+	  </select>
+	  <button style="display: none; " id="kernel_uploaded_file_button" type="button">Select File</button>
+
           <div id="filelist"></div>
         </div>
       </div>
@@ -73,16 +74,16 @@
     <div class="control-group uploader initrd" data-error-key="initrd">
       <label class="control-label">Initrd</label>
       <div class="controls">
-      <button style="display: none;" id="initrd_uploaded_file_button">basdf</button>
         <div id="initrd_container" style="padding-top: 5px;">
-	      <select id="id_initrd" name="initrd" disabled>
-	        <option disabled="disabled" selected>Select initrd</option>
+	  <select id="id_initrd" name="initrd" disabled>
+	    <option disabled="disabled" selected>Select initrd</option>
             <option id="initrd_uploaded_file">Upload new initrd</option>
             <option disabled="disabled">---------</option>
-	        <% _.each(initrd_list, function(x){ %>
-	        <option value="<%= x.id %>"><%= x.name %></option>
-	        <% }); %>
-	      </select>
+	    <% _.each(initrd_list, function(x){ %>
+	    <option value="<%= x.id %>"><%= x.name %></option>
+	    <% }); %>
+	  </select>
+	  <button style="display: none;" id="initrd_uploaded_file_button">Select File</button>
           <div id="filelist"></div>
         </div>
       </div>

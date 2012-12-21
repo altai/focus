@@ -124,6 +124,9 @@ define([
       this.$('input#id_upload_type').removeAttr('checked');
       this.$('input#id_upload_type[value='+ this.selected_upload_type +']').attr('checked', 'checked');
       this.$('#id_name').val(name);
+      if (typeof(this.kernel_uploader) != 'undefined') {
+        this.kernel_uploader.refresh();
+      }
     },
     render: function(){
       context = {
@@ -146,7 +149,7 @@ define([
         }
         var self = this;
         this.uploader = new plupload.Uploader({
-          runtimes: 'html5,gears,flash,silverlight',
+          runtimes: 'html5,flash,gears,silverlight',
           multi_selection: this.selected_upload_type=='amazon_like',
           url : '/fast-upload/',
           flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
@@ -223,7 +226,7 @@ define([
           }
           var self = this;
           this.kernel_uploader = new plupload.Uploader({
-            runtimes: 'html5,gears,flash,silverlight',
+            runtimes: 'html5,flash,gears,silverlight',
             multi_selection: false,
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
@@ -233,9 +236,10 @@ define([
           });
           $('#id_kernel').change(function(){
             if ($("#id_kernel option:selected").val() == 'Upload new kernel'){
-                $("#id_kernel").val("Select kernel");
-                $("#kernel_uploaded_file_button").click();
-            }
+                $("#kernel_uploaded_file_button").show().focus()
+            } else {
+		$("#kernel_uploaded_file_button").hide()
+	    }
             $('#id_initrd').removeAttr('disabled');
           });
           this.kernel_uploader.init();
@@ -290,6 +294,7 @@ define([
             }
             $('#kernel_container #filelist').removeClass('hide');
             $('#kernel_container select').prepend('<option value="'+ file.name +'" selected>'+ file.name +'</option>');
+	      $("#kernel_uploaded_file_button").hide()
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
             }
@@ -302,7 +307,7 @@ define([
           }
           var self = this;
           this.initrd_uploader = new plupload.Uploader({
-            runtimes: 'html5,gears,flash,silverlight',
+            runtimes: 'html5,flash,gears,silverlight',
             multi_selection: false,
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
@@ -312,9 +317,10 @@ define([
           });
           $('#id_initrd').change(function(){
             if ($("#id_initrd option:selected").val() == 'Upload new initrd'){
-                $("#id_initrd").val("Select initrd");
-                $("#initrd_uploaded_file_button").click();
-            }
+                $("#initrd_uploaded_file_button").show().focus();
+            } else {
+		$("#initrd_uploaded_file_button").hide();
+	    }
             $('#filesystem_uploaded_file_button').removeAttr('disabled');
           });
           this.initrd_uploader.init();
@@ -369,6 +375,7 @@ define([
             }
             $('#initrd_container #filelist').removeClass('hide');
             $('#initrd_container select').prepend('<option value="'+ file.name +'" selected>'+ file.name +'</option>');
+	      $("#initrd_uploaded_file_button").hide();
             if ($('#autoupload').is(':checked')){
               $('button[type=submit]').click();
             }
@@ -381,7 +388,7 @@ define([
           }
           var self = this;
           this.filesystem_uploader = new plupload.Uploader({
-            runtimes: 'html5,gears,flash,silverlight',
+            runtimes: 'html5,flash,gears,silverlight',
             multi_selection: false,
             url : '/fast-upload/',
             flash_swf_url : '/static/vendors/plupload-1.5.4/js/plupload.flash.swf',
