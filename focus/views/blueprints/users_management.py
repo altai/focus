@@ -175,11 +175,12 @@ def revoke_admin(user_id):
     TODO(apugachev): convert to POST
     TODO(apugachev): add form to plug in the CSRF protection
     """
-    clients.admin_clients().keystone.roles.remove_user_role(
-        user_id,
-        clients.get_role_id("admin"),
-        clients.get_systenant_id())
-    flask.flash('Admin role removed', 'success')
+    if user_id != flask.g.user['id']:
+        clients.admin_clients().keystone.roles.remove_user_role(
+            user_id,
+            clients.get_role_id("admin"),
+            clients.get_systenant_id())
+        flask.flash('Admin role removed', 'success')
     return flask.redirect(flask.url_for('.index'))
 
 

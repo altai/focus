@@ -29,11 +29,13 @@
           -if not config['LDAP_INTEGRATION']:
             %td
               {{ show_modal(user, msg='Sure to delete "%s"?' % user.name, action='delete', extra_fields=[user.delete_form.hidden_tag()], add_next=False, form_action=url_for('global_user_management.delete')) }}
-              &nbsp;|&nbsp;
               -if user.is_global_admin:
-                %a href="{{ url_for('global_user_management.revoke_admin', user_id=user.id) }}"
-                  revoke admin
+                -if user.id != g.user.id:
+                  &nbsp;|&nbsp;
+                  %a href="{{ url_for('global_user_management.revoke_admin', user_id=user.id) }}"
+                    revoke admin
               -else
+                &nbsp;|&nbsp;
                 %a href="{{ url_for('global_user_management.grant_admin', user_id=user.id) }}"
                   grant admin
   -include "pagination.haml"
