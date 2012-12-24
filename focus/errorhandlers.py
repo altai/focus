@@ -20,6 +20,8 @@
 
 
 """Setting error handlers."""
+import json
+import re
 import socket
 import sys
 
@@ -56,6 +58,19 @@ if not focus.app.debug:
             error.message or error.args[0])
         exc_type, exc_value, traceback = sys.exc_info()
         flask.current_app.log_exception((exc_type, exc_value, traceback))
+        keystone_prefix = 'An unexpected error prevented the server from fulfilling your request.'
+        if message.startswith(keystone_prefix):
+            remote_error = message.replace(keystone_prefix, '')
+            try:
+                unjson = json.loads(remote_error)
+                if 'desc' in unjson:
+                    remote_error = unjson['desc']
+            except ValueError:
+                try:
+                    remote_error = re.search('"(.+)"', remote_error).group(1)
+                except AttributeError:
+                    pass
+            message = 'Authentication service error: %s' % remote_error
         # referrer is None if header is missing
         if flask.request.is_xhr:
             return flask.jsonify({'status': 'error', 'message': message, 'code': -1})
