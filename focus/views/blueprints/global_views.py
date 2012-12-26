@@ -59,7 +59,8 @@ def configured_hostname():
         row_mysql_queries.set_configured_hostname(form.hostname.data)
         # send
         username = flask.session['user']['username']
-        email = flask.session['user']['email']
+        email = clients.admin_clients().keystone.users.get(
+            flask.session['user']['id']).email
         msg = mail.Message(
             'New Hostname Configured',
             recipients=[email])
