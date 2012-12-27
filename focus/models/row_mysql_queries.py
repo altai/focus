@@ -93,7 +93,7 @@ def get_configured_hostname():
         if result:
             return result[0]
         else:
-            return flask.current_app.config.get('CONFIGURED_HOSTNAME', '')
+            return flask.current_app.config.get('CONFIGURED_URL', '')
     except TypeError, e:
         # to not be lost in WTForms
         raise RuntimeError, str(e)
