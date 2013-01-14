@@ -26,7 +26,7 @@ import socket
 import sys
 
 import flask
-
+from flaskext import principal
 import focus
 from openstackclient_base.exceptions import HttpException, Unauthorized
 
@@ -52,12 +52,14 @@ if not focus.app.debug:
         If http referrer exists and belongs to our domain redirect there.
         Otherwise renders tempalte "blank.haml".
         """
-        message = getattr(
-            error,
-            'public_message',
-            error.message or error.args[0])
-        exc_type, exc_value, traceback = sys.exc_info()
-        flask.current_app.log_exception((exc_type, exc_value, traceback))
+        if type(error) is principal.PermissionDenied:
+            message = 'Permission required.'
+        else:
+            message = getattr(
+                error,
+                'public_message',
+                error.message or str(error.args[0]))
+        flask.current_app.log_exception(sys.exc_info())
         keystone_prefix = 'An unexpected error prevented the server from fulfilling your request.'
         if message.startswith(keystone_prefix):
             remote_error = message.replace(keystone_prefix, '')
