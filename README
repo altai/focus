@@ -48,6 +48,7 @@ After installing RPM:
        }
   - set path to directory writable by the web-aplication for zabbix proxy API service to store it's files (ZABBIX_PROXY_TMP)
   - set path to log (file ZABBIX_LOG_FILE). Default is /var/log/focus/zabbix_proxy.log
+  - set protocol, port and domain name of application's URL (CONFIGURED_URL). If not set will be used 'http://%s/' where '%s' is equal to server hostname as returned by socket.gethostname()
 
 7) edit /etc/focus/gunicorn_config.py
   - bind: "<IP:port>"

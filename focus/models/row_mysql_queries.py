@@ -21,6 +21,7 @@
 
 # TODO(apugachev) consider converting this staff to storm models
 import functools
+import socket
 
 import flask
 
@@ -93,7 +94,11 @@ def get_configured_hostname():
         if result:
             return result[0]
         else:
-            return flask.current_app.config.get('CONFIGURED_URL', '')
+            configured_url = flask.current_app.config.get('CONFIGURED_URL', '')
+            if not configured_url:
+                return 'http://%s/' % socket.gethostname()
+            else:
+                return configured_url
     except TypeError, e:
         # to not be lost in WTForms
         raise RuntimeError, str(e)

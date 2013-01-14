@@ -23,6 +23,7 @@
 
 import sys
 import urllib
+import urlparse
 
 import flask
 
@@ -89,7 +90,7 @@ focus.app.jinja_env.globals['url_for_other_page'] = url_for_other_page
 
 
 def url_for_path(path):
-    return '%s%s' % (row_mysql_queries.get_configured_hostname(), path)
+    return urlparse.urljoin(row_mysql_queries.get_configured_hostname(), path)
 
 
 focus.app.jinja_env.globals['url_for_path'] = url_for_path
