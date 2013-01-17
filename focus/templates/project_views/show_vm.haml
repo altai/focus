@@ -37,6 +37,11 @@
             =server.id
         %tr
           %td
+            Status
+          %td
+            =("%s%s" % (server.status, " (no suitable host found)" if not server.hostId and server.status == "ERROR" else ""))
+        %tr
+          %td
             Is loaded
           %td
             =server.is_loaded()
