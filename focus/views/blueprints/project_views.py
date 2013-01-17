@@ -96,11 +96,17 @@ def spawn_vm():
             kw['key_name'] = form.keypair.data
         if form.password.data:
             kw['admin_pass'] = form.password.data
-        c.nova.servers.create(form.name.data,
-                              form.image.data,
-                              form.flavor.data,
-                              **kw)
-        flask.flash('Virtual machine spawned.', 'success')
+        server = c.nova.servers.create(form.name.data,
+                                       form.image.data,
+                                       form.flavor.data,
+                                       **kw)
+        if server.status == 'ERROR':
+            if not server.hostId:
+                flask.flash('No host found to run virtual machine.', 'error')
+            else:
+                flask.flash('Failed to spawn virtual machine.', 'error')
+        else:
+            flask.flash('Virtual machine spawned.', 'success')
         return flask.redirect(flask.url_for(
             '.show_tenant', tenant_id=flask.g.tenant_id))
     return {
