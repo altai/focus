@@ -189,8 +189,8 @@ def list_vms():
         if 'project_name' in columns.current_names:
             response['distinct_projects_names'] = sorted(
                 current_dataset.get_distinct_values("project_name"))
-    response.update({
-        'title': 'Virtual Machines',
-        'subtitle': 'List of virtual machines'
-    })
+        response.update({
+            'title': 'Virtual Machines',
+            'subtitle': 'List of virtual machines'
+        })
     return response
