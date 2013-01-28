@@ -45,7 +45,16 @@ def get_bp(blueprint_name):
         """
         security_group = (clients.user_clients(flask.g.tenant_id).compute.
                           security_groups.get(security_group_id))
+        def prepare_rule_for_modal(rule):
+            return (rule, dict(id=rule['id'],
+                               name="%s[%s-%s]/%s@%s" % (rule['ip_protocol'],
+                                                         rule['from_port'],
+                                                         rule['to_port'],
+                                                         security_group.name,
+                                                         rule['ip_range']['cidr'])))
+        security_group_rules = map(prepare_rule_for_modal, security_group.rules)
         return {
+            'security_group_rules': security_group_rules,
             'security_group': security_group,
             'add_form': add_form or forms.SecurityGroupRuleAdd(
                 security_group_id=security_group_id),

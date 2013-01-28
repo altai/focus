@@ -25,18 +25,20 @@
              Source Group
            %th
              Actions
-         -for rule in security_group['rules']:
+         -for robj in security_group_rules:
            %tr
              %td
-               =rule.ip_protocol
+               =robj[0].ip_protocol
              %td
-               =rule.from_port
+               =robj[0].from_port
              %td
-               =rule.to_port
+               =robj[0].to_port
              %td
-               =rule.ip_range.cidr if rule.ip_range else ''
+               -if robj[0].ip_range:
+                 =robj[0].ip_range.cidr
              %td
-               =rule.group.name if rule.group else ''
+               -if robj[0].group:
+                 =robj[0].group.name
              %td
-               {{ show_modal(security_group, action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete_rule', security_group_id=security_group['id'], rule_id=rule['id'])) }}
+               {{ show_modal(robj[1], action='delete', extra_fields=[delete_form.hidden_tag()], add_next=False, form_action=url_for('.delete_rule', security_group_id=security_group['id'], rule_id=robj[0]['id'])) }}
 
