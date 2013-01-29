@@ -136,7 +136,7 @@ def list_vms():
     columns = dataset.ColumnKeeper({
         'id': dataset.StrColumn('id', 'ID'),
         'name': dataset.StrColumn('name', 'Name'),
-        'user_id': dataset.StrColumn('user_id', 'User'),
+        'user_id': dataset.StrColumn('name', 'User'),
         'tenant_id': dataset.StrColumn('tenant_id', 'Project ID'),
         'project_name': ProjectNameColumn(
             'project_name', 'Project Name'),

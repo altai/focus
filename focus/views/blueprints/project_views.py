@@ -42,6 +42,8 @@ bp = environments.project(blueprints.Blueprint('project_views', __name__))
 def show_tenant():
     """
     List VMs for the project
+
+    Show user names instead of IDs here.
     """
     c = clients.user_clients(flask.g.tenant_id)
     servers = c.compute.servers.list(detailed=True)
@@ -50,21 +52,15 @@ def show_tenant():
     p = pagination.Pagination(vms_data)
     data = p.slice(vms_data)
     user_id2name = {}
-    uuid_regex = re.compile(
-        r'[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}')
+
     for x in data:
-        user_id = x['user_id']
-        try:
-            x['user_id'] = user_id2name[user_id]
-            pass
-        except KeyError:
-            if user_id.isdigit() or uuid_regex.match(user_id):
-                try:
-                    user = clients.admin_clients().keystone.users.get(user_id)
-                    user_id2name[user_id] = user.name
-                    x['user_id'] = user.name
-                except:
-                    pass
+        if x['user_id'] in user_id2name:
+            x['user_id'] = user_id2name[x['user_id']]
+        else:
+            user = clients.admin_clients().keystone.users.get(x['user_id'])
+            user_id2name[x['user_id']] = user.name
+            x['user_id'] = user.name
+
     return {
         'vms': data,
         'pagination': p,
@@ -118,11 +114,13 @@ def spawn_vm():
         'subtitle': 'Spawn new virtual machine'
     }
 
+
 def check_vm_tenant(vm_id):
     server = clients.admin_clients().nova.servers.get(vm_id)
     if server.tenant_id != flask.g.tenant_id:
         flask.abort(401)
     return server
+
 
 @bp.route('vms/<vm_id>/')
 def show_vm(vm_id):
@@ -148,7 +146,8 @@ def show_vm(vm_id):
 def get_vnc_console(vm_id):
     check_vm_tenant(vm_id)
     vnc = (clients.user_clients(flask.g.tenant_id).compute.servers.
-           get_vnc_console(vm_id, flask.current_app.config['VNC_CONSOLE_TYPE']))
+           get_vnc_console(vm_id,
+                           flask.current_app.config['VNC_CONSOLE_TYPE']))
     return flask.redirect(vnc['console']['url'])
 
 
@@ -183,7 +182,8 @@ def reboot_vm(vm_id, type):
 @bp.route('vms/<vm_id>/console')
 def get_console_output(vm_id):
     check_vm_tenant(vm_id)
-    console = clients.user_clients(flask.g.tenant_id).compute.servers.get_console_output(vm_id)
+    console = (clients.user_clients(flask.g.tenant_id).
+               compute.servers.get_console_output(vm_id))
     console = console.split('\n')
     return {
         'title': 'Console output',
