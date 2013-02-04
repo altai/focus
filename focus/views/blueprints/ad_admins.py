@@ -30,6 +30,8 @@ from focus import clients
 from focus.views import environments
 from focus.views import forms
 
+from openstackclient_base import exceptions
+
 
 bp = environments.admin(blueprints.Blueprint('ad_admins', __name__))
 
@@ -37,21 +39,28 @@ bp = environments.admin(blueprints.Blueprint('ad_admins', __name__))
 @bp.route('', methods=['GET', 'POST'])
 def main():
     try:
-        tenant = clients.admin_clients().keystone.tenants.get(
-            clients.get_systenant_id())
-    except Exception:
+        tenant = clients.admin_clients().keystone.tenants.get(clients.get_systenant_id())
+    except exceptions.NotFound:
         flask.abort(404)
-    form = forms.ADProjectMembershipForm()
+
+    form = forms.ADProjectMembershipForm(clients)
+
     if form.validate_on_submit():
         body = {'tenant': {
                 'id': tenant.id,
-                'groups': [x.strip() for x in form.groups.data.split(',')],
-                'users': [x.strip() for x in form.users.data.split(',')]}}
+                'groups': form.groups.data,
+                'users': form.users.data}}
+
         tenant.manager._create(
             '/tenants/%s/' % tenant.id, body, 'tenant')
         flask.flash('Active directory project membership updated.', 'success')
         return flask.redirect(flask.url_for('.main'))
     else:
-        form.groups.data = ', '.join(getattr(tenant, 'groups', ''))
-        form.users.data = ', '.join(getattr(tenant, 'users', ''))
-    return {'object': tenant, 'form': form, 'title': 'Admins', 'subtitle': 'Active Directory Project Membership'}
+        form.groups.data = getattr(tenant, 'groups', [])
+        form.users.data = getattr(tenant, 'users', [])
+    return {
+        'object': tenant,
+        'form': form,
+        'title': 'Admins',
+        'subtitle': 'Active Directory Altai Administration Membership'
+    }

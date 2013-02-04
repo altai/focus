@@ -155,12 +155,12 @@ def show(object_id):
         tenant = clients.admin_clients().keystone.tenants.get(object_id)
     except Exception:
         flask.abort(404)
-    form = forms.ADProjectMembershipForm()
+    form = forms.ADProjectMembershipForm(clients)
     if form.validate_on_submit():
         body = {'tenant': {
                 'id': tenant.id,
-                'groups': [x.strip() for x in form.groups.data.split(',')],
-                'users': [x.strip() for x in form.users.data.split(',')]}}
+                'groups': form.groups.data,
+                'users': form.users.data}}
         tenant.manager._create(
             '/tenants/%s/' % tenant.id, body, 'tenant')
         flask.flash('Active directory project membership updated.', 'success')

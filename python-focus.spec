@@ -13,6 +13,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 BuildRequires:  python-setuptools
 
+Requires:       python-ldap
 Requires:       python-flask >= 0.9
 Requires:       python-flask-wtf == 0.6
 Requires:       python-flask-principal
