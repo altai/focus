@@ -33,8 +33,8 @@
                       %a href="{{ url_for('project_views.show_tenant', tenant_id=tenant['id']) }}"
                         =tenant['name']
           %ul class="nav pull-right"
-            -if ('role', 'admin') is allowed:
-              -if config['LDAP_INTEGRATION']:
+            -if config['LDAP_INTEGRATION']:
+              -if ('role', 'admin') is allowed:
                 %li
                   %a href="{{ url_for('ad_admins.main') }}"
                     Admins
