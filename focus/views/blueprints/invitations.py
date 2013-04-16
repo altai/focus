@@ -127,7 +127,7 @@ def invite():
         user_email = form.email.data
         if utils.email_is_used(user_email):
             flask.flash(
-                'User with email "%s" is already registered' % email,
+                'User with email "%s" is already registered' % user_email,
                 'error')
         else:
             # NOTE(apugachev) success, user does not exist
