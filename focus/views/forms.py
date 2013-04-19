@@ -292,9 +292,9 @@ class ADProjectMembershipForm(wtf.Form):
         scope = ldap.SCOPE_ONELEVEL
         filterstr = "(objectClass=%s)" % flask.current_app.config['LDAP_GROUP_TREE_OBJECTCLASS']
         name_attr = flask.current_app.config['LDAP_GROUP_NAME_ATTRIBUTE']
-        groups = [x[1][name_attr][0] for x in conn.search_s(base, scope, filterstr)]
+        groups = sorted(x[1][name_attr][0] for x in conn.search_s(base, scope, filterstr))
         conn.unbind_s()
-        users = [x.name for x in clients.admin_clients().keystone.users.list()]
+        users = sorted(x.name for x in clients.admin_clients().keystone.users.list())
         self.groups.choices = zip(groups, groups)
         self.users.choices = zip(users, users)
 
