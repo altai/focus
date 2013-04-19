@@ -1,7 +1,7 @@
 -extends "global_admin_base.haml"
 -block content:
   %div
-    %form method="POST" action="."
+    %form.well method="POST" action="."
       -from "_formhelpers.haml" import render_form_errors
       =form.hidden_tag()
       %fieldset
@@ -11,7 +11,8 @@
         %label
           Users
         {{ form.users() }}
-        %span.help-block
-          List names of groups and users separated by commas
-        %button.btn.btn-primary type="submit"
-          Submit
+        %div.form-actions
+          %button.btn.btn-primary.disable-on-submit type="submit"
+            Submit
+          %a.btn href="{{ url_for('dashboard')}}"
+            Cancel
