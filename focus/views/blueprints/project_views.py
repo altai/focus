@@ -204,13 +204,18 @@ def list_users():
     """
     List users.
     """
-    users = flask.g.tenant.list_users()
+    if not flask.current_app.config['LDAP_INTEGRATION']:
+        users = flask.g.tenant.list_users()
+        subtitle = 'List of users'
+    else:
+        users = []
+        subtitle = 'LDAP/AD integration is on; users are not shown here'
     p = pagination.Pagination(users)
     return {
         'pagination': p,
         'objects': p.slice(users),
         'title': 'Users',
-        'subtitle': 'List of users'
+        'subtitle': subtitle
     }
 
 
