@@ -33,7 +33,7 @@ from focus.views import utils as views_utils
 from focus.views import environments
 from focus.views.blueprints import images
 
-from openstackclient_base.exceptions import NotFound
+from openstackclient_base.exceptions import NotFound, HttpException
 
 bp = environments.project(blueprints.Blueprint('project_views', __name__))
 
@@ -57,9 +57,12 @@ def show_tenant():
         if x['user_id'] in user_id2name:
             x['user_id'] = user_id2name[x['user_id']]
         else:
-            user = clients.admin_clients().keystone.users.get(x['user_id'])
-            user_id2name[x['user_id']] = user.name
-            x['user_id'] = user.name
+            try:
+                user = clients.admin_clients().keystone.users.get(x['user_id'])
+                user_id2name[x['user_id']] = user.name
+                x['user_id'] = user.name
+            except HttpException:
+                pass
 
     return {
         'vms': data,
