@@ -26,6 +26,8 @@ from flaskext import principal
 import focus
 from focus import clients
 
+from openstackclient_base.exceptions import HttpException
+
 
 principals = principal.Principal(focus.app)
 
@@ -45,8 +47,13 @@ def on_identity_loaded(sender, identity):
     is_loose = flask.request.endpoint in loose_endpoints
     if is_loose or is_anon:
         return
-    roles = (clients.admin_clients().identity_admin.roles.
-             roles_for_user(identity.name))
+
+    try:
+        roles = (clients.admin_clients().identity_admin.roles.
+                 roles_for_user(identity.name))
+    except HttpException:
+        return
+
     is_admin = False
     for role_tenant in roles:
         if clients.role_tenant_is_admin(role_tenant):
