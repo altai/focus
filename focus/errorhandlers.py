@@ -53,12 +53,12 @@ if not focus.app.debug:
         Otherwise renders tempalte "blank.haml".
         """
         if type(error) is principal.PermissionDenied:
-            message = 'Permission required.'
-        else:
-            message = getattr(
-                error,
-                'public_message',
-                error.message or str(error.args[0]))
+            # NOTE(imelnikov): we have to handle it here because if it happens
+            # in before_request hooks specific error handlers are not called
+            flask.flash('Permission required', 'error')
+            return flask.redirect(flask.url_for('dashboard'))
+        message = getattr(error, 'public_message',
+                          error.message or str(error.args[0]))
         flask.current_app.log_exception(sys.exc_info())
         keystone_prefix = 'An unexpected error prevented the server from fulfilling your request.'
         if message.startswith(keystone_prefix):
