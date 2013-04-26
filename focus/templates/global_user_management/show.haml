@@ -22,7 +22,11 @@
          -for tenant, roles in user_roles:
            %tr
              %td
-               =tenant.name
+               -if config['LDAP_INTEGRATION']:
+                 %a href="{{ url_for('projects.show', object_id=tenant.id) }}"
+                   =tenant.name
+               -else
+                 =tenant.name
              %td
                =roles|join(', ', attribute='name')
   -if not config['LDAP_INTEGRATION']:
