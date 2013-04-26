@@ -1,4 +1,8 @@
 -extends "global_admin_base.haml"
+-block styles
+  {{ super () }}
+  %link rel="stylesheet" href="{{ url_for('static', filename='vendors/select2/select2.css') }}"
+  %script type="text/javascript" src="{{ url_for('static', filename='amd/ad_project_membership.js') }}"
 -block content:
   %div
     %form.well method="POST" action="."
