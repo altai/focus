@@ -48,8 +48,10 @@ def index():
     This would allow to use marker and limit to fetch one page only.
     """
     identity_admin = clients.admin_clients().identity_admin
+    filter_text = flask.request.args.get('filter', '')
     users = sorted(
-        identity_admin.users.list(limit=1000000),
+        (user for user in identity_admin.users.list(limit=1000000)
+         if filter_text in user.name),
         key=lambda x: x.name)
     p = pagination.Pagination(users)
     data = p.slice(users)
@@ -70,6 +72,7 @@ def index():
     return {
         'pagination': p,
         'data': data,
+        'filter_text': filter_text,
         'title': bp.name.replace('global_', '').replace('_', ' ').capitalize(),
         'subtitle': 'List of users'
     }

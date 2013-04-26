@@ -1,5 +1,11 @@
 -extends "global_admin_base.haml"
 -block content
+  %div align='right'
+    %form method='GET' align='right'
+      %input.search-query type='text' name='filter' value='{{ filter_text }}' placeholder='Filter by username'
+      %button.btn type="submit" -> Apply
+      -if filter_text
+        %a.btn href="." -> Clear
   %table.table.table-striped.table-bordered.table-condensed style="margin-top: 5px;"
     %thead
       %tr
